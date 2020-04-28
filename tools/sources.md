@@ -18,7 +18,7 @@ if sys.argv[1] == "--version" or sys.argv[1] == "-V":
   print("Python 3.7.4")
   exit()
 
-elseif sys.argv[1] == "-c":
+elif sys.argv[1] == "-c":
   exec(sys.argv[2])
   
 else:
