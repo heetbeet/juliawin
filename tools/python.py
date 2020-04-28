@@ -9,4 +9,5 @@ elif sys.argv[1] == "-c":
 else:
   import os
   __file__ = os.path.abspath(sys.argv[1])
+  sys.argv = sys.argv[1:]
   exec(open(__file__).read())
