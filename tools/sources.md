@@ -1,8 +1,8 @@
-## wget
+## wget.exe
 
 Downloaded from https://eternallybored.org/misc/wget/releases/wget-1.20.3-win32.zip on 2020-04-28
 
-## 7zip
+## 7z.dll / 7z.exe
 Used the same version as WinPython.
 
 Downloaded from https://github.com/winpython/winpython/tree/a727a8da6816abd3700e50c8e10860839377fe0f/tools
