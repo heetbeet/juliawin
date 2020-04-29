@@ -1,410 +1,414 @@
-'''Julia-Win batch installer... 2>NUL
+#= 2>NUL
 @echo off
+:: ===================================================== 
+:: This is an automatic install script for Julia
+:: First half of the script is written in batch
+:: Second half of the script is written in Julia
+::
+:: The batch part makes sure the environment is set up
+:: correctly and that Julia is available, while the 
+:: heavy lifting is done in Julia itself.
+:: =====================================================
 
-REM ===================================================== 
-REM This is an automatic install script for Julia
-REM First half of the script is written in batch
-REM Second half of the script are Python routines called 
-REM from batch.
-REM
-REM The batch part makes sure the environment is set up
-REM correctly and that Python 3 is available, while the 
-REM heavy lifting is done in Python.
-REM =====================================================
+
+:: =====================================================
+::	This is the .bat part of the file
+:: 
+::     =/\                 /\=
+::     / \'._   (\_/)   _.'/ \
+::    / .''._'--(o.o)--'_.''. \
+::   /.' _/ |`'=/ " \='`| \_ `.\
+::  /` .' `\;-,'\___/',-;/` '. '\
+:: /.-'       `\(-V-)/`       `-.\
+:: `            "   "            `
+:: =====================================================
 
 
 SETLOCAL EnableDelayedExpansion
+CALL :SHOW-JULIA-ASCII
 
-set PATH=c:\windows\system32;c:\windows\
-
-
-REM ******************************************
-REM Let's first get some variables going
-REM ******************************************
-set "psexe=%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe"
-
-set "juliawintmp=%temp%\juliawin"
-mkdir "%juliawintmp%" 2> NUL
-
-set "toolsdir=%juliawintmp%\tools"
-mkdir "%toolsdir%" 2> NUL
-
-CALL :READPATHSFROMFILE PATHADDITIONS "%juliawintmp%\paths.txt"
-SET "PATH=%PATHADDITIONS%;%PATH%"
-set "PATH=%PATH%;%toolsdir%"
-
-set JULIA_DEPOT_PATH=%juliawintmp%\.julia
+set "arg1=%~1"
+set "arg2=%~2"
 
 
-REM ******************************************
-REM Now lets make sure we have Python
-REM ******************************************
-call :ENSURE_PYTHON_EXISTS
+:: ========== Run from explorer.exe? =======
+:: https://stackoverflow.com/a/61511609/1490584
+set "dclickcmdx=%systemroot%\system32\cmd.exe /c xx%~0x x"
+set "actualcmdx=%cmdcmdline:"=x%"
+
+set isdoubleclicked=0
+if /I "%dclickcmdx%" EQU "%actualcmdx%" (
+	set isdoubleclicked=1
+)
+
+:: ========== Help Menu ===================
+if /I "%arg1%" EQU "/?" goto help
+if /I "%arg1%" EQU "/H" goto help
+if /I "%arg1%" EQU "/HELP" goto help
+if /I "%arg1%" EQU "-H" goto help
+if /I "%arg1%" EQU "-HELP" goto help
+goto exithelp
+:help
+ECHO The setup program accepts one command line parameter.
+Echo:
+ECHO /HELP, /H, /?
+ECHO   Show this information.
+ECHO /Y
+ECHO   Select default directory name.
+ECHO /DIR="x:\Dirname"
+ECHO   Overwrite the default with custom directory.
+goto :EOF-ALIVE
+:exithelp
 
 
-REM ******************************************
-REM Lets run our install script
-REM ******************************************
-REM python %0 HELLO-WORLD
-REM echo:> "%juliawintmp%\paths.txt"
-python %0 GET-TOOLS
-#python %0 GET-JULIA
-#python %0 GET-ATOM
-#python %0 GET-JULIA-PACKAGES
-python %0 MAKE-BINLINKS
+:: ========== Setup Environment ============
+set "tempdir=%temp%\juliawin"
+mkdir "%tempdir%" 2>NUL
+ 
+set "toolsdir=%tempdir%\tools"
+mkdir "%toolsdir%" 2>NUL
 
-CALL :READPATHSFROMFILE PATHADDITIONS "%juliawintmp%\paths.txt"
-SET "PATH=%PATHADDITIONS%;%PATH%"
+set "installdir=%userprofile%\JuliaWin"
 
-where python
 
-REM Guarded subroutines
+:: ========== Custom path provided =========
+IF /I "%arg1%" EQU "/DIR" (
+	set "installdir=%arg2%"
+	goto exitchoice
+)
+
+
+:: ========== Choose Install Dir ===========
+if /I "%arg1%" EQU "/Y" goto exitchoice
+:choice
+Echo: 
+Echo   [Y]es: continue
+Echo   [N]o: cancel the operation
+Echo   [D]irectory: choose my own directory
+Echo: 
+set /P c="Install Julia in %installdir% [Y/N/D]?"
+if /I "%c%" EQU "Y" goto :exitchoice
+if /I "%c%" EQU "N" goto :EOF-FORCE
+if /I "%c%" EQU "D" goto :selectdir
+goto :choice
+:selectdir
+
+call :BROWSE-FOR-FOLDER installdir
+if /I "%installdir%" EQU "Dialog Cancelled" (
+	ECHO: 1>&2
+	ECHO Dialog box cancelled 1>&2
+	goto :EOF-FORCE
+)
+
+if /I "%installdir%" EQU "" (
+	ECHO: 1>&2
+	ECHO Error, folder selection broke 1>&2
+	goto :EOF-DEAD
+)
+:exitchoice
+
+
+:: ========== Ensure install dir is r/w ====
+mkdir "%installdir%" 2>NUL
+echo: > "%installdir%\thisisatestfiledeleteme"
+rm "%installdir%\thisisatestfiledeleteme" >nul 2>&1
+if errorlevel 1 (
+	ECHO: 1>&2
+	ECHO Error, can't read/write to %installdir% 1>&2
+	goto :EOF-DEAD
+)
+
+
+:: ========== Ensure install dir is empty ==
+call :IS-DIRECTORY-EMPTY checkempty "%installdir%"
+if "%checkempty%" EQU "0" (
+	ECHO: 1>&2
+	ECHO Error, the install directory is not empty. 1>&2
+	ECHO: 
+	ECHO You can run the remove command and try again: 1>&2
+	ECHO ^>^> rm "%installdir%" 1>&2
+	goto :EOF-DEAD
+)
+
+
+:: ========== SETUP PATH VARS =============
+SET "PATH=%systemroot%\System32\WindowsPowerShell\v1.0;%PATH%"
+SET "PATH=%installdir%\julia\bin;%PATH%"
+SET "PATH=%installdir%\atom;%PATH%"
+SET "PATH=%installdir%atom\resources\cli;%PATH%"
+SET "PATH=%toolsdir%;%PATH%"
+
+
+:: ========== DOWNLOAD AND INSTALL LATEST JULIA
+ECHO: 
+ECHO () Configuring the download source
+call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
+
+call :GET-URL-FILENAME juliafname "%juliaurl%"
+
+ECHO:
+ECHO () Download %juliaurl% to
+ECHO () %tempdir%\%juliafname%
+
+call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+
+ECHO:
+ECHO () Extracting into %installdir%\julia
+call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
+
+julia %0 
+
+
+:: ================================================
+::	This is where we store the .bat subroutines
+:: 
+::     =/\                 /\=
+::     / \'._   (\_/)   _.'/ \
+::    / .''._'--(o.o)--'_.''. \
+::   /.' _/ |`'=/ " \='`| \_ `.\
+::  /` .' `\;-,'\___/',-;/` '. '\
+:: /.-'       `\(-V-)/`       `-.\
+:: `            "   "            `
+:: ================================================
+goto :EOF-ALIVE
+
+
+:: ***********************************************
+:: Find Download method
+:: ***********************************************
+:REGISTER-DOWNLOAD-METHOD
+	powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
+	set downloadmethod=webrequest
+	if NOT errorlevel 1 goto :EOF
+
+	wget --help >nul 2>&1
+	set downloadmethod=wget
+	if NOT errorlevel 1 goto :EOF
+
+	curl --help >nul 2>&1
+	set downloadmethod=curl
+	if NOT errorlevel 1 goto :EOF
+
+	powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
+	set downloadmethod=webclient
+	if NOT errorlevel 1 goto :EOF
+
+	SET downloadmethod=
+
+	:: We can't find any download method
+	ECHO: 1>&2
+	ECHO Can't find any of these file download utilities: 1>&2
+	ECHO   - PowerShell's Invoke-WebRequest  1>&2
+	ECHO   - PowerShell's Net.WebClients  1>&2
+	ECHO   - wget  1>&2
+	ECHO   - curl  1>&2
+	ECHO: 1>&2
+	ECHO Install any of the above and try again... 1>&2
+	GOTO :EOF-FORCE
+
+goto :EOF
+
+
+:: ***********************************************
+:: Download a file
+:: ***********************************************
+:DOWNLOAD-FILE <url> <filelocation>
+	if "%downloadmethod%"=="" call :REGISTER-DOWNLOAD-METHOD
+	if errorlevel 1 goto :EOF-FORCE
+
+	IF "%downloadmethod%" == "webrequest" (
+	   
+		powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
+
+	) ELSE IF "%downloadmethod%" == "wget" (
+	   
+		wget "%1" -O "%2"
+
+	) ELSE IF "%downloadmethod%" == "curl" (
+
+		curl -s -S -g -L -f -o "%~1" "%~2"
+
+	) ELSE IF "%downloadmethod%" == "webclient" (
+
+		powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
+	)
+
+goto :EOF
+
+
+:: ***********************************************
+:: Get a download link from a download page by matching
+:: a regex and using the first match.
+::
+:: Example:
+:: call :GET-DL-URL linkvar "https://julialang.org/downloads/" "https.*bin/winnt/x64/.*win64.exe"
+:: echo %linkvar%
+::	
+:: ***********************************************
+:GET-DL-URL <%~1 outputvarname> <%~2 download page url> <%~3 regex string>
+
+	:: Download the download-page html
+	call :DOWNLOAD-FILE "%~2" "%tempdir%\download-page.txt"
+
+	:: Split file on '"' quotes so that valid urls will land on a seperate line
+	powershell -Command "(gc '%tempdir%\download-page.txt') -replace '""', [System.Environment]::Newline  | Out-File '%tempdir%\download-page.txt' -encoding utf8"
+
+	::Find the lines of all the valid Regex download links
+	findstr /i /r /c:"%~3" "%tempdir%\download-page.txt" > "%tempdir%\download-links.txt" 
+
+	::Save first occurance to head by reading the file with powershell and taking the first line
+	for /f "usebackq delims=" %%a in (`powershell -Command "(Get-Content '%tempdir%\download-links.txt')[0]"`) do (set "head=%%a")
+
+	::Clean up our temp files
+	rm "%tempdir%\download-page.txt"
+	rm "%tempdir%\download-links.txt"
+
+	::Save the result to the outputvariable
+	set "%~1=%head%"
+
+goto :EOF
+
+
+:: ***********************************************
+:: Given a download link, what is the name of that file
+:: (last thing after last "/")
+:: ***********************************************
+:GET-URL-FILENAME <%~1 outputvarname> <%~2 url>
+
+	:: Loop through each "/" separation and set %~1
+	:: https://stackoverflow.com/a/37631935/1490584
+
+	set "_List_=%~2"
+	set _ItemCount_=0
+
+	:_NextItem_
+	if "%_List_%" == "" goto :EOF
+
+	set /A _ItemCount_+=1
+	for /F "tokens=1* delims=/" %%a in ("%_List_%") do (
+	    :: echo Item %_ItemCount_% is: %%a
+	    set "_List_=%%b"
+	    set "%~1=%%a"
+	)
+	goto _NextItem_
+
+goto :EOF
+
+
+:: ***********************************************
+:: Browse for a folder on your system
+:: ***********************************************
+:BROWSE-FOR-FOLDER <%~1 outputvarname>
+	::I have no idea how this works exactly...
+	::https://stackoverflow.com/a/39593074/1490584
+	set %~1=
+	set _vbs_="%temp%\_.vbs"
+	set _cmd_="%temp%\_.cmd"
+	for %%f in (%_vbs_% %_cmd_%) do if exist %%f del %%f
+	for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
+	(
+	    echo set shell=WScript.CreateObject("Shell.Application"^) 
+	    echo set f=shell.BrowseForFolder(0,"%~1",0,"%~2"^) 
+	    echo if typename(f^)="Nothing" Then  
+	    echo wscript.echo "set %~1=Dialog Cancelled" 
+	    echo WScript.Quit(1^)
+	    echo end if 
+	    echo set fs=f.Items(^):set fi=fs.Item(^) 
+	    echo p=fi.Path:wscript.echo "set %~1=" ^& p
+	)>%_vbs_%
+	cscript //nologo %_vbs_% > %_cmd_%
+	for /f "delims=" %%a in (%_cmd_%) do %%a
+	for %%f in (%_vbs_% %_cmd_%) do if exist %%f del /f /q %%f
+	for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
+
+goto :EOF
+
+
+:: ***********************************************
+:: Test if a directory is empty
+:: ***********************************************
+:IS-DIRECTORY-EMPTY <%~1 outputvarname> <%~2 directory-path>
+	:: No-existant is empty
+	if not exist "%~2" (
+	  set "%~1=1"
+	  goto :EOF
+	)
+
+	:: Is folder empty
+	set _TMP_=
+	for /f "delims=" %%a in ('dir /b "%~2"') do set _TMP_=%%a
+
+	IF {%_TMP_%}=={} (
+	  set "%~1=1"
+	) ELSE (
+	  set "%~1=0"
+	)
+
+goto :EOF
+
+
+:: ***********************************************
+:: Convert content of a variable to upper case. Expensive O(26N)
+:: ***********************************************
+:TOUPPER <%~1 inputoutput variable>
+    for %%L IN (^^ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) DO SET %1=!%1:%%L=%%L!
+
 GOTO :EOF
 
-REM ***********************************************
-REM Routine to make sure we can use python 3
-REM ***********************************************
-:ENSURE_PYTHON_EXISTS
-	python --version >NUL
-	if errorlevel 1 goto PYTHON_DOES_NOT_EXIST
-	python --version | find " 3." >NUL
-	if errorlevel 1 (goto PYTHON_DOES_NOT_EXIST) else (goto :EOF)
 
-	:PYTHON_DOES_NOT_EXIST
-	ECHO Python 3 is not available, we will download a mini Python 3
-	REM old-style powershell download
-	call %psexe% -Command "Invoke-WebRequest 'https://github.com/heetbeet/julia-win/raw/master/tools/python.exe' -OutFile '%toolsdir%\python.exe'"
-
-	python --version  >NUL
-	if errorlevel 1 goto PYTHON_STILL_DOES_NOT_EXIST
-	python --version | find " 3." >NUL
-	if errorlevel 1 (goto PYTHON_STILL_DOES_NOT_EXIST) else (goto :EOF)
-	goto :EOF
-
-	:PYTHON_STILL_DOES_NOT_EXIST
-	REM new-style powershell download
-	call %psexe% -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/heetbeet/julia-win/raw/master/tools/python.exe', '%toolsdir%\python.exe')"	
-	goto :EOF
-
-
-REM ***********************************************
-REM Convert relative path to absolute path
-REM ***********************************************
-:SETFULLPATH
-    set %1=%~f2
-    GOTO :EOF
-
-
-REM ***********************************************
-REM Initiate a variable as empty string
-REM ***********************************************
-:INITVAR
-    SET %1=
-    SET %1>NUL  2>NUL
-    GOTO :EOF
-
-
-REM ***********************************************
-REM Read the user-given paths from the file "path"
-REM ***********************************************
-:READPATHSFROMFILE
-    CALL :INITVAR TMPPATH
-    for /F "tokens=*" %%A in ('type %2') do ( 
-        CALL :SETFULLPATH TMPVAR "%%A"
-        CALL SET "TMPPATH=%%TMPPATH%%;%%TMPVAR%%"
-    )
-    REM Substring to remove the first ";"
-    SET %1=%TMPPATH:~1%
-    SET TMPPATH=
-    SET TMPVAR=
-    GOTO :EOF
-
-
+:: ***********************************************
+:: Print the Julia logo
+:: ***********************************************
+:SHOW-JULIA-ASCII
+	echo                _                                                   
+	echo    _       _ _(_)_     ^|  Documentation: https://docs.julialang.org
+	echo   (_)     ^| (_) (_)    ^|                                           
+	echo    _ _   _^| ^|_  __ _   ^|  Run with "/?" for help                   
+	echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|                                           
+	echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for JuliaWin        
+	echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|                                           
+	echo ^|__/                   ^|                                           
 GOTO :EOF
 
-'''
-#******************************************************
-# This is the Python part of the script
-#
-#******************************************************
-import os
-import sys
-import subprocess
-import re
-import shutil
-from urllib import request
 
-juliawintmp = os.environ["juliawintmp"]
-toolsdir = os.environ["toolsdir"]
-psbin = os.environ["psexe"]
-
-paths = juliawintmp+'/paths.txt'
-
-if os.path.isfile(paths):
-	for i in open(paths).read().split('\n'):
-		i = i.strip()
-		if not i: continue
-
-		if i.lower() not in [i.lower() for i in os.environ["PATH"].split(';')]:
-			os.environ["PATH"] += os.pathsep + i
-
-def add_to_paths(pname):
-	pname = os.path.abspath(pname)
-	if pname not in open(paths, 'r').read().split('\n'):
-		open(paths, 'a').write(os.path.abspath(pname)+'\n')
-
-	if pname.lower() not in [i.lower() for i in os.environ["PATH"].split(';')]:
-		os.environ["PATH"] += os.pathsep + pname
-
-
-def get_download_link(hosturl, regex, prefix="", notcontain=None, takemax=False):
-	url = hosturl
-
-	from urllib.request import Request, urlopen
-	req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-	page = urlopen(req, timeout=15).read().decode('utf-8')
-	page = '\n'.join(page.split('>'))
-	page = '\n'.join(page.split('<'))
-
-	regex = re.compile(".*("+regex+").*")
-	dlurls = regex.findall(page)
-
-	if notcontain:
-		dlurls = [i for i in dlurls if not notcontain in i]
-
-	if takemax:
-		dlurl =	prefix+max(dlurls)
-	else:
-		dlurl =	prefix+max(dlurls[0])
-
-	fname = dlurl.strip('/').split('/')[-1]
-
-	return dlurl, fname
-
-
-def download_file_pshell(dlurl, dest):
-	subprocess.call([
-		psbin,
-		"-Command",
-		f"Invoke-WebRequest '{dlurl}' -OutFile '{dest}'"
-	])
-
-	if not os.path.exists(dest):
-		subprocess.call([
-			psbin,
-			"-Command",
-			f"(New-Object Net.WebClient).DownloadFile('{dlurl}', '{dest}')"
-		])
-
-
-def download_file(dlurl, dest):
-	subprocess.call(f'"wget" "{dlurl}" -O "{dest}"', shell=True)
-
-
-def extract_file(archive, destdir):
-	subprocess.call([
-		"7z",
-		"x",
-		"-y",
-		f"-o{destdir}",
-		archive
-		])
-
-def flatextract_file(archive, destdir, force=True):
-	if force:
-		rmtree(destdir)
-
-	extract_file(archive, destdir)
-
-	if len(os.listdir(destdir)) == 1:
-		deepdir = destdir+'/'+os.listdir(destdir)[0]
-		if os.path.isdir(deepdir):
-			move_tree(deepdir, destdir)
-
-def uniextract_file(archive, destdir):
-	for dirname, dirs, files in os.walk(juliawintmp+"\\uniextract"):
-		for file in files:
-			if file == "UniExtract.exe":
-				uextbin = dirname+"\\"+file
-				break
-	
-	subprocess.call([
-		uextbin,
-		archive,
-		destdir
-	])
-
-def rmtree(dirname):
-	if os.path.isdir(dirname):
-		shutil.rmtree(dirname)
-
-def move_tree(source, dest):
-	source = os.path.abspath(source)
-	dest = os.path.abspath(dest)
-
-	os.makedirs(dest, exist_ok=True)
-
-	for ndir, dirs, files in os.walk(source):
-		for d in dirs:
-			absd = os.path.abspath(ndir+"/"+d)
-			os.makedirs(dest + '/' + absd[len(source):], exist_ok=True)
-
-		for f in files:
-			absf = os.path.abspath(ndir+"/"+f)
-			os.rename(absf, dest + '/' + absf[len(source):])
-	shutil.rmtree(source)
-
-
-if sys.argv[1] == "HELLO-WORLD":
-	print("Hello World")
-
-if sys.argv[1] == "GET-TOOLS":
-	
-	if not shutil.which("wget"):
-		download_file_pshell("https://github.com/heetbeet/julia-win/raw/master/tools/wget.exe", toolsdir+"/wget.exe")
-
-	if not shutil.which("7z"):
-		download_file("https://github.com/heetbeet/julia-win/raw/master/tools/7z.exe", toolsdir+"/7z.exe")
-		download_file("https://github.com/heetbeet/julia-win/raw/master/tools/7z.dll", toolsdir+"/7z.dll")
-
-	add_to_paths(toolsdir)
-
-if sys.argv[1] == "GET-UNIEXTRACT":
-
-	url, fname = get_download_link("https://github.com/Bioruebe/UniExtract2/releases/",
-		                            r"Bioruebe/UniExtract2/releases/download/v.*/Uni.*.zip",
-		                            prefix="https://github.com/")
-	
-	download_file(url, juliawintmp+"\\"+fname)
-	extract_file(juliawintmp+"\\"+fname, juliawintmp+"\\uniextract")
-
-
-if sys.argv[1] == "GET-JULIA":
-
-	url, fname = get_download_link(
-		"https://julialang.org/downloads/",
-		r"https.*bin/winnt/x64/.*win64.exe",
-		takemax=True)
-
-	download_file(url, juliawintmp+"\\"+fname)
-
-	jhome = os.path.abspath(juliawintmp+"\\julia")
-	
-	rmtree(jhome)
-
-	os.makedirs(jhome, exist_ok=True)
-
-	subprocess.call([
-		juliawintmp+"\\"+fname,
-		"/SP-",
-		"/VERYSILENT",
-		f"/DIR={jhome}"
-	])
-
-	add_to_paths(juliawintmp+"\\julia\\bin")
-	
-if sys.argv[1] == "GET-ATOM":
-	url, fname = get_download_link("https://github.com/atom/atom/releases/",
-		                            r"atom/atom/releases/download/v.*/.*x64.*win.*.zip",
-		                            prefix="https://github.com/",
-		                            notcontain="-beta")
-
-	download_file(url, juliawintmp+"\\"+fname)
-
-	rmtree(juliawintmp+"\\atom")
-	extract_file(juliawintmp+"\\"+fname, juliawintmp+"\\atom")
-	deepdir = juliawintmp+"\\atom\\"+os.listdir(juliawintmp+"\\atom")[0]
-	move_tree(deepdir, juliawintmp+"\\atom")
-
-	os.makedirs(juliawintmp+"\\.atom", exist_ok=True)
-
-	add_to_paths(juliawintmp+"\\atom")
-	add_to_paths(juliawintmp+"\\atom\\resources\\cli")
-
-
-if sys.argv[1] == "GET-WINPYTHON":
-	url, fname = get_download_link("https://github.com/winpython/winpython/releases",
-		                            r"winpython/winpython/releases/download/.*/Winpython64-3.*dot.exe",
-		                            prefix="https://github.com/")
-	download_file(url, juliawintmp+"\\"+fname)
-	winpydir = juliawintmp+"\\Winpython64-3"
-	flatextract_file(juliawintmp+"\\"+fname, juliawintmp+"\\Winpython64-3")
-
-	pypath = [i for i in os.listdir(winpydir) if i.startswith("python-") and os.path.isdir(winpydir+'/'+i)][0]
-	add_to_paths(winpydir+"\\"+pypath)
-	add_to_paths(winpydir+"\\"+pypath+"\\scripts")
-
-	#Move toolkit path to end, otherwise we pich up wrong python
-	if os.path.exists(toolsdir+"\\python.exe"):
-		pathsorder = '\n'.join(([i for i in open(paths).read().split('\n') 
-			                     if os.path.abspath(toolsdir).lower() != i.strip().lower()]+[toolsdir]))
-		open(paths, 'w').write(pathsorder)
-
-
-if sys.argv[1] == "GET-JULIA-PACKAGES":
-
-	from urllib.request import Request, urlopen
-	req = Request("https://juliacomputing.com/products/juliapro.html", headers={'User-Agent': 'Mozilla/5.0'})
-	page = urlopen(req, timeout=10).read().decode('utf-8')
-	regex = re.compile(".*(http.*//github.com/.*.jl).*")
-	dlurls = regex.findall(page)
-	
-	print("The following packages get's suggested by Julia Pro, let's try installing them:")
-	for i in dlurls:
-		print(" ->", i.split('/')[-1])
-
-	def add_pkg(pkgname):
-	    subprocess.call(["julia",  "-e", f'using Pkg; Pkg.add("{pkgname}")'])
-
-	#pacnames = [i.split('/')[-1].split('.jl')[0] for i in dlurls]
-	#for nr, packname in enumerate(pacnames):
-	#	print("\n\n+============================+")
-	#	print(f"    Trying {pacname} {nr+1}/{len(dlurls)} ")
-	#	print( "+============================+\n")
-	#	
-	#	add_pkg(pacname)
-
-	outfile = (juliawintmp+"/juliapackages.txt").replace('\\','/')
-	print(outfile)
-	subprocess.call([
-		 "julia", 
-		 "-e",
-		 rf'using Pkg; f=open("{outfile}", "w"); write(f, join([i[2].name for i in Pkg.dependencies()], ";")); close(f)'
-		])
-
-if sys.argv[1] == "MAKE-BINLINKS":
-	juliawintmp = os.path.abspath(juliawintmp)
-	pathslist = [os.path.abspath(i) for i in open(paths, 'r').read().split('\n') if i.strip()]
-	pathslist = [i for i in pathslist if i.lower() != os.path.abspath(toolsdir).lower()]
-
-	pathvar = '\n'.join([rf"set 'PATH=%~dp0{i[len(juliawintmp):]};%PATH%'" for i in pathslist])
-
-	template = rf'''@echo off
-set "JULIA_DEPOT_PATH=%~dp0\.julia"
-{pathvar}
-
-__binpath__ %*
-'''
-
-	exes = []
-	for p in pathslist:
-		p = p.strip()
-		if not p: continue
-		if not os.path.isdir(p): continue
-
-		pabs = os.path.abspath(p)
-
-		exes = exes+[os.path.abspath(p+'/'+i)[len(juliawintmp):] for i in os.listdir(p) if 
-		[True for j in  ".COM .EXE .BAT .CMD .VBS .VBE .WSF .WSH .MSC".split() if i.upper().endswith(j)]]
-
-
-	fnames = {os.path.basename(j).lower() for j in exes}
-	for i in exes:
-		fname = os.path.basename(i)
-		fprog = os.path.splitext(fname)[0]
-		if not fname.lower().endswith('.exe') and fprog.lower()+".exe" in fnames:
-			#rather wait for exe
-			continue
-
-		open(juliawintmp + '/' + os.path.splitext(fname)[0]+'.bat', 'w'
-		).write(template.replace("__binpath__", rf"%~dp0{i}"))
+:: ***********************************************
+:: Three exit stategies
+:: ***********************************************
+:EOF-DEAD
+	::courtesy pause for explorer runners
+	if "%isdoubleclicked%" EQU "1" (
+		ECHO:
+		pause
+	)
+	exit /b 1
+
+:EOF-FORCE
+	::We don't care about pausing
+	exit /b 1
+
+:EOF-ALIVE
+	::courtesy pause for explorer runners
+	if "%isdoubleclicked%" EQU "1" (
+		ECHO:
+		pause
+	)
+	goto :EOF
+
+
+
+:: ====================================================================
+::	This is the end of our batch script...
+::  below are the Julia part of this file
+::                _
+::    _       _ _(_)_     |  
+::   (_)     | (_) (_)    |
+::    _ _   _| |_  __ _   | 
+::   | | | | | | |/ _` |  |
+::   | | |_| | | | (_| |  |                            
+::  _/ |\__'_|_|_|\__'_|  |                                         
+:: |__/                   |
+:: ====================================================================
+=#
+
+
+println("hello world")
