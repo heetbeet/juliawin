@@ -19,3 +19,15 @@ Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> the fol
 ```
 
 ## Outcome
+
+Everything gets installed into a single self-contained directory. The result is completely portable and can be run from a external device:
+
+![prompt](https://github.com/heetbeet/julia-win/raw/master/images/example-prompt.png)
+
+
+## Future work
+
+* Make prettier entry executables than .bat files (Use an automatic NSIS pipeline to produce .exe's with icons).
+* Installer should clean up it's temp directory.
+* Download the list of curated packages from Julia Pro and create an `install-curated-packages.bat` helper for the user.
+* Added options for offline installation.
