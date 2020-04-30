@@ -39,22 +39,20 @@ set "arg2=%~2"
 set "dclickcmdx=%systemroot%\system32\cmd.exe /c xx%~0x x"
 set "actualcmdx=%cmdcmdline:"=x%"
 
-IF /I "%arg1%" EQU "/P" (
-	set dclickcmdx=same
-	set actualcmdx=same
-	set %~1=
-)
-
 :: If double clicked, restart with a pause guard
 if /I "%dclickcmdx%" EQU "%actualcmdx%" (
 	call "%~dpn0" %*
 	echo:
 	pause
-	if %errorlevel% NEQ 0 (
-		exit /b 1
-	) else (
-		goto :EOF
-	)
+	goto :EOF
+)
+
+:: If given flag, run with pause guard
+IF /I "%arg1%" EQU "/P" (
+	call "%~dpn0"
+	echo:
+	pause
+	goto :EOF
 )
 
 :: ========== Help Menu ===================
