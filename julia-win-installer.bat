@@ -39,6 +39,11 @@ set "arg2=%~2"
 set "dclickcmdx=%systemroot%\system32\cmd.exe /c xx%~0x x"
 set "actualcmdx=%cmdcmdline:"=x%"
 
+IF /I "%arg1%" EQU "/P" (
+	set dclickcmdx=same
+	set actualcmdx=same
+)
+
 :: If double clicked, restart with a pause guard
 if /I "%dclickcmdx%" EQU "%actualcmdx%" (
 	call "%~dpn0" %*
@@ -65,6 +70,8 @@ ECHO The setup program accepts one command line parameter.
 Echo:
 ECHO /HELP, /H, /?
 ECHO   Show this information.
+ECHO /P
+ECHO   Pause installer before completion.
 ECHO /Y
 ECHO   Select default directory name.
 ECHO /DIR="x:\Dirname"
@@ -183,6 +190,7 @@ call julia "%thisfile%" INSTALL-JUNO
 call julia "%thisfile%" INSTALL-JUPYTER
 call julia "%thisfile%" MAKE-BATS
 
+echo () End of installation
 
 :: ================================================
 ::	This is where we store the .bat subroutines
@@ -426,18 +434,18 @@ GOTO :EOF
 	exit /b 1
 
 
-:: ===============================================
+:: ====================================================================
 ::	This is the end of our batch script...
 ::  below are the Julia part of this file
-::                            _         
-::                _       _ _(_)_       
-::               (_)     | (_) (_)      
-::                _ _   _| |_  __ _     
-::               | | | | | | |/ _` |    
-::               | | |_| | | | (_| |    
-::              _/ |\__'_|_|_|\__'_|    
-::             |__/                     
-:: ===============================================
+::                _
+::    _       _ _(_)_     |
+::   (_)     | (_) (_)    |
+::    _ _   _| |_  __ _   |
+::   | | | | | | |/ _` |  |
+::   | | |_| | | | (_| |  |
+::  _/ |\__'_|_|_|\__'_|  |
+:: |__/                   |
+:: ====================================================================
 =#
 
 
@@ -491,6 +499,12 @@ function extract_file(archive, destdir, fixdepth=true)
 end
 
 
+if runroutine == "HELLO-WORLD"
+
+	println("() Hello World")
+
+end
+
 if runroutine == "INSTALL-ATOM"
 	#https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
 	atomurl = get_dl_url("https://github.com/atom/atom/releases",
@@ -503,7 +517,6 @@ if runroutine == "INSTALL-ATOM"
 	mkpath(joinpath(installdir, ".atom"))
 
 end
-
 
 if runroutine == "INSTALL-JUNO"
 
