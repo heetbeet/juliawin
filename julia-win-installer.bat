@@ -180,6 +180,7 @@ call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 call julia --color=yes -e "Base.banner()"
 call julia "%thisfile%" INSTALL-ATOM
 call julia "%thisfile%" INSTALL-JUNO
+call julia "%thisfile%" INSTALL-JUPYTER
 call julia "%thisfile%" MAKE-BATS
 
 
@@ -425,18 +426,18 @@ GOTO :EOF
 	exit /b 1
 
 
-:: ====================================================================
+:: ===============================================
 ::	This is the end of our batch script...
 ::  below are the Julia part of this file
-::                _
-::    _       _ _(_)_     |
-::   (_)     | (_) (_)    |
-::    _ _   _| |_  __ _   |
-::   | | | | | | |/ _` |  |
-::   | | |_| | | | (_| |  |
-::  _/ |\__'_|_|_|\__'_|  |
-:: |__/                   |
-:: ====================================================================
+::                            _         
+::                _       _ _(_)_       
+::               (_)     | (_) (_)      
+::                _ _   _| |_  __ _     
+::               | | | | | | |/ _` |    
+::               | | |_| | | | (_| |    
+::              _/ |\__'_|_|_|\__'_|    
+::             |__/                     
+:: ===============================================
 =#
 
 
@@ -490,12 +491,6 @@ function extract_file(archive, destdir, fixdepth=true)
 end
 
 
-if runroutine == "HELLO-WORLD"
-
-	println("() Hello World")
-
-end
-
 if runroutine == "INSTALL-ATOM"
 	#https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
 	atomurl = get_dl_url("https://github.com/atom/atom/releases",
@@ -508,6 +503,7 @@ if runroutine == "INSTALL-ATOM"
 	mkpath(joinpath(installdir, ".atom"))
 
 end
+
 
 if runroutine == "INSTALL-JUNO"
 
@@ -527,32 +523,49 @@ if runroutine == "INSTALL-JUNO"
 	Pkg.add("Juno")
 end
 
+
+if runroutine == "INSTALL-JUPYTER"
+	using Pkg
+	Pkg.add("PyCall")
+	Pkg.add("IJulia")
+	Pkg.add("Conda")
+
+	using Conda
+	Conda.add("jupyter")
+	Conda.add("jupyterlab")
+
+	Pkg.add("PyPlot")
+end
+
+
 if runroutine == "MAKE-BATS"
 	mkpath(joinpath(installdir, "scripts"))
 
 	juliawinenviron=raw"""
-	@echo off
-	__setpath__
+		@echo off
+		__setpath__
 
-	set "JULIA_DEPOT_PATH=%~dp0\..\.julia"
-	set "ATOM_HOME=%~dp0\..\.atom"
-	"""
+		set "JULIA_DEPOT_PATH=%~dp0..\.julia"
+		set "ATOM_HOME=%~dp0..\.atom"
+		"""
 
 	battemplate=raw"""
-	@echo off
-	call %~dp0\juliawin-environment.bat
-	call __exec__ %*
-	exit /b %errorlevel%
-	"""
+		@echo off
+		SETLOCAL
+		call %~dp0\juliawin-environment.bat
+
+		__exec__
+
+		exit /b %errorlevel%
+		"""
 
 	paths = raw"""
-	\julia\bin
-	\julia\libexec
-	\atom
-	\atom\resources\cli
-	""" |> split
+		julia\bin
+		atom
+		atom\resources\cli
+		""" |> split
 
-	pathsbat = join(["""SET "PATH=%~dp0\\..$path;%PATH%" """ for path in paths], "\n")
+	pathsbat = join(["""SET "PATH=%~dp0..\\$path;%PATH%" """ for path in paths], "\n")
 	juliawinenviron = replace(juliawinenviron, "__setpath__"=>pathsbat)
 	open(joinpath(installdir,"scripts","juliawin-environment.bat"), "w") do f
 		write(f, juliawinenviron)
@@ -562,7 +575,7 @@ if runroutine == "MAKE-BATS"
 	files = Dict{String, String}()
 	for path in paths
 		println(path)
-		for file in readdir(installdir*path)
+		for file in readdir(joinpath(installdir, path))
 			#make sure exe > others
 			(name, ext) = splitext(file)
 			if ext == ".exe"
@@ -574,12 +587,28 @@ if runroutine == "MAKE-BATS"
 		end
 	end
 
-
 	for (name, path) in files
-		battxt = replace(battemplate, "__exec__"=>"\"%~dp0\\..$path\"")
+		battxt = replace(battemplate, "__exec__"=>"call \"%~dp0\\..\\$path\" %*")
 		open(joinpath(installdir,"scripts",name*".bat"), "w") do f
 			write(f, battxt)
 		end
+	end
+
+	#Custom one for atom, since atom can't be next to julia.bat (why???)
+	open(joinpath(installdir,"scripts","atom.bat"), "w") do f
+		(name, path) = ("atom", files["atom"])
+
+		battxt = replace(battemplate, "__exec__"=> """
+
+			::for some reason juno hates (!!!) being next to julia.bat
+			set "curdir=%~dp0"
+			set "curdir=%curdir:~0,-1%"
+			if /i "%cd%" EQU "%curdir%" cd ..\\atom
+
+			call \"%~dp0\\..\\$path\" %*
+			""")
+
+		write(f, battxt)
 	end
 
 	open(joinpath(installdir, "scripts", "noshell.vbs"), "w") do f
@@ -607,10 +636,35 @@ if runroutine == "MAKE-BATS"
 		"""
 		)
 	end
+
+	open(joinpath(installdir,"IJulia-Lab.bat"),"w") do f
+		write(f, raw"""
+		@echo off
+		call %~dp0\scripts\julia.bat -e "using IJulia; jupyterlab()"
+		exit /b %errorlevel%
+		"""
+		)
+	end
+
+	open(joinpath(installdir,"IJulia-Notebook.bat"),"w") do f
+		write(f, raw"""
+		@echo off
+		call %~dp0\scripts\julia.bat -e "using IJulia; notebook()"
+		exit /b %errorlevel%
+		"""
+		)
+	end
+
 	open(joinpath(installdir,"atom.bat"),"w") do f
 		write(f, raw"""
 		@echo off
-		start "" %~dp0\scripts\noshell.vbs %~dp0\scripts\atom.bat %*
+
+		::for some reason juno hates (!!!) being next to julia.bat
+		set "curdir=%~dp0"
+		set "curdir=%curdir:~0,-1%"
+		if /i "%cd%" EQU "%curdir%" cd atom
+
+		start "" "%~dp0\scripts\noshell.vbs" "%~dp0\scripts\atom.bat" %*
 		exit /b %errorlevel%
 		"""
 		)
