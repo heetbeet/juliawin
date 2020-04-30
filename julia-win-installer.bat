@@ -1,19 +1,19 @@
 #= 2>NUL
 @echo off
-:: ===================================================== 
+:: =====================================================
 :: This is an automatic install script for Julia
 :: First half of the script is written in batch
 :: Second half of the script is written in Julia
 ::
 :: The batch part makes sure the environment is set up
-:: correctly and that Julia is available, while the 
+:: correctly and that Julia is available, while the
 :: heavy lifting is done in Julia itself.
 :: =====================================================
 
 
 :: =====================================================
 ::	This is the .bat part of the file
-:: 
+::
 ::     =/\                 /\=
 ::     / \'._   (\_/)   _.'/ \
 ::    / .''._'--(o.o)--'_.''. \
@@ -25,7 +25,10 @@
 
 
 SETLOCAL EnableDelayedExpansion
-CALL :SHOW-JULIA-ASCII
+
+:: Ensure thisfile has file extension
+set "thisfile=%~0"
+if "%~n0" EQU "%~n0%~x0" (set "thisfile=%thisfile%.bat")
 
 set "arg1=%~1"
 set "arg2=%~2"
@@ -36,12 +39,21 @@ set "arg2=%~2"
 set "dclickcmdx=%systemroot%\system32\cmd.exe /c xx%~0x x"
 set "actualcmdx=%cmdcmdline:"=x%"
 
-set isdoubleclicked=0
+:: If double clicked, restart with a pause guard
 if /I "%dclickcmdx%" EQU "%actualcmdx%" (
-	set isdoubleclicked=1
+	call "%~dpn0" %*
+	echo:
+	pause
+	if %errorlevel% NEQ 0 (
+		exit /b 1
+	) else (
+		goto :EOF
+	)
 )
 
 :: ========== Help Menu ===================
+CALL :SHOW-JULIA-ASCII
+
 if /I "%arg1%" EQU "/?" goto help
 if /I "%arg1%" EQU "/H" goto help
 if /I "%arg1%" EQU "/HELP" goto help
@@ -64,12 +76,13 @@ goto :EOF-ALIVE
 :: ========== Setup Environment ============
 set "tempdir=%temp%\juliawin"
 mkdir "%tempdir%" 2>NUL
- 
+
 set "toolsdir=%tempdir%\tools"
 mkdir "%toolsdir%" 2>NUL
 
 set "installdir=%userprofile%\JuliaWin"
 
+echo %thisfile% > "%tempdir%\thisfile.txt"
 
 :: ========== Custom path provided =========
 IF /I "%arg1%" EQU "/DIR" (
@@ -81,14 +94,14 @@ IF /I "%arg1%" EQU "/DIR" (
 :: ========== Choose Install Dir ===========
 if /I "%arg1%" EQU "/Y" goto exitchoice
 :choice
-Echo: 
+Echo:
 Echo   [Y]es: continue
 Echo   [N]o: cancel the operation
 Echo   [D]irectory: choose my own directory
-Echo: 
+Echo:
 set /P c="Install Julia in %installdir% [Y/N/D]?"
 if /I "%c%" EQU "Y" goto :exitchoice
-if /I "%c%" EQU "N" goto :EOF-FORCE
+if /I "%c%" EQU "N" goto :EOF-DEAD
 if /I "%c%" EQU "D" goto :selectdir
 goto :choice
 :selectdir
@@ -97,7 +110,7 @@ call :BROWSE-FOR-FOLDER installdir
 if /I "%installdir%" EQU "Dialog Cancelled" (
 	ECHO: 1>&2
 	ECHO Dialog box cancelled 1>&2
-	goto :EOF-FORCE
+	goto :EOF-DEAD
 )
 
 if /I "%installdir%" EQU "" (
@@ -112,7 +125,7 @@ if /I "%installdir%" EQU "" (
 mkdir "%installdir%" 2>NUL
 echo: > "%installdir%\thisisatestfiledeleteme"
 rm "%installdir%\thisisatestfiledeleteme" >nul 2>&1
-if errorlevel 1 (
+if %errorlevel% NEQ 0 (
 	ECHO: 1>&2
 	ECHO Error, can't read/write to %installdir% 1>&2
 	goto :EOF-DEAD
@@ -124,44 +137,55 @@ call :IS-DIRECTORY-EMPTY checkempty "%installdir%"
 if "%checkempty%" EQU "0" (
 	ECHO: 1>&2
 	ECHO Error, the install directory is not empty. 1>&2
-	ECHO: 
+	ECHO:
 	ECHO You can run the remove command and try again: 1>&2
 	ECHO ^>^> rm "%installdir%" 1>&2
 	goto :EOF-DEAD
 )
 
 
+:: ========== Save this path to a file ==
+echo %installdir% > "%tempdir%\installdir.txt"
+
 :: ========== SETUP PATH VARS =============
 SET "PATH=%systemroot%\System32\WindowsPowerShell\v1.0;%PATH%"
 SET "PATH=%installdir%\julia\bin;%PATH%"
+SET "PATH=%installdir%\julia\libexec;%PATH%"
 SET "PATH=%installdir%\atom;%PATH%"
-SET "PATH=%installdir%atom\resources\cli;%PATH%"
-SET "PATH=%toolsdir%;%PATH%"
+SET "PATH=%installdir%\atom\resources\cli;%PATH%"
 
+set "JULIA_DEPOT_PATH=%installdir%\.julia"
+set "ATOM_HOME=%installdir%\.atom"
 
 :: ========== DOWNLOAD AND INSTALL LATEST JULIA
-ECHO: 
+ECHO:
 ECHO () Configuring the download source
+
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
+if %errorlevel% NEQ 0 goto :EOF-DEAD
 
 call :GET-URL-FILENAME juliafname "%juliaurl%"
 
-ECHO:
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
 call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+if %errorlevel% NEQ 0 goto :EOF-DEAD
 
-ECHO:
+
 ECHO () Extracting into %installdir%\julia
 call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 
-julia %0 
+
+call julia --color=yes -e "Base.banner()"
+call julia "%thisfile%" INSTALL-ATOM
+call julia "%thisfile%" INSTALL-JUNO
+call julia "%thisfile%" MAKE-BATS
 
 
 :: ================================================
 ::	This is where we store the .bat subroutines
-:: 
+::
 ::     =/\                 /\=
 ::     / \'._   (\_/)   _.'/ \
 ::    / .''._'--(o.o)--'_.''. \
@@ -170,28 +194,28 @@ julia %0
 :: /.-'       `\(-V-)/`       `-.\
 :: `            "   "            `
 :: ================================================
-goto :EOF-ALIVE
+goto :EOF
 
 
 :: ***********************************************
 :: Find Download method
 :: ***********************************************
 :REGISTER-DOWNLOAD-METHOD
-	powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
+	call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
 	set downloadmethod=webrequest
-	if NOT errorlevel 1 goto :EOF
+	if %errorlevel% EQU 0 goto :method-success
 
-	wget --help >nul 2>&1
+	call wget --help >nul 2>&1
 	set downloadmethod=wget
-	if NOT errorlevel 1 goto :EOF
+	if %errorlevel% EQU 0 goto :method-success
 
-	curl --help >nul 2>&1
+	call curl --help >nul 2>&1
 	set downloadmethod=curl
-	if NOT errorlevel 1 goto :EOF
+	if %errorlevel% EQU 0 goto :method-success
 
-	powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
+	call powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
 	set downloadmethod=webclient
-	if NOT errorlevel 1 goto :EOF
+	if %errorlevel% EQU 0 goto :method-success
 
 	SET downloadmethod=
 
@@ -204,7 +228,10 @@ goto :EOF-ALIVE
 	ECHO   - curl  1>&2
 	ECHO: 1>&2
 	ECHO Install any of the above and try again... 1>&2
-	GOTO :EOF-FORCE
+	GOTO :EOF-DEAD
+
+	:method-success
+	echo () Download method %downloadmethod% is available
 
 goto :EOF
 
@@ -214,23 +241,27 @@ goto :EOF
 :: ***********************************************
 :DOWNLOAD-FILE <url> <filelocation>
 	if "%downloadmethod%"=="" call :REGISTER-DOWNLOAD-METHOD
-	if errorlevel 1 goto :EOF-FORCE
+	if %errorlevel% EQU 1 goto :EOF-DEAD
 
 	IF "%downloadmethod%" == "webrequest" (
-	   
-		powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
+
+		call powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
+		if %errorlevel% NEQ 0 goto EOF-DEAD
 
 	) ELSE IF "%downloadmethod%" == "wget" (
-	   
-		wget "%1" -O "%2"
+
+		call wget "%1" -O "%2"
+		if %errorlevel% NEQ 0 goto EOF-DEAD
 
 	) ELSE IF "%downloadmethod%" == "curl" (
 
-		curl -s -S -g -L -f -o "%~1" "%~2"
+		call curl -s -S -g -L -f -o "%~1" "%~2"
+		if %errorlevel% NEQ 0 goto EOF-DEAD
 
 	) ELSE IF "%downloadmethod%" == "webclient" (
 
-		powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
+		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
+		if %errorlevel% NEQ 0 goto EOF-DEAD
 	)
 
 goto :EOF
@@ -243,29 +274,45 @@ goto :EOF
 :: Example:
 :: call :GET-DL-URL linkvar "https://julialang.org/downloads/" "https.*bin/winnt/x64/.*win64.exe"
 :: echo %linkvar%
-::	
+::
 :: ***********************************************
 :GET-DL-URL <%~1 outputvarname> <%~2 download page url> <%~3 regex string>
 
+	::name of html file
+	set "_urlslug_=%~2"
+	set "_urlslug_=%_urlslug_:/=-%"
+	set "_urlslug_=%_urlslug_::=%"
+
+	set "_htmlfile_=%tempdir%\%_urlslug_%"
+	set "_linksfile_=%tempdir%\%_urlslug_%-links.txt"
+
+	echo () Download link is in %~2
+	echo () Fetch as %_htmlfile_%
+
+
 	:: Download the download-page html
-	call :DOWNLOAD-FILE "%~2" "%tempdir%\download-page.txt"
+	call :DOWNLOAD-FILE "%~2" "%_htmlfile_%"
+	if %errorlevel% NEQ 0 goto EOF-DEAD
+
+	::echo () Find download link in %_htmlfile_%
 
 	:: Split file on '"' quotes so that valid urls will land on a seperate line
-	powershell -Command "(gc '%tempdir%\download-page.txt') -replace '""', [System.Environment]::Newline  | Out-File '%tempdir%\download-page.txt' -encoding utf8"
+	powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
 
 	::Find the lines of all the valid Regex download links
-	findstr /i /r /c:"%~3" "%tempdir%\download-page.txt" > "%tempdir%\download-links.txt" 
+	findstr /i /r /c:"%~3" "%_htmlfile_%--split" > "%_linksfile_%"
+	rm "%_htmlfile_%--split"
 
 	::Save first occurance to head by reading the file with powershell and taking the first line
-	for /f "usebackq delims=" %%a in (`powershell -Command "(Get-Content '%tempdir%\download-links.txt')[0]"`) do (set "head=%%a")
+	for /f "usebackq delims=" %%a in (`powershell -Command "(Get-Content '%_linksfile_%')[0]"`) do (set "head=%%a")
 
 	::Clean up our temp files
-	rm "%tempdir%\download-page.txt"
-	rm "%tempdir%\download-links.txt"
+	::nope leave it alone...
 
 	::Save the result to the outputvariable
 	set "%~1=%head%"
 
+	if %errorlevel% NEQ 0 goto EOF-DEAD
 goto :EOF
 
 
@@ -307,13 +354,13 @@ goto :EOF
 	for %%f in (%_vbs_% %_cmd_%) do if exist %%f del %%f
 	for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
 	(
-	    echo set shell=WScript.CreateObject("Shell.Application"^) 
-	    echo set f=shell.BrowseForFolder(0,"%~1",0,"%~2"^) 
-	    echo if typename(f^)="Nothing" Then  
-	    echo wscript.echo "set %~1=Dialog Cancelled" 
+	    echo set shell=WScript.CreateObject("Shell.Application"^)
+	    echo set f=shell.BrowseForFolder(0,"%~1",0,"%~2"^)
+	    echo if typename(f^)="Nothing" Then
+	    echo wscript.echo "set %~1=Dialog Cancelled"
 	    echo WScript.Quit(1^)
-	    echo end if 
-	    echo set fs=f.Items(^):set fi=fs.Item(^) 
+	    echo end if
+	    echo set fs=f.Items(^):set fi=fs.Item(^)
 	    echo p=fi.Path:wscript.echo "set %~1=" ^& p
 	)>%_vbs_%
 	cscript //nologo %_vbs_% > %_cmd_%
@@ -360,55 +407,213 @@ GOTO :EOF
 :: Print the Julia logo
 :: ***********************************************
 :SHOW-JULIA-ASCII
-	echo                _                                                   
+	echo                _
 	echo    _       _ _(_)_     ^|  Documentation: https://docs.julialang.org
-	echo   (_)     ^| (_) (_)    ^|                                           
-	echo    _ _   _^| ^|_  __ _   ^|  Run with "/?" for help                   
-	echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|                                           
-	echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for JuliaWin        
-	echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|                                           
-	echo ^|__/                   ^|                                           
+	echo   (_)     ^| (_) (_)    ^|
+	echo    _ _   _^| ^|_  __ _   ^|  Run with "/?" for help
+	echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|
+	echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for JuliaWin
+	echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
+	echo ^|__/                   ^|
 GOTO :EOF
 
 
 :: ***********************************************
-:: Three exit stategies
+:: End in error
 :: ***********************************************
 :EOF-DEAD
-	::courtesy pause for explorer runners
-	if "%isdoubleclicked%" EQU "1" (
-		ECHO:
-		pause
-	)
 	exit /b 1
-
-:EOF-FORCE
-	::We don't care about pausing
-	exit /b 1
-
-:EOF-ALIVE
-	::courtesy pause for explorer runners
-	if "%isdoubleclicked%" EQU "1" (
-		ECHO:
-		pause
-	)
-	goto :EOF
-
 
 
 :: ====================================================================
 ::	This is the end of our batch script...
 ::  below are the Julia part of this file
 ::                _
-::    _       _ _(_)_     |  
+::    _       _ _(_)_     |
 ::   (_)     | (_) (_)    |
-::    _ _   _| |_  __ _   | 
+::    _ _   _| |_  __ _   |
 ::   | | | | | | |/ _` |  |
-::   | | |_| | | | (_| |  |                            
-::  _/ |\__'_|_|_|\__'_|  |                                         
+::   | | |_| | | | (_| |  |
+::  _/ |\__'_|_|_|\__'_|  |
 :: |__/                   |
 :: ====================================================================
 =#
 
 
-println("hello world")
+juliatemp = joinpath(tempdir(), "juliawin")
+installdir = strip(read(open(joinpath(juliatemp, "installdir.txt")), String))
+thisfile = strip(read(open(joinpath(juliatemp, "thisfile.txt")), String))
+runroutine = ARGS[1]
+
+#=
+Same method as the bat equivalent
+=#
+function get_dl_url(url, domatch, notmatch=nothing, prefix="")
+	urlslug = replace(url, "/"=>"-")
+	urlslug = replace(urlslug, ":"=>"")
+	lnkpath = joinpath(juliatemp, urlslug)
+	download(url, lnkpath)
+	println(lnkpath)
+	open(lnkpath) do file
+		pagecontent = read(file, String)
+		for line in split(pagecontent, "\"") #"
+			if match(domatch, ""*line) != nothing
+				if notmatch==nothing || match(notmatch, ""*line) == nothing
+					return prefix*line
+				end
+			end
+		end
+	end
+end
+
+function download_asset(dlurl)
+	path = joinpath(juliatemp, split(dlurl, "/")[end])
+	println("() Downloading $dlurl to")
+	println("() $path, this may take a while")
+	download(dlurl, path)
+	return path
+end
+
+
+function extract_file(archive, destdir, fixdepth=true)
+	mkpath(destdir)
+	run(`7z x -y "-o$destdir" "$archive"`)
+	if fixdepth
+		dirs = filter(x -> isdir(joinpath(destdir, x)), readdir(destdir))
+		if length(dirs) == 1
+			tmpdest = destdir*"--resolve-depth"
+			mv(destdir, tmpdest, force=true)
+			mv(joinpath(tmpdest,dirs[1]), destdir, force=true)
+			rm(tmpdest, force=true, recursive=true)
+		end
+	end
+end
+
+
+if runroutine == "HELLO-WORLD"
+
+	println("() Hello World")
+
+end
+
+if runroutine == "INSTALL-ATOM"
+	#https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
+	atomurl = get_dl_url("https://github.com/atom/atom/releases",
+						r"/atom/atom/.*x64.*zip",
+						r"-beta",
+						"https://github.com/")
+	atomzip = download_asset(atomurl)
+
+	extract_file(atomzip, joinpath(installdir, "atom"))
+	mkpath(joinpath(installdir, ".atom"))
+
+end
+
+if runroutine == "INSTALL-JUNO"
+
+	#https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
+	#make apm available as .bat as well
+	run(`apm.cmd install language-julia`)
+	run(`apm.cmd install julia-client`)
+	run(`apm.cmd install ink`)
+	run(`apm.cmd install uber-juno`)
+	run(`apm.cmd install latex-completions`)
+	run(`apm.cmd install indent-detective`)
+	run(`apm.cmd install hyperclick`)
+	run(`apm.cmd install tool-bar`)
+
+	using Pkg;
+	Pkg.add("Atom")
+	Pkg.add("Juno")
+end
+
+if runroutine == "MAKE-BATS"
+	mkpath(joinpath(installdir, "scripts"))
+
+	juliawinenviron=raw"""
+	@echo off
+	__setpath__
+
+	set "JULIA_DEPOT_PATH=%~dp0\..\.julia"
+	set "ATOM_HOME=%~dp0\..\.atom"
+	"""
+
+	battemplate=raw"""
+	@echo off
+	call %~dp0\juliawin-environment.bat
+	call __exec__ %*
+	exit /b %errorlevel%
+	"""
+
+	paths = raw"""
+	\julia\bin
+	\julia\libexec
+	\atom
+	\atom\resources\cli
+	""" |> split
+
+	pathsbat = join(["""SET "PATH=%~dp0\\..$path;%PATH%" """ for path in paths], "\n")
+	juliawinenviron = replace(juliawinenviron, "__setpath__"=>pathsbat)
+	open(joinpath(installdir,"scripts","juliawin-environment.bat"), "w") do f
+		write(f, juliawinenviron)
+	end
+
+	exts = ".exe .bat .cmd .vbs .vbe .js .msc" |> split
+	files = Dict{String, String}()
+	for path in paths
+		println(path)
+		for file in readdir(installdir*path)
+			#make sure exe > others
+			(name, ext) = splitext(file)
+			if ext == ".exe"
+				files[name] = joinpath(path, file)
+			end
+			if ! haskey(files, name) && ext in exts
+				files[name] = joinpath(path, file)
+			end
+		end
+	end
+
+
+	for (name, path) in files
+		battxt = replace(battemplate, "__exec__"=>"\"%~dp0\\..$path\"")
+		open(joinpath(installdir,"scripts",name*".bat"), "w") do f
+			write(f, battxt)
+		end
+	end
+
+	open(joinpath(installdir, "scripts", "noshell.vbs"), "w") do f
+		quadstr = "\"\"\"\""
+		write(f, """
+		If WScript.Arguments.Count >= 1 Then
+		    ReDim arr(WScript.Arguments.Count-1)
+		    For i = 0 To WScript.Arguments.Count-1
+		        Arg = WScript.Arguments(i)
+		        If InStr(Arg, " ") > 0 Then Arg = $quadstr & Arg & $quadstr
+		      arr(i) = Arg
+		    Next
+
+		    RunCmd = Join(arr)
+		    CreateObject("Wscript.Shell").Run RunCmd, 0, True
+		End If
+		""")
+	end
+
+	open(joinpath(installdir,"julia.bat"),"w") do f
+		write(f, raw"""
+		@echo off
+		call %~dp0\scripts\julia.bat %*
+		exit /b %errorlevel%
+		"""
+		)
+	end
+	open(joinpath(installdir,"atom.bat"),"w") do f
+		write(f, raw"""
+		@echo off
+		start "" %~dp0\scripts\noshell.vbs %~dp0\scripts\atom.bat %*
+		exit /b %errorlevel%
+		"""
+		)
+	end
+
+end
