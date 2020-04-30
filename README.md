@@ -3,7 +3,7 @@ Juliawin is an Julia installer for Windows, which includes Julia with some extra
 
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
-<p float="left">
+<p align="center">
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Julia_Programming_Language_Logo.svg/220px-Julia_Programming_Language_Logo.svg.png" width="200" />
   <img src="https://avatars2.githubusercontent.com/u/8275281?v=4" width="130" /> 
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Jupyter_logo.svg/250px-Jupyter_logo.svg.png" width="100" />
@@ -22,9 +22,12 @@ Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> the fol
 
 Everything gets installed into a single self-contained directory. The result is completely portable and can be run from a external device:
 
-![prompt](https://github.com/heetbeet/julia-win/raw/master/images/example-prompt.png)
-
-![prompt](https://github.com/heetbeet/julia-win/raw/master/images/example-usage.png)
+<p align="center">
+ <img src="https://github.com/heetbeet/julia-win/raw/master/images/example-prompt.png"  /> 
+</p>  
+<p align="center">
+<img src="https://github.com/heetbeet/julia-win/raw/master/images/example-usage.png" width="600" /> 
+</p>
 
 ## Future work
 
