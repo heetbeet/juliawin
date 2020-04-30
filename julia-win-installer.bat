@@ -145,7 +145,7 @@ if "%checkempty%" EQU "0" (
 	ECHO Error, the install directory is not empty. 1>&2
 	ECHO:
 	ECHO You can run the remove command and try again: 1>&2
-	ECHO ^>^> rm "%installdir%" 1>&2
+	ECHO ^>^> rmdir "%installdir%" /s 1>&2
 	goto :EOF-DEAD
 )
 
