@@ -11,7 +11,7 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-Or you can download and run the script from this [link](https://raw.githubusercontent.com/heetbeet/julia-win/master/julia-win-installer.bat).
+Or you can download and run the script from this [link](<a href="https://raw.githubusercontent.com/heetbeet/julia-win/master/julia-win-installer.bat" download>link</a>).
 
 Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> the following code in any execution window, like <kbd>⊞ Win</kbd>+<kbd>r</kbd>:
 ```
