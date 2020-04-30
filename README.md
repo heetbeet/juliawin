@@ -1,4 +1,4 @@
-# Julia with batteries included
+# Julia, with batteries included
 Juliawin is a Julia installer for Windows: it includes Julia as well as extra dev-tools like Atom/Juno, Jupyter and the scientific Python stack. The installer is a collection of routines that fetches and installs all content from the original sources. It starts off in plain batch with Julia bootstrapped later in the process.
 
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
