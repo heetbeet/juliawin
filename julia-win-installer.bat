@@ -42,6 +42,7 @@ set "actualcmdx=%cmdcmdline:"=x%"
 IF /I "%arg1%" EQU "/P" (
 	set dclickcmdx=same
 	set actualcmdx=same
+	set %~1=
 )
 
 :: If double clicked, restart with a pause guard
