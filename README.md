@@ -31,7 +31,7 @@ Everything gets installed into a single self-contained directory. The result is 
 
 ## Future work
 
-* Make prettier entry executables than .bat files (Use an automatic NSIS pipeline to produce .exe's with icons).
-* Installer should clean up it's temp directory.
+* Make prettier entry executables with icons, rather than .bat files (Automate a NSIS pipeline).
+* Let the installer clean up it's temp directory.
 * Download the list of curated packages from Julia Pro and create an `install-curated-packages.bat` helper for the user.
-* Added options for offline installation.
+* Add options for offline installation (cache and zip).
