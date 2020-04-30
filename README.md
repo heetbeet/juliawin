@@ -24,6 +24,7 @@ Everything gets installed into a single self-contained directory. The result is 
 
 ![prompt](https://github.com/heetbeet/julia-win/raw/master/images/example-prompt.png)
 
+![prompt](https://github.com/heetbeet/julia-win/raw/master/images/example-usage.png)
 
 ## Future work
 
