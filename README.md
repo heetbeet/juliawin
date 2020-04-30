@@ -15,7 +15,7 @@ Or you can download and run the script from this [link](https://raw.githubuserco
 
 Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> the following code in any execution window, like <kbd>⊞ Win</kbd>+<kbd>r</kbd>:
 ```
-%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "((new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/julia-win/master/julia-win-installer.bat','%TEMP%\juliawin-installer.bat'));%systemroot%\system32\cmd.exe /c ""%TEMP%\juliawin-installer.bat" ""
+%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "((new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/julia-win/master/julia-win-installer.bat','%TEMP%\juliawin-installer.bat')); %systemroot%\system32\cmd.exe /c ""%TEMP%\juliawin-installer.bat" /P""
 ```
 
 ## Outcome
