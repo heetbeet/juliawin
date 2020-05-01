@@ -23,10 +23,10 @@ Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> the fol
 Everything gets installed into a single self-contained directory. The result is completely portable and can be run from a external device:
 
 <p align="center">
- <img src="https://github.com/heetbeet/julia-win/raw/master/images/example-prompt.png"  /> 
+ <img src="https://github.com/heetbeet/juliawin/raw/master/images/example-prompt.png"  /> 
 </p>  
 <p align="center">
-<img src="https://github.com/heetbeet/julia-win/raw/master/images/example-usage.png" width="600" /> 
+<img src="https://github.com/heetbeet/juliawin/raw/master/images/example-usage.png" width="600" /> 
 </p>
 
 ## Todo's
