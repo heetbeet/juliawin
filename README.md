@@ -1,5 +1,5 @@
 # Julia, with batteries included
-Juliawin is a Julia installer for Windows: it includes Julia as well as extra dev-tools like Atom/Juno, Jupyter and the scientific Python stack. The installer is a collection of routines that fetches and installs all content from the original sources. It starts off in plain batch with Julia bootstrapped later in the process.
+Juliawin is a Julia installer for Windows: it includes Julia as well as tools like Atom/Juno, Jupyter and the scientific Python stack. The installer is a single .bat file with a collection of batch and Julia routines to dynamically fetch and installs all content from original sources.
 
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
@@ -11,7 +11,7 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-Or you can save and run the script from this <a href="https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat" download>link</a> (Github doens't provide the save-as popup).
+You can save and run the script from this <a href="https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat" download>link</a> (Github doens't provide the save-as popup unfortunately).
 
 Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following code in any execution window (like <kbd>⊞ Win</kbd>+<kbd>r</kbd> or Command Prompt):
 ```
@@ -20,7 +20,7 @@ Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run
 
 ## Outcome
 
-Everything gets installed into a single self-contained directory. The result is completely portable and can be run from a external device:
+Everything gets installed into a single self-contained directory. The result is completely portable and can be run from an external device:
 
 <p align="center">
  <img src="https://github.com/heetbeet/juliawin/raw/master/images/example-prompt.png"  /> 
