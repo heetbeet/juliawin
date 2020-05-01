@@ -13,7 +13,7 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 You can save and run the script from this <a href="https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat" download>link</a> (Github doesn't provide a save-as popup unfortunately).
 
-Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following code in any execution window (like <kbd>⊞ Win</kbd>+<kbd>r</kbd> or Command Prompt):
+Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following code (use cmd or powershell, too many characters for <kbd>⊞ Win</kbd>+<kbd>r</kbd> box, unfortunately):
 ```
 %systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "((new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat','%TEMP%\jwinst.bat')); %systemroot%\system32\cmd.exe /c ""%TEMP%\jwinst.bat" /P""
 ```
