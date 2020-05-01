@@ -70,7 +70,7 @@ Echo:
 ECHO /HELP, /H, /?
 ECHO   Show this information.
 ECHO /P
-ECHO   Pause installer before completion.
+ECHO   Pause before exit. (Default Explorer double-click behaviour.)
 ECHO /Y
 ECHO   Select default directory name.
 ECHO /DIR="x:\Dirname"
