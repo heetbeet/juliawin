@@ -31,13 +31,13 @@ Everything gets installed into a single self-contained directory. The result is 
 
 ## Todo's
 
-* Add 32-bit support.
-* Add option for users to add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts).
-* Make any combination of arguments work (currently it only supports a single argument).
-* Make prettier entry executables with icons, rather than .bat files (Automate a NSIS pipeline).
-* Add Visual Studio Code to this project.
-* Add an installer/option for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts).
-* Add installer clean up of `C:\Users\FooBar\AppData\Local\Temp\Juliawin` directory.
-* Add offline installation option / or pinned versions (cache, zip and ship).
-* Add version numbers to the julia and atom directories (helps with version eyeballing).
-* Provide all addons as optional (write a buffet menu interface).
+* 32-bit support
+* Add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts)
+* Any combination of arguments shoul work (currently it only supports a single argument).
+* Prettier entry .exe executables rather than .bat files (Automate a NSIS pipeline)
+* Add Visual Studio Code.
+* Installer/options for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts).
+* Installer shoul clean up its `C:\Users\FooBar\AppData\Local\Temp\Juliawin` directory.
+* Offline installation support and pinned versions (cache, zip and ship).
+* Add version numbers to program directories (good for version eyeballing).
+* Make all addons (like IDE/packages/environments) optional with a buffet menu.
