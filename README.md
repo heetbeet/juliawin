@@ -41,3 +41,4 @@ Everything gets installed into a single self-contained directory. The result is 
 * Offline installation support and pinned versions (cache, zip and ship).
 * Add version numbers to program directories (good for version eyeballing).
 * Make all addons (like IDE/packages/environments) optional with a buffet menu.
+* If Juliawin is successful, move it to an organization with it's own github.io landing page.
