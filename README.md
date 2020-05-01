@@ -34,6 +34,8 @@ Everything gets installed into a single self-contained directory. The result is 
 * Option for users to add/remove Juliawin to Windows path.
 * Make argument combinations work (currently only single argument works).
 * Make prettier entry executables with icons, rather than .bat files (Automate a NSIS pipeline).
-* Let the installer clean up it's temp directory.
+* Add Visual Studio Code to this project.
 * Download the list of curated packages from Julia Pro and create an `install-curated-packages.bat` helper for the user.
+* Let the installer clean up it's temp directory.
 * Add options for offline installation (cache and zip).
+* Provide everything as optional (write a buffet menu).
