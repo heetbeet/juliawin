@@ -86,7 +86,7 @@ mkdir "%tempdir%" 2>NUL
 set "toolsdir=%tempdir%\tools"
 mkdir "%toolsdir%" 2>NUL
 
-set "installdir=%userprofile%\JuliaWin"
+set "installdir=%userprofile%\Juliawin"
 
 echo %thisfile% > "%tempdir%\thisfile.txt"
 
@@ -420,7 +420,7 @@ GOTO :EOF
 	echo   (_)     ^| (_) (_)    ^|
 	echo    _ _   _^| ^|_  __ _   ^|  Run with "/?" for help
 	echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|
-	echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for JuliaWin
+	echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for Juliawin
 	echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
 	echo ^|__/                   ^|
 GOTO :EOF
