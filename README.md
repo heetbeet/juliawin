@@ -29,7 +29,7 @@ Everything gets installed into a single self-contained directory. The result is 
 <img src="https://github.com/heetbeet/julia-win/raw/master/images/example-usage.png" width="600" /> 
 </p>
 
-## Future work
+## Todo's
 
 * Make argument combinations work (currently only single argument works).
 * Make prettier entry executables with icons, rather than .bat files (Automate a NSIS pipeline).
