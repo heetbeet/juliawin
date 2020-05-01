@@ -31,6 +31,7 @@ Everything gets installed into a single self-contained directory. The result is 
 
 ## Todo's
 
+* Option for users to add/remove Juliawin to Windows path.
 * Make argument combinations work (currently only single argument works).
 * Make prettier entry executables with icons, rather than .bat files (Automate a NSIS pipeline).
 * Let the installer clean up it's temp directory.
