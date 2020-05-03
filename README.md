@@ -1,5 +1,5 @@
-# Julia, with batteries included
-Juliawin is a Julia installer for Windows: it includes Julia as well as extra dev-tools like Atom/Juno, Jupyter and the scientific Python stack. The installer is a collection of routines that fetches and installs all content from the original sources. It starts off in plain batch with Julia bootstrapped later in the process.
+# Julia on Windows with batteries included
+Juliawin is a Julia installer for Windows: it includes Julia as well as tools like Atom/Juno, Jupyter and the scientific Python stack. The installer is a single .bat file with a collection of batch and Julia routines to dynamically fetch and install all content from the original sources.
 
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
@@ -11,16 +11,16 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-Or you can save and run the script from this <a href="https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat" download>link</a> (Github doens't provide the save-as popup).
+You can save and run the script from this <a href="https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat" download>link</a> (Github doesn't provide a save-as popup unfortunately).
 
-Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following code in any execution window (like <kbd>⊞ Win</kbd>+<kbd>r</kbd> or Command Prompt):
+Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
 ```
-%systemroot%\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "((new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat','%TEMP%\julia-win-installer.bat')); %systemroot%\system32\cmd.exe /c ""%TEMP%\julia-win-installer.bat" /P""
+powershell.exe -Command "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat','%tmp%\jlx.bat'); "%tmp%\jlx.bat" /P"
 ```
 
 ## Outcome
 
-Everything gets installed into a single self-contained directory. The result is completely portable and can be run from a external device:
+Everything gets installed into a single self-contained directory. The result is completely portable and can be run from an external device:
 
 <p align="center">
  <img src="https://github.com/heetbeet/juliawin/raw/master/images/example-prompt.png"  /> 
@@ -31,11 +31,15 @@ Everything gets installed into a single self-contained directory. The result is 
 
 ## Todo's
 
-* Option for users to add/remove Juliawin to Windows path.
-* Make argument combinations work (currently only single argument works).
-* Make prettier entry executables with icons, rather than .bat files (Automate a NSIS pipeline).
-* Add Visual Studio Code to this project.
-* Download the list of curated packages from Julia Pro and create an `install-curated-packages.bat` helper for the user.
-* Let the installer clean up it's temp directory.
-* Add options for offline installation (cache and zip).
-* Provide everything as optional (write a buffet menu).
+* 32-bit support
+* Linux equivalent script (and pretend Juliawin refers to: Julia for the win!)
+* Add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts)
+* Any combination of arguments should work https://stackoverflow.com/a/61552059/1490584 (currently it only supports a single argument).
+* Prettier entry .exe executables rather than .bat files (Automate a NSIS pipeline)
+* Add Visual Studio Code.
+* Installer/options for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts).
+* Installer shoul clean up its `C:\Users\FooBar\AppData\Local\Temp\Juliawin` directory.
+* Offline installation support and pinned versions (cache, zip and ship).
+* Add version numbers to program directories (good for version eyeballing).
+* Make all addons (like IDE/packages/environments) optional with a buffet menu.
+* If Juliawin is successful, move it to an organization with it's own github.io landing page.
