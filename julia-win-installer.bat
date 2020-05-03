@@ -1,5 +1,5 @@
 #= 2>NUL
-@echo off
+
 :: =====================================================
 :: This is an automatic install script for Julia
 :: First half of the script is written in batch
@@ -9,6 +9,13 @@
 :: correctly and that Julia is available, while the
 :: heavy lifting is done in Julia itself.
 :: =====================================================
+
+@echo off
+SETLOCAL
+cls
+
+:: For dev-purposes, reset path to minimal OS programs
+set "PATH=%systemroot%;%systemroot%\System32;%systemroot%\System32\WindowsPowerShell\v1.0"
 
 
 :: =====================================================
@@ -130,7 +137,7 @@ if /I "%installdir%" EQU "" (
 :: ========== Ensure install dir is r/w ====
 mkdir "%installdir%" 2>NUL
 echo: > "%installdir%\thisisatestfiledeleteme"
-rm "%installdir%\thisisatestfiledeleteme" >nul 2>&1
+del /f /q "%installdir%\thisisatestfiledeleteme" >nul 2>&1
 if %errorlevel% NEQ 0 (
 	ECHO: 1>&2
 	ECHO Error, can't read/write to %installdir% 1>&2
@@ -154,7 +161,6 @@ if "%checkempty%" EQU "0" (
 echo %installdir% > "%tempdir%\installdir.txt"
 
 :: ========== SETUP PATH VARS =============
-SET "PATH=%systemroot%\System32\WindowsPowerShell\v1.0;%PATH%"
 SET "PATH=%installdir%\julia\bin;%PATH%"
 SET "PATH=%installdir%\julia\libexec;%PATH%"
 SET "PATH=%installdir%\atom;%PATH%"
@@ -309,7 +315,7 @@ goto :EOF
 
 	::Find the lines of all the valid Regex download links
 	findstr /i /r /c:"%~3" "%_htmlfile_%--split" > "%_linksfile_%"
-	rm "%_htmlfile_%--split"
+	del /f /q "%_htmlfile_%--split"
 
 	::Save first occurance to head by reading the file with powershell and taking the first line
 	for /f "usebackq delims=" %%a in (`powershell -Command "(Get-Content '%_linksfile_%')[0]"`) do (set "head=%%a")
