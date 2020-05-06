@@ -1107,7 +1107,7 @@ if runroutine == "MAKE-BASHES"
     
     
     paths_bashed = join(
-        ["""PATH=\$DIR/path:\$PATH""" for path in paths], "\n"
+        ["""PATH=\$DIR/../$path:\$PATH""" for path in paths], "\n"
     )
     
     
@@ -1126,8 +1126,8 @@ if runroutine == "MAKE-BASHES"
     #--------------------------------------------------
     # Add env. variables
     #--------------------------------------------------       
-    JULIA_DEPOT_PATH=\$DIR+'/../.julia'
-    ATOM_HOME=\$DIR+'/../.atom'    
+    JULIA_DEPOT_PATH=\$DIR/../.julia
+    ATOM_HOME=\$DIR/../.atom
     """
     
     open(joinpath(installdir,"scripts","juliawin-environment"), "w") do f
