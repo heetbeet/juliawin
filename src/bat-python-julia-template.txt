@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+#=
+""" 
+cls
+:: ========== Batch part ==========
+__bat__
+
+exit /b 
+"""
+# ========== Python part ==========
+__python__
+
+'''
+=#
+# ========== Julia part ==========
+__julia__
+
+# '''
