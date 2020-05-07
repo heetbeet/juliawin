@@ -280,7 +280,7 @@ goto :EOF
 
 	) ELSE IF "%downloadmethod%" == "curl" (
 
-		call curl -s -S -g -L -f -o "%~2" "%~1"
+		call curl -g -L -f -o "%~2" "%~1"
 		if %errorlevel% NEQ 0 goto EOF-DEAD
 
 	) ELSE IF "%downloadmethod%" == "webclient" (
