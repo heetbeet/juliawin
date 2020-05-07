@@ -473,11 +473,30 @@ runroutine = ARGS[1]
 #=
 Same method as the bat equivalent
 =#
+function download_file(url, filename)
+    if Sys.iswindows()
+        has_request = true
+        try
+            run(pipeline(`powershell -Command "gcm Invoke-WebRequest"`, stdout=devnull, stderr=devnull))
+        catch e
+            has_request = false 
+        end
+
+        if has_request
+            download(url, filename)
+        else
+            run(`curl -g -L -f -o $filename $url`)
+        end
+    else
+        download(url, filename)
+    end
+end
+
 function get_dl_url(url, domatch, notmatch=nothing, prefix="")
 	urlslug = replace(url, "/"=>"-")
 	urlslug = replace(urlslug, ":"=>"")
 	lnkpath = joinpath(juliatemp, urlslug)
-	download(url, lnkpath)
+	download_file(url, lnkpath)
 	println(lnkpath)
 	open(lnkpath) do file
 		pagecontent = read(file, String)
@@ -495,7 +514,7 @@ function download_asset(dlurl)
 	path = joinpath(juliatemp, split(dlurl, "/")[end])
 	println("() Downloading $dlurl to")
 	println("() $path, this may take a while")
-	download(dlurl, path)
+	download_file(dlurl, path)
 	return path
 end
 
