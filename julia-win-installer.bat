@@ -180,6 +180,18 @@ if "%downloadmethod%" EQU "webclient" (
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/libcurl-x64.dll" "%toolsdir%\libcurl-x64.dll"
+
+    mkdir "%installdir%\.julia\config" 2>NUL
+    
+    echo Base.find_curl() =  function()                              >  "%installdir%\.julia\config\startup.jl"
+	echo     if Sys.isapple() ^&^& Sys.isexecutable("/usr/bin/curl") >> "%installdir%\.julia\config\startup.jl"
+	echo         "/usr/bin/curl"                                     >> "%installdir%\.julia\config\startup.jl"
+	echo     elseif Sys.which("curl") !== nothing                    >> "%installdir%\.julia\config\startup.jl"
+	echo         "curl"                                              >> "%installdir%\.julia\config\startup.jl"
+	echo     else                                                    >> "%installdir%\.julia\config\startup.jl"
+	echo         nothing                                             >> "%installdir%\.julia\config\startup.jl"
+	echo     end                                                     >> "%installdir%\.julia\config\startup.jl"
+	echo end                                                         >> "%installdir%\.julia\config\startup.jl"
     
     call :REGISTER-DOWNLOAD-METHOD
 )
