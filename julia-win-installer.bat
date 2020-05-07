@@ -177,7 +177,7 @@ ECHO () Configuring the download source
 ::webclient too old, will need wget
 call :REGISTER-DOWNLOAD-METHOD
 if "%downloadmethod%" EQU "webclient" (
-    call :DOWNLOAD-FILE "https://github.com/heetbeet/juliawin/raw/bugfix/win7support/tools/wget.exe" "%toolsdir%\wget.exe"
+    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/wget.exe" "%toolsdir%\wget.exe"
     call :REGISTER-DOWNLOAD-METHOD
 )
 
