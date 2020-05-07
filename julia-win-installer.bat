@@ -185,8 +185,9 @@ call :GET-URL-FILENAME juliafname "%juliaurl%"
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
-call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
-if %errorlevel% NEQ 0 goto :EOF-DEAD
+REM !!!!!!!!!!!!!!!!!!!!!
+REM call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+REM if %errorlevel% NEQ 0 goto :EOF-DEAD
 
 
 ECHO () Extracting into %installdir%\julia
