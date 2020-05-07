@@ -184,16 +184,17 @@ if %errorlevel% EQU 0 goto :curlbootstrapexit
 
     mkdir "%installdir%\.julia\config" 2>NUL
 
-    echo Base.find_curl() =  function()                              >  "%installdir%\.julia\config\startup.jl"
-    echo     if Sys.isapple() ^&^& Sys.isexecutable("/usr/bin/curl") >> "%installdir%\.julia\config\startup.jl"
-    echo         "/usr/bin/curl"                                     >> "%installdir%\.julia\config\startup.jl"
-    echo     elseif Sys.which("curl") !== nothing                    >> "%installdir%\.julia\config\startup.jl"
-    echo         "curl"                                              >> "%installdir%\.julia\config\startup.jl"
-    echo     else                                                    >> "%installdir%\.julia\config\startup.jl"
-    echo         nothing                                             >> "%installdir%\.julia\config\startup.jl"
-    echo     end                                                     >> "%installdir%\.julia\config\startup.jl"
-    echo end                                                         >> "%installdir%\.julia\config\startup.jl"
-    
+    echo Base.download_powershell() = function(url::AbstractString, filename::AbstractString)           >  "%installdir%\.julia\config\startup.jl"
+    echo     err = PipeBuffer()                                                                         >> "%installdir%\.julia\config\startup.jl"
+    echo     process = run(pipeline(`curl -s -S -g -L -f -o $filename $url`, stderr=err), wait=false)   >> "%installdir%\.julia\config\startup.jl"
+    echo     if !success(process)                                                                       >> "%installdir%\.julia\config\startup.jl"
+    echo         error_msg = readline(err)                                                              >> "%installdir%\.julia\config\startup.jl"
+    echo         @error "Download failed: $error_msg"                                                   >> "%installdir%\.julia\config\startup.jl"
+    echo         pipeline_error(process)                                                                >> "%installdir%\.julia\config\startup.jl"
+    echo     end                                                                                        >> "%installdir%\.julia\config\startup.jl"
+    echo     return filename                                                                            >> "%installdir%\.julia\config\startup.jl"
+    echo end                                                                                            >> "%installdir%\.julia\config\startup.jl"
+
     call :REGISTER-DOWNLOAD-METHOD
 
 :curlbootstrapexit
