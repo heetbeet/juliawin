@@ -296,8 +296,10 @@ goto :EOF
     if %errorlevel% EQU 0 goto :_skipcurldownload_
     	:: copy curl and place in tools and (temporarily) in Juliawin
 	    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
+	    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
 		mkdir "%installdir%\curl\bin" 2>NUL	    
 	    cp "%toolsdir%\curl.exe" "%installdir%\curl\bin\curl.exe"
+	    cp "%toolsdir%\curl-ca-bundle.crt" "%installdir%\curl\bin\curl-ca-bundle.crt"
     :_skipcurldownload_
 
 
