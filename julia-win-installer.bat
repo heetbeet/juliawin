@@ -174,15 +174,15 @@ set "ATOM_HOME=%installdir%\.atom"
 ECHO:
 ECHO () Configuring the download source
 
-::webclient too old, will need curl
-call :REGISTER-DOWNLOAD-METHOD
-if "%downloadmethod%" EQU "webclient" (
+::If Powershell is too old (like on old W7 systems), will have to bootstrap curl
+call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
+if %errorlevel% NEQ 0 (
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/libcurl-x64.dll" "%toolsdir%\libcurl-x64.dll"
 
     mkdir "%installdir%\.julia\config" 2>NUL
-    
+
     echo Base.find_curl() =  function()                              >  "%installdir%\.julia\config\startup.jl"
 	echo     if Sys.isapple() ^&^& Sys.isexecutable("/usr/bin/curl") >> "%installdir%\.julia\config\startup.jl"
 	echo         "/usr/bin/curl"                                     >> "%installdir%\.julia\config\startup.jl"
