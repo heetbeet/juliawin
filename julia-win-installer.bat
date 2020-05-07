@@ -193,6 +193,13 @@ REM if %errorlevel% NEQ 0 goto :EOF-DEAD
 ECHO () Extracting into %installdir%\julia
 call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 
+call %SYSTEMROOT%\System32\curl.exe --help >nul 2>&1
+if %errorlevel% NEQ 0 (
+    ::Apply patch to allow for curl outside of windows dir
+    echo Patch needed for older systems without curl installed
+    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/julia/master/base/download.jl" "%installdir%\julia\share\julia\base\download.jl"
+)
+
 
 call julia --color=yes -e "Base.banner()"
 call julia "%thisfile%" INSTALL-ATOM
@@ -293,7 +300,7 @@ goto :EOF
 :: ***********************************************
 :BOOTSTRAP-CURL
     ::If we don't have curl, then download it from github
-    call curl --help >nul 2>&1
+    call %SYSTEMROOT%\System32\curl.exe --help >nul 2>&1
     if %errorlevel% EQU 0 goto :_skipcurldownload_
         :: copy curl and place in tools and (temporarily) in Juliawin
         call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
@@ -302,32 +309,6 @@ goto :EOF
         copy "%toolsdir%\curl.exe" "%installdir%\curl\bin\curl.exe"
         copy "%toolsdir%\curl-ca-bundle.crt" "%installdir%\curl\bin\curl-ca-bundle.crt"
     :_skipcurldownload_
-
-
-    mkdir "%installdir%\.julia\config" 2>NUL
-    echo Base.download() = function(url::AbstractString, filename::AbstractString)                    >  "%installdir%\.julia\config\startup.jl"
-    echo     err = PipeBuffer()                                                                       >> "%installdir%\.julia\config\startup.jl"
-    echo     process = run(pipeline(`curl -s -S -g -L -f -o "$filename" "$url"`, stderr=err), wait=false) >> "%installdir%\.julia\config\startup.jl"
-    echo     if !success(process)                                                                     >> "%installdir%\.julia\config\startup.jl"
-    echo         error_msg = readline(err)                                                            >> "%installdir%\.julia\config\startup.jl"
-    echo         @error "Download failed: $error_msg"                                                 >> "%installdir%\.julia\config\startup.jl"
-    echo         Base.pipeline_error(process)                                                         >> "%installdir%\.julia\config\startup.jl"
-    echo     end                                                                                      >> "%installdir%\.julia\config\startup.jl"
-    echo     return filename                                                                          >> "%installdir%\.julia\config\startup.jl"
-    echo end                                                                                          >> "%installdir%\.julia\config\startup.jl"
-    echo:                                                                                             >> "%installdir%\.julia\config\startup.jl"
-    echo function download(url::AbstractString, filename::AbstractString)                             >> "%installdir%\.julia\config\startup.jl"
-    echo     err = PipeBuffer()                                                                       >> "%installdir%\.julia\config\startup.jl"
-    echo     process = run(pipeline(`curl -s -S -g -L -f -o "$filename" "$url"`, stderr=err), wait=false) >> "%installdir%\.julia\config\startup.jl"
-    echo     if !success(process)                                                                     >> "%installdir%\.julia\config\startup.jl"
-    echo         error_msg = readline(err)                                                            >> "%installdir%\.julia\config\startup.jl"
-    echo         @error "Download failed: $error_msg"                                                 >> "%installdir%\.julia\config\startup.jl"
-    echo         Base.pipeline_error(process)                                                         >> "%installdir%\.julia\config\startup.jl"
-    echo     end                                                                                      >> "%installdir%\.julia\config\startup.jl"
-    echo     return filename                                                                          >> "%installdir%\.julia\config\startup.jl"
-    echo end                                                                                          >> "%installdir%\.julia\config\startup.jl"
-
-
 goto :EOF
 
 :: ***********************************************
