@@ -176,7 +176,8 @@ ECHO () Configuring the download source
 
 ::If Powershell is too old (like on old W7 systems), will have to bootstrap curl
 call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
-if %errorlevel% NEQ 0 (
+if %errorlevel% EQU 0 goto :curlbootstrapexit
+
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
     call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/libcurl-x64.dll" "%toolsdir%\libcurl-x64.dll"
@@ -194,7 +195,8 @@ if %errorlevel% NEQ 0 (
     echo end                                                         >> "%installdir%\.julia\config\startup.jl"
     
     call :REGISTER-DOWNLOAD-METHOD
-)
+
+:curlbootstrapexit
 
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
 if %errorlevel% NEQ 0 goto :EOF-DEAD
@@ -485,30 +487,11 @@ runroutine = ARGS[1]
 #=
 Same method as the bat equivalent
 =#
-function download_file(url, filename)
-    if Sys.iswindows()
-        has_request = true
-        try
-            run(pipeline(`powershell -Command "gcm Invoke-WebRequest"`, stdout=devnull, stderr=devnull))
-        catch e
-            has_request = false 
-        end
-
-        if has_request
-            download(url, filename)
-        else
-            run(`curl -g -L -f -o $filename $url`)
-        end
-    else
-        download(url, filename)
-    end
-end
-
 function get_dl_url(url, domatch, notmatch=nothing, prefix="")
     urlslug = replace(url, "/"=>"-")
     urlslug = replace(urlslug, ":"=>"")
     lnkpath = joinpath(juliatemp, urlslug)
-    download_file(url, lnkpath)
+    download(url, lnkpath)
     println(lnkpath)
     open(lnkpath) do file
         pagecontent = read(file, String)
@@ -526,7 +509,7 @@ function download_asset(dlurl)
     path = joinpath(juliatemp, split(dlurl, "/")[end])
     println("() Downloading $dlurl to")
     println("() $path, this may take a while")
-    download_file(dlurl, path)
+    download(dlurl, path)
     return path
 end
 
