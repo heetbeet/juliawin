@@ -174,10 +174,13 @@ set "ATOM_HOME=%installdir%\.atom"
 ECHO:
 ECHO () Configuring the download source
 
-::webclient too old, will need wget
+::webclient too old, will need curl
 call :REGISTER-DOWNLOAD-METHOD
 if "%downloadmethod%" EQU "webclient" (
-    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/wget.exe" "%toolsdir%\wget.exe"
+    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
+    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
+    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/libcurl-x64.dll" "%toolsdir%\libcurl-x64.dll"
+    
     call :REGISTER-DOWNLOAD-METHOD
 )
 
