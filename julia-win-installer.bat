@@ -285,7 +285,7 @@ goto :EOF
 
 	) ELSE IF "%downloadmethod%" == "webclient" (
 
-		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
+		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~2', '%~1')"
 		if %errorlevel% NEQ 0 goto EOF-DEAD
 	)
 
