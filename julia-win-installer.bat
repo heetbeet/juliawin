@@ -166,6 +166,7 @@ SET "PATH=%installdir%\julia\bin;%PATH%"
 SET "PATH=%installdir%\julia\libexec;%PATH%"
 SET "PATH=%installdir%\atom;%PATH%"
 SET "PATH=%installdir%\atom\resources\cli;%PATH%"
+SET "PATH=%installdir%\curl\bin;%PATH%"
 
 set "JULIA_DEPOT_PATH=%installdir%\.julia"
 set "ATOM_HOME=%installdir%\.atom"
@@ -174,30 +175,7 @@ set "ATOM_HOME=%installdir%\.atom"
 ECHO:
 ECHO () Configuring the download source
 
-::If Powershell is too old (like on old W7 systems), will have to bootstrap curl
-call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
-if %errorlevel% EQU 0 goto :curlbootstrapexit
-
-    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
-    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
-    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/libcurl-x64.dll" "%toolsdir%\libcurl-x64.dll"
-
-    mkdir "%installdir%\.julia\config" 2>NUL
-
-    echo Base.download() = function(url::AbstractString, filename::AbstractString)                    >  "%installdir%\.julia\config\startup.jl"
-    echo     err = PipeBuffer()                                                                       >> "%installdir%\.julia\config\startup.jl"
-    echo     process = run(pipeline(`curl -s -S -g -L -f -o $filename $url`, stderr=err), wait=false) >> "%installdir%\.julia\config\startup.jl"
-    echo     if !success(process)                                                                     >> "%installdir%\.julia\config\startup.jl"
-    echo         error_msg = readline(err)                                                            >> "%installdir%\.julia\config\startup.jl"
-    echo         @error "Download failed: $error_msg"                                                 >> "%installdir%\.julia\config\startup.jl"
-    echo         pipeline_error(process)                                                              >> "%installdir%\.julia\config\startup.jl"
-    echo     end                                                                                      >> "%installdir%\.julia\config\startup.jl"
-    echo     return filename                                                                          >> "%installdir%\.julia\config\startup.jl"
-    echo end                                                                                          >> "%installdir%\.julia\config\startup.jl"
-
-    call :REGISTER-DOWNLOAD-METHOD
-
-:curlbootstrapexit
+call :BOOTSTRAP-CURL
 
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
 if %errorlevel% NEQ 0 goto :EOF-DEAD
@@ -241,16 +219,17 @@ goto :EOF
 :: Find Download method
 :: ***********************************************
 :REGISTER-DOWNLOAD-METHOD
+
+    call curl --help >nul 2>&1
+    set downloadmethod=curl
+    if %errorlevel% EQU 0 goto :method-success
+
     call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
     set downloadmethod=webrequest
     if %errorlevel% EQU 0 goto :method-success
 
     call wget --help >nul 2>&1
     set downloadmethod=wget
-    if %errorlevel% EQU 0 goto :method-success
-
-    call curl --help >nul 2>&1
-    set downloadmethod=curl
     if %errorlevel% EQU 0 goto :method-success
 
     call powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
@@ -280,10 +259,15 @@ goto :EOF
 :: Download a file
 :: ***********************************************
 :DOWNLOAD-FILE <url> <filelocation>
-    if "%downloadmethod%"=="" call :REGISTER-DOWNLOAD-METHOD
+    call :REGISTER-DOWNLOAD-METHOD
     if %errorlevel% EQU 1 goto :EOF-DEAD
 
-    IF "%downloadmethod%" == "webrequest" (
+	IF "%downloadmethod%" == "curl" (
+
+        call curl -g -L -f -o "%~2" "%~1"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
+
+    ) ELSE IF "%downloadmethod%" == "webrequest" (
 
         call powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
         if %errorlevel% NEQ 0 goto EOF-DEAD
@@ -291,11 +275,6 @@ goto :EOF
     ) ELSE IF "%downloadmethod%" == "wget" (
 
         call wget "%1" -O "%2"
-        if %errorlevel% NEQ 0 goto EOF-DEAD
-
-    ) ELSE IF "%downloadmethod%" == "curl" (
-
-        call curl -g -L -f -o "%~2" "%~1"
         if %errorlevel% NEQ 0 goto EOF-DEAD
 
     ) ELSE IF "%downloadmethod%" == "webclient" (
@@ -306,6 +285,35 @@ goto :EOF
 
 goto :EOF
 
+
+:: ***********************************************
+:: Make sure a fairly new CURL is available for this
+:: Julia installation, and force julia to use curl.
+:: ***********************************************
+:BOOTSTRAP-CURL
+	::If we don't have curl, then download it from github
+	call curl --help >nul 2>&1
+    if %errorlevel% EQU 0 goto :_skipcurldownload_
+    	:: copy curl and place in tools and (temporarily) in Juliawin
+	    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
+		mkdir "%installdir%\curl\bin" 2>NUL	    
+	    cp "%toolsdir%\curl.exe" "%installdir%\curl\bin\curl.exe"
+    :_skipcurldownload_
+
+
+    mkdir "%installdir%\.julia\config" 2>NUL
+    echo Base.download() = function(url::AbstractString, filename::AbstractString)                    >  "%installdir%\.julia\config\startup.jl"
+    echo     err = PipeBuffer()                                                                       >> "%installdir%\.julia\config\startup.jl"
+    echo     process = run(pipeline(`curl -s -S -g -L -f -o $filename $url`, stderr=err), wait=false) >> "%installdir%\.julia\config\startup.jl"
+    echo     if !success(process)                                                                     >> "%installdir%\.julia\config\startup.jl"
+    echo         error_msg = readline(err)                                                            >> "%installdir%\.julia\config\startup.jl"
+    echo         @error "Download failed: $error_msg"                                                 >> "%installdir%\.julia\config\startup.jl"
+    echo         pipeline_error(process)                                                              >> "%installdir%\.julia\config\startup.jl"
+    echo     end                                                                                      >> "%installdir%\.julia\config\startup.jl"
+    echo     return filename                                                                          >> "%installdir%\.julia\config\startup.jl"
+    echo end                                                                                          >> "%installdir%\.julia\config\startup.jl"
+
+goto :EOF
 
 :: ***********************************************
 :: Get a download link from a download page by matching
@@ -607,6 +615,7 @@ if runroutine == "MAKE-BATS"
         julia\bin
         atom
         atom\resources\cli
+        curl\bin
         """ |> split
 
     pathsbat = join(["""SET "PATH=%~dp0..\\$path;%PATH%" """ for path in paths], "\n")
