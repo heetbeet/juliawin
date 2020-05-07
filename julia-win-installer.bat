@@ -184,16 +184,16 @@ if %errorlevel% EQU 0 goto :curlbootstrapexit
 
     mkdir "%installdir%\.julia\config" 2>NUL
 
-    echo function download(url::AbstractString, filename::AbstractString)                                >  "%installdir%\.julia\config\startup.jl"
-    echo     err = PipeBuffer()                                                                          >> "%installdir%\.julia\config\startup.jl"
-    echo     process = run(pipeline(`curl -s -S -g -L -f -o $filename $url`, stderr=err), wait=false)    >> "%installdir%\.julia\config\startup.jl"
-    echo     if !success(process)                                                                        >> "%installdir%\.julia\config\startup.jl"
-    echo         error_msg = readline(err)                                                               >> "%installdir%\.julia\config\startup.jl"
-    echo         @error "Download failed: $error_msg"                                                    >> "%installdir%\.julia\config\startup.jl"
-    echo         pipeline_error(process)                                                                 >> "%installdir%\.julia\config\startup.jl"
-    echo     end                                                                                         >> "%installdir%\.julia\config\startup.jl"
-    echo     return filename                                                                             >> "%installdir%\.julia\config\startup.jl"
-    echo end                                                                                             >> "%installdir%\.julia\config\startup.jl"
+    echo Base.download() = function(url::AbstractString, filename::AbstractString)                    >  "%installdir%\.julia\config\startup.jl"
+    echo     err = PipeBuffer()                                                                       >> "%installdir%\.julia\config\startup.jl"
+    echo     process = run(pipeline(`curl -s -S -g -L -f -o $filename $url`, stderr=err), wait=false) >> "%installdir%\.julia\config\startup.jl"
+    echo     if !success(process)                                                                     >> "%installdir%\.julia\config\startup.jl"
+    echo         error_msg = readline(err)                                                            >> "%installdir%\.julia\config\startup.jl"
+    echo         @error "Download failed: $error_msg"                                                 >> "%installdir%\.julia\config\startup.jl"
+    echo         pipeline_error(process)                                                              >> "%installdir%\.julia\config\startup.jl"
+    echo     end                                                                                      >> "%installdir%\.julia\config\startup.jl"
+    echo     return filename                                                                          >> "%installdir%\.julia\config\startup.jl"
+    echo end                                                                                          >> "%installdir%\.julia\config\startup.jl"
 
     call :REGISTER-DOWNLOAD-METHOD
 
