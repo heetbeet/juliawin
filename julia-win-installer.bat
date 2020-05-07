@@ -92,6 +92,7 @@ mkdir "%tempdir%" 2>NUL
 
 set "toolsdir=%tempdir%\tools"
 mkdir "%toolsdir%" 2>NUL
+SET "PATH=%toolsdir%;%PATH%"
 
 set "installdir=%userprofile%\Juliawin"
 
@@ -172,6 +173,12 @@ set "ATOM_HOME=%installdir%\.atom"
 :: ========== DOWNLOAD AND INSTALL LATEST JULIA
 ECHO:
 ECHO () Configuring the download source
+
+::webclient too old, will need wget
+if "%downloadmethod%" EQU "webclient" (
+    call :DOWNLOAD-FILE "https://github.com/heetbeet/juliawin/raw/bugfix/win7support/tools/wget.exe" "%toolsdir%\wget.exe"
+    call :REGISTER-DOWNLOAD-METHOD
+)
 
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
 if %errorlevel% NEQ 0 goto :EOF-DEAD
