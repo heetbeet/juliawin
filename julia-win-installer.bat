@@ -196,6 +196,7 @@ call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 
 call julia --color=yes -e "Base.banner()"
 call julia "%thisfile%" ADD-STARTUP-SCRIPT
+call julia "%thisfile%" INSTALL-CURL
 call julia "%thisfile%" INSTALL-ATOM
 call julia "%thisfile%" INSTALL-JUNO
 call julia "%thisfile%" INSTALL-JUPYTER
