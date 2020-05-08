@@ -603,8 +603,8 @@ if runroutine == "INSTALL-ATOM"
     #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
     atomurl = get_dl_url("https://github.com/atom/atom/releases",
                         r"/atom/atom/.*x64.*zip",
-                        r"-beta",
-                        "https://github.com/")
+                        notmatch=r"-beta",
+                        prefix="https://github.com/")
     atomzip = download_asset(atomurl)
 
     extract_file(atomzip, joinpath(installdir, "atom"))
