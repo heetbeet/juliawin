@@ -185,23 +185,17 @@ call :GET-URL-FILENAME juliafname "%juliaurl%"
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
-REM !!!!!!!!!!!!!!!!!!!!!
-REM call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
-REM if %errorlevel% NEQ 0 goto :EOF-DEAD
+
+ call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+ if %errorlevel% NEQ 0 goto :EOF-DEAD
 
 
 ECHO () Extracting into %installdir%\julia
 call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 
-call %SYSTEMROOT%\System32\curl.exe --help >nul 2>&1
-if %errorlevel% NEQ 0 (
-    ::Apply patch to allow for curl outside of windows dir
-    echo Patch needed for older systems without curl installed
-    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/julia/master/base/download.jl" "%installdir%\julia\share\julia\base\download.jl"
-)
-
 
 call julia --color=yes -e "Base.banner()"
+call julia "%thisfile%" ADD-STARTUP-SCRIPT
 call julia "%thisfile%" INSTALL-ATOM
 call julia "%thisfile%" INSTALL-JUNO
 call julia "%thisfile%" INSTALL-JUPYTER
@@ -310,6 +304,7 @@ goto :EOF
         copy "%toolsdir%\curl-ca-bundle.crt" "%installdir%\curl\bin\curl-ca-bundle.crt"
     :_skipcurldownload_
 goto :EOF
+
 
 :: ***********************************************
 :: Get a download link from a download page by matching
@@ -446,6 +441,12 @@ goto :EOF
 
 GOTO :EOF
 
+:: ***********************************************
+:: Get base directory of a file path
+:: ***********************************************
+:BASENAME <%~1 output> <filelocation>
+    set "%~1=%~dp2"
+GOTO :EOF
 
 :: ***********************************************
 :: Print the Julia logo
@@ -540,6 +541,46 @@ if runroutine == "HELLO-WORLD"
 
 end
 
+
+if runroutine == "ADD-STARTUP-SCRIPT"
+    open(joinpath(installdir, "julia", "etc", "julia", "startup.jl"), "w") do f
+        write(f, raw"""
+        # This file should contain site-specific commands to be executed on Julia startup;
+        # Users may store their own personal commands in `~/.julia/config/startup.jl`.
+
+
+        #*****************************
+        # Use portable package location
+        #*****************************
+        DEPOT_PATH[1] = abspath(String(@__DIR__)*raw"/../../../.julia")
+
+
+        #*****************************
+        # Add curl from packages to path
+        #*****************************
+        for i=1 #to keep scope clear
+            packagedir = abspath(String(@__DIR__)*raw"/../../..")
+            curlpackages = [i for i in readdir(packagedir) if startswith(i, "curl")]
+            if length(curlpackages)>0
+                ENV["PATH"] = abspath(packagedir*"/"*curlpackages[1]*"/bin")*";"*ENV["PATH"]
+            end
+        end
+
+
+        #*****************************
+        # Make use of the available curl
+        #*****************************
+        if Sys.which("curl") !== nothing
+            ENV["BINARYPROVIDER_DOWNLOAD_ENGINE"] = "curl"
+            Base.download(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
+            download = Base.download
+        end
+
+        """)
+    end
+end
+
+
 if runroutine == "INSTALL-ATOM"
     #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
     atomurl = get_dl_url("https://github.com/atom/atom/releases",
@@ -552,6 +593,7 @@ if runroutine == "INSTALL-ATOM"
     mkpath(joinpath(installdir, ".atom"))
 
 end
+
 
 if runroutine == "INSTALL-JUNO"
 
