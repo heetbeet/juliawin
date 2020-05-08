@@ -589,6 +589,7 @@ if runroutine == "INSTALL-CURL"
                         prefix="https://curl.haxx.se/windows/")
     curlzip = download_asset(curlurl)
 	extract_file(curlzip, joinpath(installdir, "curl-tmp"))
+	rm(joinpath(installdir, "curl"), recursive=true)
 	mv(joinpath(installdir, "curl-tmp"), joinpath(installdir, "curl"), force=true)
 
     #We want to move towards version numbers in directories
