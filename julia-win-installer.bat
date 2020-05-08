@@ -583,27 +583,27 @@ end
 
 
 if runroutine == "INSTALL-CURL"
-	#download external url for julia
+    #download external url for julia
     curlurl = get_dl_url("https://curl.haxx.se/windows/",
                         r"dl.*win64.*zip";
                         prefix="https://curl.haxx.se/windows/")
     curlzip = download_asset(curlurl)
-	extract_file(curlzip, joinpath(installdir, "curl-tmp"))
-	try
-		rm(joinpath(installdir, "curl"), recursive=true)
-	catch e end
+    extract_file(curlzip, joinpath(installdir, "curl-tmp"))
+    try
+        rm(joinpath(installdir, "curl"), recursive=true)
+    catch e end
 
-	try
-		mv(joinpath(installdir, "curl-tmp"), joinpath(installdir, "curl"), force=true)
-	catch e end
+    try
+        mv(joinpath(installdir, "curl-tmp"), joinpath(installdir, "curl"), force=true)
+    catch e end
 
 
     #We want to move towards version numbers in directories
-	#remove bootsrap curl if it exists
-	#curlpackages = [i for i in readdir(installdir) if startswith(i, "curl")]
-	#if length(curlpackages) >= 2 && "curl" in curlpackages
-	#	rm(joinpath(installdir, "curl"), recursive=true)
-	#end
+    #remove bootsrap curl if it exists
+    #curlpackages = [i for i in readdir(installdir) if startswith(i, "curl")]
+    #if length(curlpackages) >= 2 && "curl" in curlpackages
+    #    rm(joinpath(installdir, "curl"), recursive=true)
+    #end
 end
 
 
