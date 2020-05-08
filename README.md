@@ -15,7 +15,7 @@ You can save and run the script from this <a href="https://raw.githubusercontent
 
 Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
 ```
-powershell.exe -Command "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat','%tmp%\jlx.bat'); "%tmp%\jlx.bat" /P"
+powershell.exe -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat','%tmp%\jl.bat'); "%tmp%\jl.bat" /P"
 ```
 
 ## Outcome
