@@ -444,7 +444,7 @@ GOTO :EOF
 :: ***********************************************
 :: Get base directory of a file path
 :: ***********************************************
-:BASENAME <%~1 output> <filelocation>
+:DIRNAME <%~1 output> <filelocation>
     set "%~1=%~dp2"
 GOTO :EOF
 
@@ -493,7 +493,7 @@ runroutine = ARGS[1]
 #=
 Same method as the bat equivalent
 =#
-function get_dl_url(url, domatch, notmatch=nothing, prefix="")
+function get_dl_url(url, domatch; notmatch=nothing, prefix="")
     urlslug = replace(url, "/"=>"-")
     urlslug = replace(urlslug, ":"=>"")
     lnkpath = joinpath(juliatemp, urlslug)
@@ -578,6 +578,24 @@ if runroutine == "ADD-STARTUP-SCRIPT"
 
         """)
     end
+end
+
+
+if runroutine == "INSTALL-CURL"
+	#download external url for julia
+    curlurl = get_dl_url("https://curl.haxx.se/windows/",
+                        r"dl.*win64.*zip";
+                        prefix="https://curl.haxx.se/windows/")
+    curlzip = download_asset(curlurl)
+	extract_file(curlzip, joinpath(installdir, "curl-tmp"))
+	mv(joinpath(installdir, "curl-tmp"), joinpath(installdir, "curl"), force=true)
+
+    #We want to move towards version numbers in directories
+	#remove bootsrap curl if it exists
+	#curlpackages = [i for i in readdir(installdir) if startswith(i, "curl")]
+	#if length(curlpackages) >= 2 && "curl" in curlpackages
+	#	rm(joinpath(installdir, "curl"), recursive=true)
+	#end
 end
 
 
