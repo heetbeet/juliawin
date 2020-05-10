@@ -1,5 +1,10 @@
-#= 2>NUL
-
+#!/usr/bin/env python
+#=
+""" 
+cls
+:: ========== Batch part ==========
+@echo off
+SETLOCAL EnableDelayedExpansion
 :: =====================================================
 :: This is an automatic install script for Julia
 :: First half of the script is written in batch
@@ -9,13 +14,6 @@
 :: correctly and that Julia is available, while the
 :: heavy lifting is done in Julia itself.
 :: =====================================================
-
-@echo off
-SETLOCAL
-cls
-
-:: For dev-purposes, reset path to minimal OS programs
-set "PATH=%systemroot%;%systemroot%\System32;%systemroot%\System32\WindowsPowerShell\v1.0"
 
 
 :: =====================================================
@@ -30,58 +28,62 @@ set "PATH=%systemroot%;%systemroot%\System32;%systemroot%\System32\WindowsPowerS
 :: `            "   "            `
 :: =====================================================
 
+:: For dev-purposes, reset path to minimal OS programs
+set "PATH=%systemroot%;%systemroot%\System32;%systemroot%\System32\WindowsPowerShell\v1.0"
 
-SETLOCAL EnableDelayedExpansion
+call :ARG-PARSER %*
 
-:: Ensure thisfile has file extension
-set "thisfile=%~0"
-if "%~n0" EQU "%~n0%~x0" (set "thisfile=%thisfile%.bat")
-
-set "arg1=%~1"
-set "arg2=%~2"
+:: Set current file locations (deploy changes all extentions to .bat)
+set "thisfile=%~dp0%~n0.bat"
+set "juliafile=%~dp0%~n0.bat"
+set "pythonfile=%~dp0%~n0.py"
 
 
 :: ========== Run from explorer.exe? =======
+:: We want double-clickers to have a paused window
+:: at the end. This is very delicate with many gotcha's
+:: and scoping stuff that don't fully understand. The
+:: strange "%~dp0%~n0" call is to avoid a inf loop.
+
 :: https://stackoverflow.com/a/61511609/1490584
 set "dclickcmdx=%systemroot%\system32\cmd.exe /c xx%~0x x"
 set "actualcmdx=%cmdcmdline:"=x%"
 
-:: If double clicked, restart with a pause guard
-if /I "%dclickcmdx%" EQU "%actualcmdx%" (
-    call "%~dpn0" %*
-    echo:
-    pause
-    goto :EOF
-)
+:: If double-clicked or /P,  restart with a pause guard
+if /I "%dclickcmdx%" EQU "%actualcmdx%" goto restartwithpause
+IF "%ARG_P%" EQU "1" goto restartwithpause
+goto :exitrestartwithpause
+:restartwithpause
 
-:: If given flag, run with pause guard
-IF /I "%arg1%" EQU "/P" (
-    call "%~dpn0"
+    set "ARG_P="
+    call "%~dp0%~n0"
     echo:
     pause
-    goto :EOF
-)
+    exit /b %errorlevel%
+
+:exitrestartwithpause
+
 
 :: ========== Help Menu ===================
 CALL :SHOW-JULIA-ASCII
 
-if /I "%arg1%" EQU "/?" goto help
-if /I "%arg1%" EQU "/H" goto help
-if /I "%arg1%" EQU "/HELP" goto help
-if /I "%arg1%" EQU "-H" goto help
-if /I "%arg1%" EQU "-HELP" goto help
+if "%ARG_H%" EQU "1" goto help
+if "%ARG_HELP%" EQU "1" goto help
 goto exithelp
+
 :help
 ECHO The setup program accepts one command line parameter.
 Echo:
-ECHO /HELP, /H, /?
-ECHO   Show this information.
+ECHO /HELP, /H
+ECHO   Show this information and exit.
 ECHO /P
-ECHO   Pause before exit. (Default Explorer double-click behaviour.)
+ECHO   Pause before exit. (Default behaviour for Explorer .bat double-click.)
 ECHO /Y
-ECHO   Select default directory name.
-ECHO /DIR="x:\Dirname"
+ECHO   Yes to all
+ECHO /DIR "x:\Dirname"
 ECHO   Overwrite the default with custom directory.
+ECHO /RMDIR
+ECHO   Clear the install directory (if not empty)
 goto :EOF-ALIVE
 :exithelp
 
@@ -99,14 +101,13 @@ set "installdir=%userprofile%\Juliawin"
 echo %thisfile% > "%tempdir%\thisfile.txt"
 
 :: ========== Custom path provided =========
-IF /I "%arg1%" EQU "/DIR" (
-    set "installdir=%arg2%"
+IF /I "%ARG_DIR%" NEQ "" (
+    set "installdir=%ARG_DIR%"
     goto exitchoice
 )
 
-
 :: ========== Choose Install Dir ===========
-if /I "%arg1%" EQU "/Y" goto exitchoice
+if "%ARG_Y%" EQU "1" goto exitchoice
 :choice
 Echo:
 Echo   [Y]es: continue
@@ -135,6 +136,12 @@ if /I "%installdir%" EQU "" (
 :exitchoice
 
 
+:: ========== Remove nonempty install dir ==
+if "%ARG_RMDIR%" EQU 1 (
+    rmdir  /s /q "%installdir%"
+)
+
+
 :: ========== Ensure install dir is r/w ====
 mkdir "%installdir%" 2>NUL
 echo: > "%installdir%\thisisatestfiledeleteme"
@@ -146,36 +153,45 @@ if %errorlevel% NEQ 0 (
 )
 
 
-:: ========== Ensure install dir is empty ==
-call :IS-DIRECTORY-EMPTY checkempty "%installdir%"
-if "%checkempty%" EQU "0" (
+:: ========== Ensure no files in dir ====
+::Delete dir and make it again (if we can, it is/was an empty dir)
+rmdir "%installdir%" >nul 2>&1
+mkdir "%installdir%" >nul 2>&1
+if "%errorlevel%" EQU "0" goto :directoryisgood
+    :: directory is not good...
+    :diremptychoice
+    set /P c="Directroy is not empty, continue [Y/N]?"
+    if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto diremptychoice
+    if /I "%c%" EQU "Y" goto :directoryisgood
+
     ECHO: 1>&2
     ECHO Error, the install directory is not empty. 1>&2
     ECHO:
     ECHO You can run the remove command and try again: 1>&2
-    ECHO ^>^> rmdir "%installdir%" /s 1>&2
+    ECHO ^>^> rmdir /s "%installdir%" 1>&2
     goto :EOF-DEAD
-)
+
+:directoryisgood
+mkdir "%installdir%" >nul 2>&1
 
 
 :: ========== Save this path to a file ==
 echo %installdir% > "%tempdir%\installdir.txt"
+
 
 :: ========== SETUP PATH VARS =============
 SET "PATH=%installdir%\julia\bin;%PATH%"
 SET "PATH=%installdir%\julia\libexec;%PATH%"
 SET "PATH=%installdir%\atom;%PATH%"
 SET "PATH=%installdir%\atom\resources\cli;%PATH%"
-SET "PATH=%installdir%\curl\bin;%PATH%"
 
 set "JULIA_DEPOT_PATH=%installdir%\.julia"
 set "ATOM_HOME=%installdir%\.atom"
 
-:: ========== DOWNLOAD AND INSTALL LATEST JULIA
+
+:: ========== Download and install latest julia
 ECHO:
 ECHO () Configuring the download source
-
-call :BOOTSTRAP-CURL
 
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
 if %errorlevel% NEQ 0 goto :EOF-DEAD
@@ -185,22 +201,25 @@ call :GET-URL-FILENAME juliafname "%juliaurl%"
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
+if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
+    call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+    if %errorlevel% NEQ 0 goto :EOF-DEAD
 
- call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
- if %errorlevel% NEQ 0 goto :EOF-DEAD
+:nodownloadjulia
 
 
 ECHO () Extracting into %installdir%\julia
 call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 
 
+:: ========== Run Julia code scripts ======
 call julia --color=yes -e "Base.banner()"
-call julia "%thisfile%" ADD-STARTUP-SCRIPT
-call julia "%thisfile%" INSTALL-CURL
-call julia "%thisfile%" INSTALL-ATOM
-call julia "%thisfile%" INSTALL-JUNO
-call julia "%thisfile%" INSTALL-JUPYTER
-call julia "%thisfile%" MAKE-BATS
+call julia "%juliafile%" ADD-STARTUP-SCRIPT
+call julia "%juliafile%" INSTALL-CURL
+call julia "%juliafile%" INSTALL-ATOM
+call julia "%juliafile%" INSTALL-JUNO
+call julia "%juliafile%" INSTALL-JUPYTER
+call julia "%juliafile%" MAKE-BATS
 
 echo () End of installation
 
@@ -216,6 +235,57 @@ echo () End of installation
 :: `            "   "            `
 :: ================================================
 goto :EOF
+
+::*********************************************************
+:: Parse commandline arguments into sane variables
+:: See the following scenario as usage example:
+:: >> thisfile.bat /a /b "c:\" /c /foo 5
+:: >> CALL :ARG-PARSER %*
+:: ARG_a=1
+:: ARG_b=c:\
+:: ARG_c=1
+:: ARG_foo=5
+::*********************************************************
+:ARG-PARSER <pass %*>
+    ::Loop until two consecutive empty args
+    :loopargs
+        IF "%~1%~2" EQU "" GOTO :EOF
+
+        set "arg1=%~1" 
+        set "arg2=%~2"
+        shift
+
+        ::Get first character of arg1 as "/" or "-"
+        set "tst1=%arg1%" 
+        set "tst1=%tst1:-=/%"
+        if "%arg1%" NEQ "" (
+            set "tst1=%tst1:~0,1%"
+        ) ELSE (
+            set "tst1="
+        )
+
+        ::Get first character of arg2 as "/" or "-"
+        set "tst2=%arg2%"
+        set "tst2=%tst2:-=/%"
+        if "%arg2%" NEQ "" (
+            set "tst2=%tst2:~0,1%"
+        ) ELSE (
+            set "tst2="
+        )
+
+        ::Capture assignments (eg. /foo bar)
+        IF "%tst1%" EQU "/"  IF "%tst2%" NEQ "/" IF "%tst2%" NEQ "" (
+            set "ARG_%arg1:~1%=%arg2%"
+            GOTO loopargs
+        )
+
+        ::Capture flags (eg. /foo)
+        IF "%tst1%" EQU "/" (
+            set "ARG_%arg1:~1%=1"
+            GOTO loopargs
+        )
+    goto loopargs
+GOTO :EOF
 
 
 :: ***********************************************
@@ -298,8 +368,8 @@ goto :EOF
     call %SYSTEMROOT%\System32\curl.exe --help >nul 2>&1
     if %errorlevel% EQU 0 goto :_skipcurldownload_
         :: copy curl and place in tools and (temporarily) in Juliawin
-        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
-        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/bugfix/win7support/tools/curl.exe" "%toolsdir%\curl.exe"
+        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
+        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl.exe" "%toolsdir%\curl.exe"
         mkdir "%installdir%\curl\bin" 2>NUL        
         copy "%toolsdir%\curl.exe" "%installdir%\curl\bin\curl.exe"
         copy "%toolsdir%\curl-ca-bundle.crt" "%installdir%\curl\bin\curl-ca-bundle.crt"
@@ -412,35 +482,13 @@ goto :EOF
 
 
 :: ***********************************************
-:: Test if a directory is empty
-:: ***********************************************
-:IS-DIRECTORY-EMPTY <%~1 outputvarname> <%~2 directory-path>
-    :: No-existant is empty
-    if not exist "%~2" (
-      set "%~1=1"
-      goto :EOF
-    )
-
-    :: Is folder empty
-    set _TMP_=
-    for /f "delims=" %%a in ('dir /b "%~2"') do set _TMP_=%%a
-
-    IF {%_TMP_%}=={} (
-      set "%~1=1"
-    ) ELSE (
-      set "%~1=0"
-    )
-
-goto :EOF
-
-
-:: ***********************************************
 :: Convert content of a variable to upper case. Expensive O(26N)
 :: ***********************************************
 :TOUPPER <%~1 inputoutput variable>
     for %%L IN (^^ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) DO SET %1=!%1:%%L=%%L!
 
 GOTO :EOF
+
 
 :: ***********************************************
 :: Get base directory of a file path
@@ -449,6 +497,7 @@ GOTO :EOF
     set "%~1=%~dp2"
 GOTO :EOF
 
+
 :: ***********************************************
 :: Print the Julia logo
 :: ***********************************************
@@ -456,7 +505,7 @@ GOTO :EOF
     echo                _
     echo    _       _ _(_)_     ^|  Documentation: https://docs.julialang.org
     echo   (_)     ^| (_) (_)    ^|
-    echo    _ _   _^| ^|_  __ _   ^|  Run with "/?" for help
+    echo    _ _   _^| ^|_  __ _   ^|  Run with "/h" for help
     echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|
     echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for Juliawin
     echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
@@ -471,21 +520,328 @@ GOTO :EOF
     exit /b 1
 
 
-:: ====================================================================
-::    This is the end of our batch script...
-::  below are the Julia part of this file
-::                _
-::    _       _ _(_)_     |
-::   (_)     | (_) (_)    |
-::    _ _   _| |_  __ _   |
-::   | | | | | | |/ _` |  |
-::   | | |_| | | | (_| |  |
-::  _/ |\__'_|_|_|\__'_|  |
-:: |__/                   |
-:: ====================================================================
+exit /b 
+"""
+# ========== Python part ==========
+from __future__ import print_function
+print("""
+               _
+   _       _ _(_)_     |  Documentation: https://docs.julialang.org
+  (_)     | (_) (_)    |
+   _ _   _| |_  __ _   |  Run with "/h" for help
+  | | | | | | |/ _` |  |
+  | | |_| | | | (_| |  |  Unofficial installer for Juliawin
+ _/ |\__'_|_|_|\__'_|  |
+|__/                   |
+""")
+
+import os
+import sys
+import shutil
+import subprocess
+import tarfile
+FNULL = open(os.devnull, 'w')
+import tempfile
+
+
+#input for python 2
+try: raw_input
+except: raw_input=input
+
+#%%
+#printing for errors
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
+
+#%%
+def download_file(url, filelocation):
+    """
+    Download a file using wget or curl.
+    """
+    filelocation = os.path.abspath(filelocation)
+    try:
+        subprocess.call(['wget', '--help'], 
+                        stdout=FNULL, 
+                        stderr=subprocess.STDOUT)
+        iswget = True
+    except:
+        iswget = False
+        
+
+    if iswget:      
+       subprocess.call(["wget", 
+                        url, 
+                        "-O", 
+                        os.path.abspath(filelocation)])
+    else:
+        subprocess.call(["curl", "-g", "-L", "-f", "-o", 
+                         os.path.abspath(filelocation),
+                         url])
+        
+    
+#%%
+def move_tree(source, dest):
+    '''
+    Move a tree from source to destination
+    '''
+    source = os.path.abspath(source)
+    dest = os.path.abspath(dest)
+
+    try:
+        os.makedirs(dest)
+    except: 
+        pass
+
+    for ndir, dirs, files in os.walk(source):
+        for d in dirs:
+            absd = os.path.abspath(ndir+"/"+d)
+            try:
+                os.makedirs(dest + '/' + absd[len(source):])
+            except:
+                pass
+
+        for f in files:
+            absf = os.path.abspath(ndir+"/"+f)
+            os.rename(absf, dest + '/' + absf[len(source):])
+    shutil.rmtree(source)
+    
+    
+#%%
+def unnest_dir(dirname):
+    r'''
+    de-nesting single direcotry paths:
+        From:
+        (destdir)--(nestdir)--(dira)
+                           \__(dirb)
+        To:
+        (destdir)--(dira)
+                \__(dirb)
+    '''
+    
+    if len(os.listdir(dirname)) == 1:
+        deepdir = dirname+'/'+os.listdir(dirname)[0]
+        if os.path.isdir(dirname):
+            move_tree(deepdir, dirname)
+            return True
+        
+    return False
+    
+
+#%%
+def rmtree(dirname):
+    '''
+    Rmtree with exist_ok=True
+    '''
+    if os.path.isdir(dirname):
+        shutil.rmtree(dirname)
+
+
+#%%
+def rmpath(pathname):
+    '''
+    Like rmtree, but file/tree agnostic
+    '''
+    rmtree(pathname)
+    try:
+        os.remove(pathname)
+    except:
+        pass
+    
+    
+#%%
+def cppath(srce, dest):
+    '''
+    File/tree agnostic copy
+    '''
+    dest = os.path.abspath(dest)
+    try:
+        os.makedirs(os.path.dirname(dest))
+    except:
+        pass
+    
+    if os.path.isdir(srce):
+        shutil.copytree(srce, dest)
+    else:
+        shutil.copy(srce, dest)
+
+
+#%%        
+def untar(fname, output):
+    try:
+        os.makedirs(output)
+    except:
+        pass
+    
+    if fname.lower().endswith("tar.gz"):
+        tar = tarfile.open(fname, "r:gz")
+        tar.extractall(path=output)
+        tar.close()
+    elif fname.lower().endswith("tar"):
+        tar = tarfile.open(fname, "r:")
+        tar.extractall(path=output)
+        tar.close()
+    else:
+        raise ValueError("Cannot extract filetype "+fname)
+
+
+#%% Parse the arguments
+args = {}
+for i, arg1 in enumerate(sys.argv[1:]):
+    if i == len(sys.argv[1:])-1:
+        arg2 = ''
+    else:
+        arg2 = sys.argv[1:][i+1]
+        
+    tst1 =  arg1.replace('/','-')[:1] 
+    tst2 =  arg2.replace('/','-')[:1] 
+    
+    if tst1 == '-' and (tst2 == '-' or tst2 == ''):
+        args[arg1[1:].lower()] = True
+    elif tst1 == '-':
+        args[arg1[1:].lower()] = arg2
+        
+        
+#%% Print help menu
+if 'h' in args:
+    print("The setup program accepts the following command line parameters:")
+    print("")
+    print("-HELP, -H")
+    print("   Show this information and exit")
+    print("/Y")
+    print("   Yes to all")
+    print('/DIR "\path\to\Dirname"')
+    print("   Overwrite the default with custom directory")
+    print("/RMDIR")
+    print("   Clear the install directory (if not empty)")
+    exit(0)
+    
+
+#%% Set up the environment
+installdir = "~/Juliawin"
+juliatemp = os.path.join(tempfile.gettempdir(), "juliawin")
+try:
+    os.makedirs(juliatemp)
+except: #FileExistsError not in python 2
+    pass
+
+try: __file__
+except: __file__ = os.getcwd()+'/julia-win-installer.bat'
+open(juliatemp+'/thisfile.txt', 'w').write(os.path.abspath(__file__))
+
+
+#%% choose a directory
+if "dir" in args:
+    installdir = args["dir"]
+    
+if not "y" in args and not "dir" in args:
+    print("""
+      [Y]es: continue
+      [N]o: cancel the operation
+      [D]irectory: choose my own directory
+    """)
+    
+    ynd = "xxx"
+    if "y" in args:
+        ynd = "y"
+    while ynd.lower() not in "ynd":
+        
+        ynd = raw_input("Install Juliawin in "+installdir+" [Y/N/D]? ")
+            
+        if ynd.lower() == "n":
+            exit(-1)
+            
+        if ynd.lower() == "d":
+            installdir = raw_input("Please enter custom directory: ")
+            if installdir == "":
+                ynd = "xxx"
+    
+    
+#%% make sure directory is valid
+installdir = os.path.abspath(os.path.expanduser(installdir))
+if "rmdir" in args:
+    shutil.rmtree(installdir)
+     
+try:
+    os.makedirs(installdir)
+except: #FileExistsError not in python 2
+    pass
+    
+if not "rmdir" in args:
+    #test if write-readable
+    try:
+        with open(installdir+"/thisisatestfiledeleteme", 'w') as f: pass
+        os.remove(installdir+"/thisisatestfiledeleteme")
+    except:
+        eprint("Error, can't read/write to "+installdir)
+        exit(1)
+        
+    if len(os.listdir(installdir)) > 0:
+        eprint("Error, the install directory is not empty.")
+        exit(1)
+
+
+#%% write location of this script to tempdirectory
+open(juliatemp+'/installdir.txt', 'w').write(installdir)
+
+
+#%% Setup path environment
+os.environ["PATH"] = os.pathsep.join([
+    installdir+'/julia/bin',
+    installdir+'/julia/libexec',
+    installdir+'/atom',
+    installdir+'/atom/resources/cli',
+    installdir+'/atom/resources/app/apm/bin',
+    os.environ["PATH"]
+])
+    
+os.environ["JULIA_DEPOT_PATH"] = installdir+'/.julia'
+os.environ["ATOM_HOME"] = installdir+'/.atom'
+
+    
+#%% Download lates julia linux
+print("() Configuring the download source")
+download_file("https://julialang.org/downloads",
+              juliatemp+'/julialang_org_downloads')
+
+
+#yes: https://julialang-s3.julialang.org/bin/linux/x64/1.4/julia-1.4.1-linux-x86_64.tar.gz
+#no:  https://julialang-s3.julialang.org/bin/linux/aarch64/1.0/julia-1.0.5-linux-aarch64.tar.gz
+dlurl = None
+for i in open(juliatemp+'/julialang_org_downloads').read().split('"'):
+    if (i.startswith('http') and '/bin/linux/' in i and "x86" in i and i.endswith('64.tar.gz')):
+        dlurl = i
+    
+fname = juliatemp+'/'+dlurl.split('/')[-1]
+
+print("() Download "+dlurl+" to ")
+print("() "+fname)
+download_file(dlurl, fname)
+
+untar(fname, installdir+"/julia")
+unnest_dir(installdir+"/julia")
+
+#%%Install the Julia scripts
+if os.path.isfile(os.path.splitext(__file__)[0]+'.jl'):
+    juliafile = os.path.splitext(__file__)[0]+'.jl'
+else:
+    juliafile = __file__
+
+
+subprocess.call(["julia", "--color=yes", "-e", "Base.banner()"])
+
+subprocess.call(["julia", juliafile, "INSTALL-ATOM"])
+
+subprocess.call(["julia", juliafile, "INSTALL-JUNO"])
+
+subprocess.call(["julia", juliafile, "INSTALL-JUPYTER"])
+
+subprocess.call(["julia", juliafile, "MAKE-BASHES"])
+
+
+'''
 =#
-
-
+# ========== Julia part ==========
 juliatemp = joinpath(tempdir(), "juliawin")
 installdir = strip(read(open(joinpath(juliatemp, "installdir.txt")), String))
 thisfile = strip(read(open(joinpath(juliatemp, "thisfile.txt")), String))
@@ -514,16 +870,29 @@ end
 
 function download_asset(dlurl)
     path = joinpath(juliatemp, split(dlurl, "/")[end])
-    println("() Downloading $dlurl to")
-    println("() $path, this may take a while")
-    download(dlurl, path)
+    if !isfile(path) 
+        println("() Downloading $dlurl to")
+        println("() $path, this may take a while")
+        download(dlurl, path)
+    end
     return path
 end
 
 
 function extract_file(archive, destdir, fixdepth=true)
     mkpath(destdir)
-    run(`7z x -y "-o$destdir" "$archive"`)
+    if Sys.iswindows()
+        run(`7z x -y "-o$destdir" "$archive"`)
+    else
+        if endswith(lowercase(archive), ".tar.gz")
+                run(`tar -xzf "$archive" -C "$destdir"`)
+        elseif endswith(lowercase(archive), ".tar")
+                run(`tar -xf "$archive" -C "$destdir"`)
+        else
+            error("unimplemented")
+        end 
+    end
+    
     if fixdepth
         dirs = filter(x -> isdir(joinpath(destdir, x)), readdir(destdir))
         if length(dirs) == 1
@@ -533,6 +902,15 @@ function extract_file(archive, destdir, fixdepth=true)
             rm(tmpdest, force=true, recursive=true)
         end
     end
+end
+
+
+function install_from_homepage(url, domatch; notmatch=nothing, prefix="")
+    dlurl = get_dl_url(url, domatch; notmatch=notmatch, prefix=prefix)
+    dlzip = download_asset(dlurl)
+    dldest = joinpath(installdir, splitext(basename(dlzip))[0])
+    extract_file(dlzip, dldest)
+    return dldest
 end
 
 
@@ -556,27 +934,29 @@ if runroutine == "ADD-STARTUP-SCRIPT"
         DEPOT_PATH[1] = abspath(String(@__DIR__)*raw"/../../../.julia")
 
 
-        #*****************************
-        # Add curl from packages to path
-        #*****************************
-        for i=1 #to keep scope clear
-            packagedir = abspath(String(@__DIR__)*raw"/../../..")
-            curlpackages = [i for i in readdir(packagedir) if startswith(i, "curl")]
-            if length(curlpackages)>0
-                ENV["PATH"] = abspath(packagedir*"/"*curlpackages[1]*"/bin")*";"*ENV["PATH"]
+        if Sys.iswindows()
+            #*****************************
+            # Add curl from packages to path
+            #*****************************
+            for i=1 #to keep scope clear
+                packagedir = abspath(String(@__DIR__)*raw"/../../..")
+                curlpackages = [i for i in readdir(packagedir) if startswith(i, "curl")]
+                if length(curlpackages)>0
+                    ENV["PATH"] = abspath(packagedir*"/"*curlpackages[1]*"/bin")*";"*ENV["PATH"]
+                end
             end
+
+
+            #*****************************
+            # Make use of curl and overwrite download_powershell for stubborn libraries.
+            #*****************************
+            if Sys.which("curl") !== nothing
+                ENV["BINARYPROVIDER_DOWNLOAD_ENGINE"] = "curl"
+                Base.download_powershell(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
+                download = Base.download
+            end
+
         end
-
-
-        #*****************************
-        # Make use of curl and overwrite download_powershell for stubborn libraries.
-        #*****************************
-        if Sys.which("curl") !== nothing
-            ENV["BINARYPROVIDER_DOWNLOAD_ENGINE"] = "curl"
-            Base.download_powershell(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
-            download = Base.download
-        end
-
         """)
     end
 end
@@ -608,9 +988,16 @@ end
 
 
 if runroutine == "INSTALL-ATOM"
+    
+    if Sys.iswindows()
+        dlreg = r"/atom/atom/.*x64.*zip"
+    else #linux
+        dlreg = r"/atom/atom/.*amd64.*tar.gz"
+    end
+    
     #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
     atomurl = get_dl_url("https://github.com/atom/atom/releases",
-                        r"/atom/atom/.*x64.*zip",
+                        dlreg;
                         notmatch=r"-beta",
                         prefix="https://github.com/")
     atomzip = download_asset(atomurl)
@@ -620,19 +1007,24 @@ if runroutine == "INSTALL-ATOM"
 
 end
 
-
 if runroutine == "INSTALL-JUNO"
 
+    if Sys.iswindows()
+        apmbin = "apm.cmd"
+    else #linux
+        apmbin = "apm"
+    end
+    
     #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
     #make apm available as .bat as well
-    run(`apm.cmd install language-julia`)
-    run(`apm.cmd install julia-client`)
-    run(`apm.cmd install ink`)
-    run(`apm.cmd install uber-juno`)
-    run(`apm.cmd install latex-completions`)
-    run(`apm.cmd install indent-detective`)
-    run(`apm.cmd install hyperclick`)
-    run(`apm.cmd install tool-bar`)
+    run(`$apmbin install language-julia`)
+    run(`$apmbin install julia-client`)
+    run(`$apmbin install ink`)
+    run(`$apmbin install uber-juno`)
+    run(`$apmbin install latex-completions`)
+    run(`$apmbin install indent-detective`)
+    run(`$apmbin install hyperclick`)
+    run(`$apmbin install tool-bar`)
 
     using Pkg;
     Pkg.add("Atom")
@@ -788,3 +1180,161 @@ if runroutine == "MAKE-BATS"
     end
 
 end
+
+
+if runroutine == "MAKE-BASHES"
+    mkpath(joinpath(installdir, "scripts"))
+    mkpath(joinpath(installdir, "bin"))
+    
+    
+    bash_template = """
+    #--------------------------------------------------
+    # I might be a symlink, so here is my actual location
+    #--------------------------------------------------
+    #From https://stackoverflow.com/a/246128
+    SOURCE="\${BASH_SOURCE[0]}"
+    while [ -h "\$SOURCE" ]; do # resolve \$SOURCE until no longer a symlink
+      DIR="\$( cd -P "\$( dirname "\$SOURCE" )" && pwd )"
+      SOURCE="\$(readlink "\$SOURCE")"
+      # if SOURCE was a relative symlink, we need to resolve it relative to the
+      # path where the symlink file was located
+      [[ \$SOURCE != /* ]] && SOURCE="\$DIR/\$SOURCE" 
+    done
+    DIR="\$( cd -P "\$( dirname "\$SOURCE" )" && pwd )"
+    
+    #--------------------------------------------------
+    # Setup the environment variables and paths for Juliawin
+    #--------------------------------------------------
+    __environmentcode__
+    
+    #--------------------------------------------------
+    # Finally, run this binary please
+    #--------------------------------------------------
+    __execution__
+    exit \$?
+    """
+
+
+    paths = raw"""
+        julia/bin
+        atom
+        atom/resources/app/apm/bin
+        """ |> split
+    
+    
+    paths_bashed = join(
+        ["""PATH=\$DIR/../$path:\$PATH""" for path in paths], "\n"
+    )
+    
+    
+    bash_environment = """
+    #--------------------------------------------------
+    # Base directory
+    #--------------------------------------------------
+    SOURCE="\${BASH_SOURCE[0]}"
+    DIR="\$( cd -P "\$( dirname "\$SOURCE" )" && pwd )"
+
+    #--------------------------------------------------
+    # Add to Path
+    #--------------------------------------------------    
+    $paths_bashed
+    
+    #--------------------------------------------------
+    # Add env. variables
+    #--------------------------------------------------       
+    JULIA_DEPOT_PATH=\$DIR/../.julia
+    ATOM_HOME=\$DIR/../.atom
+    """
+    
+    open(joinpath(installdir,"scripts","juliawin-environment"), "w") do f
+        write(f, bash_environment)
+    end
+
+
+    #Collect all executables
+    files = Dict{String, String}()
+    for path in paths
+        for file in readdir(joinpath(installdir, path))
+            absfile = joinpath(installdir, path, file)
+            if endswith(absfile, ".so") || endswith(absfile, ".o")
+                continue
+            end
+            
+            #test if file is executable with ls
+            if occursin("x", split(read(`ls -l "$absfile"`, String))[1])
+               files[file] = joinpath(path, file)
+            end
+        end
+    end
+
+    
+    #Make all shadow executables
+    for (name, file) in files
+        println(file)
+        bash_txt = replace(bash_template, 
+            "__execution__"=>
+            """"\$DIR/../$file" "\$@" """
+        )
+        
+        bash_txt = replace(bash_txt, 
+            "__environmentcode__"=>". \$DIR/juliawin-environment"
+        )
+        
+        bash_txt = bash_txt * "\necho \$DIR"
+        
+        absout = joinpath(installdir, "scripts", name)
+        open(absout, "w") do f
+            write(f, bash_txt)
+        end
+        run(`chmod +x "$absout"`)
+    end
+    
+    #List of hand-picked custom executables
+    open(joinpath(installdir, "bin", "julia"),"w") do f
+        bash_txt = replace(replace(
+                                bash_template,
+                                "__execution__"=>
+                                """"\$DIR/../scripts/julia" "\$@" """),
+                           "__environmentcode__"=>"")
+        write(f, bash_txt)
+        run(`chmod +x "$(joinpath(installdir,"bin","julia"))"`)
+    end
+
+
+    open(joinpath(installdir,"bin","atom"),"w") do f
+        bash_txt = replace(replace(
+                                bash_template,
+                                "__execution__"=>
+                                """"\$DIR/../scripts/atom" "\$@" """),
+                           "__environmentcode__"=>"")
+        write(f, bash_txt)
+        run(`chmod +x "$(joinpath(installdir,"bin","atom"))"`)
+    end
+    
+    
+    open(joinpath(installdir,"bin","IJulia-Lab"),"w") do f
+        bash_txt = replace(replace(
+                                bash_template,
+                                "__execution__"=>
+                                """"\$DIR/../scripts/julia" -e "using IJulia; jupyterlab()" """),
+                           "__environmentcode__"=>"")
+        write(f, bash_txt)
+        run(`chmod +x "$(joinpath(installdir,"bin","IJulia-Lab"))"`)
+    end
+
+
+    open(joinpath(installdir,"bin","IJulia-Notebook"),"w") do f
+        bash_txt = replace(replace(
+                                bash_template,
+                                "__execution__"=>
+                                """"\$DIR/../scripts/julia" -e "using IJulia; notebook()" """),
+                           "__environmentcode__"=>"")
+        write(f, bash_txt)
+        run(`chmod +x "$(joinpath(installdir,"bin","IJulia-Notebook"))"`)
+    end
+
+
+
+end
+
+# '''
