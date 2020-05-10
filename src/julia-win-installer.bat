@@ -12,7 +12,7 @@ SETLOCAL EnableDelayedExpansion
 
 
 :: =====================================================
-::	This is the .bat part of the file
+::    This is the .bat part of the file
 ::
 ::     =/\                 /\=
 ::     / \'._   (\_/)   _.'/ \
@@ -50,11 +50,11 @@ IF "%ARG_P%" EQU "1" goto restartwithpause
 goto :exitrestartwithpause
 :restartwithpause
 
-	set "ARG_P="
-	call "%~dp0%~n0"
-	echo:
-	pause
-	exit /b %errorlevel%
+    set "ARG_P="
+    call "%~dp0%~n0"
+    echo:
+    pause
+    exit /b %errorlevel%
 
 :exitrestartwithpause
 
@@ -89,6 +89,7 @@ mkdir "%tempdir%" 2>NUL
 
 set "toolsdir=%tempdir%\tools"
 mkdir "%toolsdir%" 2>NUL
+SET "PATH=%toolsdir%;%PATH%"
 
 set "installdir=%userprofile%\Juliawin"
 
@@ -96,8 +97,8 @@ echo %thisfile% > "%tempdir%\thisfile.txt"
 
 :: ========== Custom path provided =========
 IF /I "%ARG_DIR%" NEQ "" (
-	set "installdir=%ARG_DIR%"
-	goto exitchoice
+    set "installdir=%ARG_DIR%"
+    goto exitchoice
 )
 
 :: ========== Choose Install Dir ===========
@@ -117,22 +118,22 @@ goto :choice
 
 call :BROWSE-FOR-FOLDER installdir
 if /I "%installdir%" EQU "Dialog Cancelled" (
-	ECHO: 1>&2
-	ECHO Dialog box cancelled 1>&2
-	goto :EOF-DEAD
+    ECHO: 1>&2
+    ECHO Dialog box cancelled 1>&2
+    goto :EOF-DEAD
 )
 
 if /I "%installdir%" EQU "" (
-	ECHO: 1>&2
-	ECHO Error, folder selection broke 1>&2
-	goto :EOF-DEAD
+    ECHO: 1>&2
+    ECHO Error, folder selection broke 1>&2
+    goto :EOF-DEAD
 )
 :exitchoice
 
 
 :: ========== Remove nonempty install dir ==
 if "%ARG_RMDIR%" EQU 1 (
-	rmdir  /s /q "%installdir%"
+    rmdir  /s /q "%installdir%"
 )
 
 
@@ -141,25 +142,29 @@ mkdir "%installdir%" 2>NUL
 echo: > "%installdir%\thisisatestfiledeleteme"
 del /f /q "%installdir%\thisisatestfiledeleteme" >nul 2>&1
 if %errorlevel% NEQ 0 (
-	ECHO: 1>&2
-	ECHO Error, can't read/write to %installdir% 1>&2
-	goto :EOF-DEAD
+    ECHO: 1>&2
+    ECHO Error, can't read/write to %installdir% 1>&2
+    goto :EOF-DEAD
 )
 
 
 :: ========== Ensure no files in dir ====
-::Can we delete an empty directory at %installdir%?
+::Delete dir and make it again (if we can, it is/was an empty dir)
+rmdir "%installdir%" >nul 2>&1
 mkdir "%installdir%" >nul 2>&1
-rmdir "%installdir%"  >nul 2>&1
 if "%errorlevel%" EQU "0" goto :directoryisgood
-	:: directory is not good...
+    :: directory is not good...
+    :diremptychoice
+    set /P c="Directroy is not empty, continue [Y/N]?"
+    if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto diremptychoice
+    if /I "%c%" EQU "Y" goto :directoryisgood
 
-	ECHO: 1>&2
-	ECHO Error, the install directory is not empty. 1>&2
-	ECHO:
-	ECHO You can run the remove command and try again: 1>&2
-	ECHO ^>^> rmdir /s "%installdir%" 1>&2
-	goto :EOF-DEAD
+    ECHO: 1>&2
+    ECHO Error, the install directory is not empty. 1>&2
+    ECHO:
+    ECHO You can run the remove command and try again: 1>&2
+    ECHO ^>^> rmdir /s "%installdir%" 1>&2
+    goto :EOF-DEAD
 
 :directoryisgood
 mkdir "%installdir%" >nul 2>&1
@@ -191,8 +196,11 @@ call :GET-URL-FILENAME juliafname "%juliaurl%"
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
-call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
-if %errorlevel% NEQ 0 goto :EOF-DEAD
+if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
+    call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+    if %errorlevel% NEQ 0 goto :EOF-DEAD
+
+:nodownloadjulia
 
 
 ECHO () Extracting into %installdir%\julia
@@ -201,6 +209,8 @@ call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 
 :: ========== Run Julia code scripts ======
 call julia --color=yes -e "Base.banner()"
+call julia "%juliafile%" ADD-STARTUP-SCRIPT
+call julia "%juliafile%" INSTALL-CURL
 call julia "%juliafile%" INSTALL-ATOM
 call julia "%juliafile%" INSTALL-JUNO
 call julia "%juliafile%" INSTALL-JUPYTER
@@ -209,7 +219,7 @@ call julia "%juliafile%" MAKE-BATS
 echo () End of installation
 
 :: ================================================
-::	This is where we store the .bat subroutines
+::    This is where we store the .bat subroutines
 ::
 ::     =/\                 /\=
 ::     / \'._   (\_/)   _.'/ \
@@ -241,21 +251,21 @@ goto :EOF
         shift
 
         ::Get first character of arg1 as "/" or "-"
-		set "tst1=%arg1%" 
-		set "tst1=%tst1:-=/%"
+        set "tst1=%arg1%" 
+        set "tst1=%tst1:-=/%"
         if "%arg1%" NEQ "" (
-        	set "tst1=%tst1:~0,1%"
+            set "tst1=%tst1:~0,1%"
         ) ELSE (
-        	set "tst1="
+            set "tst1="
         )
 
-		::Get first character of arg2 as "/" or "-"
+        ::Get first character of arg2 as "/" or "-"
         set "tst2=%arg2%"
-		set "tst2=%tst2:-=/%"
+        set "tst2=%tst2:-=/%"
         if "%arg2%" NEQ "" (
-        	set "tst2=%tst2:~0,1%"
+            set "tst2=%tst2:~0,1%"
         ) ELSE (
-        	set "tst2="
+            set "tst2="
         )
 
         ::Capture assignments (eg. /foo bar)
@@ -277,37 +287,38 @@ GOTO :EOF
 :: Find Download method
 :: ***********************************************
 :REGISTER-DOWNLOAD-METHOD
-	call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
-	set downloadmethod=webrequest
-	if %errorlevel% EQU 0 goto :method-success
 
-	call wget --help >nul 2>&1
-	set downloadmethod=wget
-	if %errorlevel% EQU 0 goto :method-success
+    call curl --help >nul 2>&1
+    set downloadmethod=curl
+    if %errorlevel% EQU 0 goto :method-success
 
-	call curl --help >nul 2>&1
-	set downloadmethod=curl
-	if %errorlevel% EQU 0 goto :method-success
+    call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
+    set downloadmethod=webrequest
+    if %errorlevel% EQU 0 goto :method-success
 
-	call powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
-	set downloadmethod=webclient
-	if %errorlevel% EQU 0 goto :method-success
+    call wget --help >nul 2>&1
+    set downloadmethod=wget
+    if %errorlevel% EQU 0 goto :method-success
 
-	SET downloadmethod=
+    call powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
+    set downloadmethod=webclient
+    if %errorlevel% EQU 0 goto :method-success
 
-	:: We can't find any download method
-	ECHO: 1>&2
-	ECHO Can't find any of these file download utilities: 1>&2
-	ECHO   - PowerShell's Invoke-WebRequest  1>&2
-	ECHO   - PowerShell's Net.WebClients  1>&2
-	ECHO   - wget  1>&2
-	ECHO   - curl  1>&2
-	ECHO: 1>&2
-	ECHO Install any of the above and try again... 1>&2
-	GOTO :EOF-DEAD
+    SET downloadmethod=
 
-	:method-success
-	echo () Download method %downloadmethod% is available
+    :: We can't find any download method
+    ECHO: 1>&2
+    ECHO Can't find any of these file download utilities: 1>&2
+    ECHO   - PowerShell's Invoke-WebRequest  1>&2
+    ECHO   - PowerShell's Net.WebClients  1>&2
+    ECHO   - wget  1>&2
+    ECHO   - curl  1>&2
+    ECHO: 1>&2
+    ECHO Install any of the above and try again... 1>&2
+    GOTO :EOF-DEAD
+
+    :method-success
+    echo () Download method %downloadmethod% is available
 
 goto :EOF
 
@@ -316,30 +327,48 @@ goto :EOF
 :: Download a file
 :: ***********************************************
 :DOWNLOAD-FILE <url> <filelocation>
-	if "%downloadmethod%"=="" call :REGISTER-DOWNLOAD-METHOD
-	if %errorlevel% EQU 1 goto :EOF-DEAD
+    call :REGISTER-DOWNLOAD-METHOD
+    if %errorlevel% EQU 1 goto :EOF-DEAD
 
-	IF "%downloadmethod%" == "webrequest" (
+    IF "%downloadmethod%" == "curl" (
 
-		call powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
+        call curl -g -L -f -o "%~2" "%~1"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
 
-	) ELSE IF "%downloadmethod%" == "wget" (
+    ) ELSE IF "%downloadmethod%" == "webrequest" (
 
-		call wget "%1" -O "%2"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
+        call powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
 
-	) ELSE IF "%downloadmethod%" == "curl" (
+    ) ELSE IF "%downloadmethod%" == "wget" (
 
-		call curl -s -S -g -L -f -o "%~2" "%~1"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
+        call wget "%1" -O "%2"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
 
-	) ELSE IF "%downloadmethod%" == "webclient" (
+    ) ELSE IF "%downloadmethod%" == "webclient" (
+    
+        call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
+    )
 
-		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
-	)
+goto :EOF
 
+
+:: ***********************************************
+:: Make sure a fairly new CURL is available for this
+:: Julia installation, and force julia to use curl.
+:: ***********************************************
+:BOOTSTRAP-CURL
+    ::If we don't have curl, then download it from github
+    call %SYSTEMROOT%\System32\curl.exe --help >nul 2>&1
+    if %errorlevel% EQU 0 goto :_skipcurldownload_
+        :: copy curl and place in tools and (temporarily) in Juliawin
+        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
+        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl.exe" "%toolsdir%\curl.exe"
+        mkdir "%installdir%\curl\bin" 2>NUL        
+        copy "%toolsdir%\curl.exe" "%installdir%\curl\bin\curl.exe"
+        copy "%toolsdir%\curl-ca-bundle.crt" "%installdir%\curl\bin\curl-ca-bundle.crt"
+    :_skipcurldownload_
 goto :EOF
 
 
@@ -354,41 +383,41 @@ goto :EOF
 :: ***********************************************
 :GET-DL-URL <%~1 outputvarname> <%~2 download page url> <%~3 regex string>
 
-	::name of html file
-	set "_urlslug_=%~2"
-	set "_urlslug_=%_urlslug_:/=-%"
-	set "_urlslug_=%_urlslug_::=%"
+    ::name of html file
+    set "_urlslug_=%~2"
+    set "_urlslug_=%_urlslug_:/=-%"
+    set "_urlslug_=%_urlslug_::=%"
 
-	set "_htmlfile_=%tempdir%\%_urlslug_%"
-	set "_linksfile_=%tempdir%\%_urlslug_%-links.txt"
+    set "_htmlfile_=%tempdir%\%_urlslug_%"
+    set "_linksfile_=%tempdir%\%_urlslug_%-links.txt"
 
-	echo () Download link is in %~2
-	echo () Fetch as %_htmlfile_%
+    echo () Download link is in %~2
+    echo () Fetch as %_htmlfile_%
 
 
-	:: Download the download-page html
-	call :DOWNLOAD-FILE "%~2" "%_htmlfile_%"
-	if %errorlevel% NEQ 0 goto EOF-DEAD
+    :: Download the download-page html
+    call :DOWNLOAD-FILE "%~2" "%_htmlfile_%"
+    if %errorlevel% NEQ 0 goto EOF-DEAD
 
-	::echo () Find download link in %_htmlfile_%
+    ::echo () Find download link in %_htmlfile_%
 
-	:: Split file on '"' quotes so that valid urls will land on a seperate line
-	powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
+    :: Split file on '"' quotes so that valid urls will land on a seperate line
+    powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
 
-	::Find the lines of all the valid Regex download links
-	findstr /i /r /c:"%~3" "%_htmlfile_%--split" > "%_linksfile_%"
-	del /f /q "%_htmlfile_%--split"
+    ::Find the lines of all the valid Regex download links
+    findstr /i /r /c:"%~3" "%_htmlfile_%--split" > "%_linksfile_%"
+    del /f /q "%_htmlfile_%--split"
 
-	::Save first occurance to head by reading the file with powershell and taking the first line
-	for /f "usebackq delims=" %%a in (`powershell -Command "(Get-Content '%_linksfile_%')[0]"`) do (set "head=%%a")
+    ::Save first occurance to head by reading the file with powershell and taking the first line
+    for /f "usebackq delims=" %%a in (`powershell -Command "(Get-Content '%_linksfile_%')[0]"`) do (set "head=%%a")
 
-	::Clean up our temp files
-	::nope leave it alone...
+    ::Clean up our temp files
+    ::nope leave it alone...
 
-	::Save the result to the outputvariable
-	set "%~1=%head%"
+    ::Save the result to the outputvariable
+    set "%~1=%head%"
 
-	if %errorlevel% NEQ 0 goto EOF-DEAD
+    if %errorlevel% NEQ 0 goto EOF-DEAD
 goto :EOF
 
 
@@ -398,22 +427,22 @@ goto :EOF
 :: ***********************************************
 :GET-URL-FILENAME <%~1 outputvarname> <%~2 url>
 
-	:: Loop through each "/" separation and set %~1
-	:: https://stackoverflow.com/a/37631935/1490584
+    :: Loop through each "/" separation and set %~1
+    :: https://stackoverflow.com/a/37631935/1490584
 
-	set "_List_=%~2"
-	set _ItemCount_=0
+    set "_List_=%~2"
+    set _ItemCount_=0
 
-	:_NextItem_
-	if "%_List_%" == "" goto :EOF
+    :_NextItem_
+    if "%_List_%" == "" goto :EOF
 
-	set /A _ItemCount_+=1
-	for /F "tokens=1* delims=/" %%a in ("%_List_%") do (
-	    :: echo Item %_ItemCount_% is: %%a
-	    set "_List_=%%b"
-	    set "%~1=%%a"
-	)
-	goto _NextItem_
+    set /A _ItemCount_+=1
+    for /F "tokens=1* delims=/" %%a in ("%_List_%") do (
+        :: echo Item %_ItemCount_% is: %%a
+        set "_List_=%%b"
+        set "%~1=%%a"
+    )
+    goto _NextItem_
 
 goto :EOF
 
@@ -422,27 +451,27 @@ goto :EOF
 :: Browse for a folder on your system
 :: ***********************************************
 :BROWSE-FOR-FOLDER <%~1 outputvarname>
-	::I have no idea how this works exactly...
-	::https://stackoverflow.com/a/39593074/1490584
-	set %~1=
-	set _vbs_="%temp%\_.vbs"
-	set _cmd_="%temp%\_.cmd"
-	for %%f in (%_vbs_% %_cmd_%) do if exist %%f del %%f
-	for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
-	(
-	    echo set shell=WScript.CreateObject("Shell.Application"^)
-	    echo set f=shell.BrowseForFolder(0,"%~1",0,"%~2"^)
-	    echo if typename(f^)="Nothing" Then
-	    echo wscript.echo "set %~1=Dialog Cancelled"
-	    echo WScript.Quit(1^)
-	    echo end if
-	    echo set fs=f.Items(^):set fi=fs.Item(^)
-	    echo p=fi.Path:wscript.echo "set %~1=" ^& p
-	)>%_vbs_%
-	cscript //nologo %_vbs_% > %_cmd_%
-	for /f "delims=" %%a in (%_cmd_%) do %%a
-	for %%f in (%_vbs_% %_cmd_%) do if exist %%f del /f /q %%f
-	for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
+    ::I have no idea how this works exactly...
+    ::https://stackoverflow.com/a/39593074/1490584
+    set %~1=
+    set _vbs_="%temp%\_.vbs"
+    set _cmd_="%temp%\_.cmd"
+    for %%f in (%_vbs_% %_cmd_%) do if exist %%f del %%f
+    for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
+    (
+        echo set shell=WScript.CreateObject("Shell.Application"^)
+        echo set f=shell.BrowseForFolder(0,"%~1",0,"%~2"^)
+        echo if typename(f^)="Nothing" Then
+        echo wscript.echo "set %~1=Dialog Cancelled"
+        echo WScript.Quit(1^)
+        echo end if
+        echo set fs=f.Items(^):set fi=fs.Item(^)
+        echo p=fi.Path:wscript.echo "set %~1=" ^& p
+    )>%_vbs_%
+    cscript //nologo %_vbs_% > %_cmd_%
+    for /f "delims=" %%a in (%_cmd_%) do %%a
+    for %%f in (%_vbs_% %_cmd_%) do if exist %%f del /f /q %%f
+    for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
 
 goto :EOF
 
@@ -457,17 +486,25 @@ GOTO :EOF
 
 
 :: ***********************************************
+:: Get base directory of a file path
+:: ***********************************************
+:DIRNAME <%~1 output> <filelocation>
+    set "%~1=%~dp2"
+GOTO :EOF
+
+
+:: ***********************************************
 :: Print the Julia logo
 :: ***********************************************
 :SHOW-JULIA-ASCII
-	echo                _
-	echo    _       _ _(_)_     ^|  Documentation: https://docs.julialang.org
-	echo   (_)     ^| (_) (_)    ^|
-	echo    _ _   _^| ^|_  __ _   ^|  Run with "/h" for help
-	echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|
-	echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for Juliawin
-	echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
-	echo ^|__/                   ^|
+    echo                _
+    echo    _       _ _(_)_     ^|  Documentation: https://docs.julialang.org
+    echo   (_)     ^| (_) (_)    ^|
+    echo    _ _   _^| ^|_  __ _   ^|  Run with "/h" for help
+    echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|
+    echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for Juliawin
+    echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
+    echo ^|__/                   ^|
 GOTO :EOF
 
 
@@ -475,4 +512,4 @@ GOTO :EOF
 :: End in error
 :: ***********************************************
 :EOF-DEAD
-	exit /b 1
+    exit /b 1

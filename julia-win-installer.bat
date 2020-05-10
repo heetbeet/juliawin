@@ -94,6 +94,7 @@ mkdir "%tempdir%" 2>NUL
 
 set "toolsdir=%tempdir%\tools"
 mkdir "%toolsdir%" 2>NUL
+SET "PATH=%toolsdir%;%PATH%"
 
 set "installdir=%userprofile%\Juliawin"
 
@@ -153,11 +154,15 @@ if %errorlevel% NEQ 0 (
 
 
 :: ========== Ensure no files in dir ====
-::Can we delete an empty directory at %installdir%?
+::Delete dir and make it again (if we can, it is/was an empty dir)
+rmdir "%installdir%" >nul 2>&1
 mkdir "%installdir%" >nul 2>&1
-rmdir "%installdir%"  >nul 2>&1
 if "%errorlevel%" EQU "0" goto :directoryisgood
 	:: directory is not good...
+    :diremptychoice
+    set /P c="Directroy is not empty, continue [Y/N]?"
+    if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto diremptychoice
+    if /I "%c%" EQU "Y" goto :directoryisgood
 
 	ECHO: 1>&2
 	ECHO Error, the install directory is not empty. 1>&2
@@ -196,8 +201,11 @@ call :GET-URL-FILENAME juliafname "%juliaurl%"
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
-call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
-if %errorlevel% NEQ 0 goto :EOF-DEAD
+if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
+    call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+    if %errorlevel% NEQ 0 goto :EOF-DEAD
+
+:nodownloadjulia
 
 
 ECHO () Extracting into %installdir%\julia
@@ -206,6 +214,8 @@ call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
 
 :: ========== Run Julia code scripts ======
 call julia --color=yes -e "Base.banner()"
+call julia "%juliafile%" ADD-STARTUP-SCRIPT
+call julia "%juliafile%" INSTALL-CURL
 call julia "%juliafile%" INSTALL-ATOM
 call julia "%juliafile%" INSTALL-JUNO
 call julia "%juliafile%" INSTALL-JUPYTER
@@ -282,37 +292,38 @@ GOTO :EOF
 :: Find Download method
 :: ***********************************************
 :REGISTER-DOWNLOAD-METHOD
-	call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
-	set downloadmethod=webrequest
-	if %errorlevel% EQU 0 goto :method-success
 
-	call wget --help >nul 2>&1
-	set downloadmethod=wget
-	if %errorlevel% EQU 0 goto :method-success
+    call curl --help >nul 2>&1
+    set downloadmethod=curl
+    if %errorlevel% EQU 0 goto :method-success
 
-	call curl --help >nul 2>&1
-	set downloadmethod=curl
-	if %errorlevel% EQU 0 goto :method-success
+    call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
+    set downloadmethod=webrequest
+    if %errorlevel% EQU 0 goto :method-success
 
-	call powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
-	set downloadmethod=webclient
-	if %errorlevel% EQU 0 goto :method-success
+    call wget --help >nul 2>&1
+    set downloadmethod=wget
+    if %errorlevel% EQU 0 goto :method-success
 
-	SET downloadmethod=
+    call powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
+    set downloadmethod=webclient
+    if %errorlevel% EQU 0 goto :method-success
 
-	:: We can't find any download method
-	ECHO: 1>&2
-	ECHO Can't find any of these file download utilities: 1>&2
-	ECHO   - PowerShell's Invoke-WebRequest  1>&2
-	ECHO   - PowerShell's Net.WebClients  1>&2
-	ECHO   - wget  1>&2
-	ECHO   - curl  1>&2
-	ECHO: 1>&2
-	ECHO Install any of the above and try again... 1>&2
-	GOTO :EOF-DEAD
+    SET downloadmethod=
 
-	:method-success
-	echo () Download method %downloadmethod% is available
+    :: We can't find any download method
+    ECHO: 1>&2
+    ECHO Can't find any of these file download utilities: 1>&2
+    ECHO   - PowerShell's Invoke-WebRequest  1>&2
+    ECHO   - PowerShell's Net.WebClients  1>&2
+    ECHO   - wget  1>&2
+    ECHO   - curl  1>&2
+    ECHO: 1>&2
+    ECHO Install any of the above and try again... 1>&2
+    GOTO :EOF-DEAD
+
+    :method-success
+    echo () Download method %downloadmethod% is available
 
 goto :EOF
 
@@ -321,30 +332,48 @@ goto :EOF
 :: Download a file
 :: ***********************************************
 :DOWNLOAD-FILE <url> <filelocation>
-	if "%downloadmethod%"=="" call :REGISTER-DOWNLOAD-METHOD
-	if %errorlevel% EQU 1 goto :EOF-DEAD
+    call :REGISTER-DOWNLOAD-METHOD
+    if %errorlevel% EQU 1 goto :EOF-DEAD
 
-	IF "%downloadmethod%" == "webrequest" (
+    IF "%downloadmethod%" == "curl" (
 
-		call powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
+        call curl -g -L -f -o "%~2" "%~1"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
 
-	) ELSE IF "%downloadmethod%" == "wget" (
+    ) ELSE IF "%downloadmethod%" == "webrequest" (
 
-		call wget "%1" -O "%2"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
+        call powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
 
-	) ELSE IF "%downloadmethod%" == "curl" (
+    ) ELSE IF "%downloadmethod%" == "wget" (
 
-		call curl -s -S -g -L -f -o "%~2" "%~1"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
+        call wget "%1" -O "%2"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
 
-	) ELSE IF "%downloadmethod%" == "webclient" (
+    ) ELSE IF "%downloadmethod%" == "webclient" (
+    
+        call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
+        if %errorlevel% NEQ 0 goto EOF-DEAD
+    )
 
-		call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
-		if %errorlevel% NEQ 0 goto EOF-DEAD
-	)
+goto :EOF
 
+
+:: ***********************************************
+:: Make sure a fairly new CURL is available for this
+:: Julia installation, and force julia to use curl.
+:: ***********************************************
+:BOOTSTRAP-CURL
+    ::If we don't have curl, then download it from github
+    call %SYSTEMROOT%\System32\curl.exe --help >nul 2>&1
+    if %errorlevel% EQU 0 goto :_skipcurldownload_
+        :: copy curl and place in tools and (temporarily) in Juliawin
+        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
+        call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl.exe" "%toolsdir%\curl.exe"
+        mkdir "%installdir%\curl\bin" 2>NUL        
+        copy "%toolsdir%\curl.exe" "%installdir%\curl\bin\curl.exe"
+        copy "%toolsdir%\curl-ca-bundle.crt" "%installdir%\curl\bin\curl-ca-bundle.crt"
+    :_skipcurldownload_
 goto :EOF
 
 
@@ -458,6 +487,14 @@ goto :EOF
 :TOUPPER <%~1 inputoutput variable>
     for %%L IN (^^ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) DO SET %1=!%1:%%L=%%L!
 
+GOTO :EOF
+
+
+:: ***********************************************
+:: Get base directory of a file path
+:: ***********************************************
+:DIRNAME <%~1 output> <filelocation>
+    set "%~1=%~dp2"
 GOTO :EOF
 
 
@@ -813,7 +850,7 @@ runroutine = ARGS[1]
 #=
 Same method as the bat equivalent
 =#
-function get_dl_url(url, domatch, notmatch=nothing, prefix="")
+function get_dl_url(url, domatch; notmatch=nothing, prefix="")
 	urlslug = replace(url, "/"=>"-")
 	urlslug = replace(urlslug, ":"=>"")
 	lnkpath = joinpath(juliatemp, urlslug)
@@ -833,9 +870,11 @@ end
 
 function download_asset(dlurl)
 	path = joinpath(juliatemp, split(dlurl, "/")[end])
-	println("() Downloading $dlurl to")
-	println("() $path, this may take a while")
-	download(dlurl, path)
+    if !isfile(path) 
+        println("() Downloading $dlurl to")
+        println("() $path, this may take a while")
+        download(dlurl, path)
+    end
 	return path
 end
 
@@ -866,11 +905,87 @@ function extract_file(archive, destdir, fixdepth=true)
 end
 
 
+function install_from_homepage(url, domatch; notmatch=nothing, prefix="")
+    dlurl = get_dl_url(url, domatch; notmatch=notmatch, prefix=prefix)
+    dlzip = download_asset(dlurl)
+    dldest = joinpath(installdir, splitext(basename(dlzip))[0])
+    extract_file(dlzip, dldest)
+    return dldest
+end
+
+
 if runroutine == "HELLO-WORLD"
 
 	println("() Hello World")
 
 end
+
+
+if runroutine == "ADD-STARTUP-SCRIPT"
+    open(joinpath(installdir, "julia", "etc", "julia", "startup.jl"), "w") do f
+        write(f, raw"""
+        # This file should contain site-specific commands to be executed on Julia startup;
+        # Users may store their own personal commands in `~/.julia/config/startup.jl`.
+
+
+        #*****************************
+        # Use portable package location
+        #*****************************
+        DEPOT_PATH[1] = abspath(String(@__DIR__)*raw"/../../../.julia")
+
+
+        if Sys.iswindows()
+            #*****************************
+            # Add curl from packages to path
+            #*****************************
+            for i=1 #to keep scope clear
+                packagedir = abspath(String(@__DIR__)*raw"/../../..")
+                curlpackages = [i for i in readdir(packagedir) if startswith(i, "curl")]
+                if length(curlpackages)>0
+                    ENV["PATH"] = abspath(packagedir*"/"*curlpackages[1]*"/bin")*";"*ENV["PATH"]
+                end
+            end
+
+
+            #*****************************
+            # Make use of curl and overwrite download_powershell for stubborn libraries.
+            #*****************************
+            if Sys.which("curl") !== nothing
+                ENV["BINARYPROVIDER_DOWNLOAD_ENGINE"] = "curl"
+                Base.download_powershell(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
+                download = Base.download
+            end
+
+        end
+        """)
+    end
+end
+
+
+if runroutine == "INSTALL-CURL"
+    #download external url for julia
+    curlurl = get_dl_url("https://curl.haxx.se/windows/",
+                        r"dl.*win64.*zip";
+                        prefix="https://curl.haxx.se/windows/")
+    curlzip = download_asset(curlurl)
+    extract_file(curlzip, joinpath(installdir, "curl-tmp"))
+    try
+        rm(joinpath(installdir, "curl"), recursive=true)
+    catch e end
+
+    try
+        mv(joinpath(installdir, "curl-tmp"), joinpath(installdir, "curl"), force=true)
+    catch e end
+
+
+    #We want to move towards version numbers in directories
+    #remove bootsrap curl if it exists
+    #curlpackages = [i for i in readdir(installdir) if startswith(i, "curl")]
+    #if length(curlpackages) >= 2 && "curl" in curlpackages
+    #    rm(joinpath(installdir, "curl"), recursive=true)
+    #end
+end
+
 
 if runroutine == "INSTALL-ATOM"
     
@@ -882,9 +997,9 @@ if runroutine == "INSTALL-ATOM"
     
 	#https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
 	atomurl = get_dl_url("https://github.com/atom/atom/releases",
-						dlreg,
-						r"-beta",
-						"https://github.com/")
+						dlreg;
+                        notmatch=r"-beta",
+                        prefix="https://github.com/")
 	atomzip = download_asset(atomurl)
 
 	extract_file(atomzip, joinpath(installdir, "atom"))
@@ -956,6 +1071,7 @@ if runroutine == "MAKE-BATS"
 		julia\bin
 		atom
 		atom\resources\cli
+        curl\bin
 		""" |> split
 
 	pathsbat = join(["""SET "PATH=%~dp0..\\$path;%PATH%" """ for path in paths], "\n")
