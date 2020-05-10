@@ -170,28 +170,31 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
 mkdir "%installdir%" >nul 2>&1
 
 
-:: ========== Save this path to a file ==
+:: ========== Log paths to txt files ==
 echo %installdir% > "%tempdir%\installdir.txt"
 
+set "packagedir=%installdir%\packages"
+mkdir "%packagedir%" >nul 2>&1
+echo %packagedir% > "%tempdir%\packagedir.txt"
 
-:: ========== SETUP PATH VARS =============
-SET "PATH=%installdir%\julia\bin;%PATH%"
-SET "PATH=%installdir%\julia\libexec;%PATH%"
-SET "PATH=%installdir%\atom;%PATH%"
-SET "PATH=%installdir%\atom\resources\cli;%PATH%"
+set "userdatadir=%installdir%\userdata"
+mkdir "%userdatadir%" >nul 2>&1
+echo %userdatadir% > "%tempdir%\userdatadir.txt"
 
-set "JULIA_DEPOT_PATH=%installdir%\.julia"
-set "ATOM_HOME=%installdir%\.atom"
 
 
 :: ========== Download and install latest julia
 ECHO:
 ECHO () Configuring the download source
 
+call :BOOTSTRAP-CURL
+call :SET-PATHS
+
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
 if %errorlevel% NEQ 0 goto :EOF-DEAD
 
 call :GET-URL-FILENAME juliafname "%juliaurl%"
+call :FILE-NOEXT juliadirname "%juliafname%"
 
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
@@ -199,21 +202,30 @@ ECHO () %tempdir%\%juliafname%
 if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
     call :DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
     if %errorlevel% NEQ 0 goto :EOF-DEAD
-
 :nodownloadjulia
 
-
-ECHO () Extracting into %installdir%\julia
-call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%installdir%\julia"
-
+ECHO () Extracting into %packagedir%\%juliadirname%
+call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%packagedir%\%juliadirname%"
+call :SET-PATHS
 
 :: ========== Run Julia code scripts ======
 call julia --color=yes -e "Base.banner()"
+pause
 call julia "%juliafile%" ADD-STARTUP-SCRIPT
 call julia "%juliafile%" INSTALL-CURL
+call julia "%juliafile%" INSTALL-NSIS
+call julia "%juliafile%" INSTALL-RESOURCEHACKER
+call julia "%juliafile%" MAKE-BATS
+
 call julia "%juliafile%" INSTALL-ATOM
+call :SET-PATHS
+
 call julia "%juliafile%" INSTALL-JUNO
+call :SET-PATHS
+
 call julia "%juliafile%" INSTALL-JUPYTER
+call :SET-PATHS
+
 call julia "%juliafile%" MAKE-BATS
 
 echo () End of installation
@@ -281,6 +293,59 @@ goto :EOF
         )
     goto loopargs
 GOTO :EOF
+
+
+:: ***********************************************
+:: Set PATH variables (rerun when more packages are available)
+:: ***********************************************
+:SET-PATHS
+    call :ADD-TO-PATH "%toolsdir%"
+    call :ADD-TO-PATH "%packagedir%\julia-*" "bin"
+    call :ADD-TO-PATH "%packagedir%\julia-*" "libexec"
+    call :ADD-TO-PATH "%packagedir%\atom-*"
+    call :ADD-TO-PATH "%packagedir%\atom-*" "resources\cli"
+    call :ADD-TO-PATH "%packagedir%\curl*"  "bin"
+    call :ADD-TO-PATH "%packagedir%\nsis*"  "bin"
+    call :ADD-TO-PATH "%packagedir%\resource_hacker*" "bin"
+
+    set "JULIA_DEPOT_PATH=%userdatadir%\.julia"
+    set "ATOM_HOME=%userdatadir%\.atom"
+goto :EOF
+
+
+:: ***********************************************
+:: Expand a asterix path to a full path
+:: ***********************************************
+:EXPAND-FULLPATH <return> <filepath>
+    ::basename with asterix expansion
+    set "_basename_="
+    for /f "tokens=*" %%F in ('dir /b "%~2" 2^> nul') do set "_basename_=%%F"
+
+    ::concatenate with dirname is basename found (else "")
+    if "%_basename_%" NEQ "" (
+        set "%~1=%~dp2%_basename_%"
+    ) ELSE (
+        set "%~1="
+    )
+goto :EOF
+
+
+:: ***********************************************
+:: Expand a asterix path to a full path
+:: ***********************************************
+:ADD-TO-PATH <asterixable path> <optional\extra\path\>
+    :: first part may be extended with an asterix
+    call :EXPAND-FULLPATH _path_ "%~1"
+    if "%_path_%" EQU "" goto :EOF
+
+    :: second part may be empty 
+    if "%~2" NEQ "" set "_path_=%_path_%\%~2"
+
+    echo %_path_%; | findstr /i /c:"%PATH%" >nul 2>&1
+    if "%errorlevel%" EQU "0" goto :EOF
+
+    set "PATH=%_path_%;%PATH%"
+goto :EOF
 
 
 :: ***********************************************
@@ -492,6 +557,13 @@ GOTO :EOF
     set "%~1=%~dp2"
 GOTO :EOF
 
+
+:: ***********************************************
+:: Get base directory of a file path
+:: ***********************************************
+:FILE-NOEXT <%~1 output> <filelocation>
+    set "%~1=%~n2"
+GOTO :EOF
 
 :: ***********************************************
 :: Print the Julia logo
