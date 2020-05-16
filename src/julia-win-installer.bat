@@ -190,7 +190,8 @@ ECHO () Configuring the download source
 call :BOOTSTRAP-CURL
 call :SET-PATHS
 
-call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/develop/tools/launcher.c" "%toolsdir%\launcher.c"
+call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/develop/tools/launcher.exe" "%toolsdir%\launcher.exe"
+call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/develop/tools/launcher-noshell.exe" "%toolsdir%\launcher-noshell.exe"
 
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
 if %errorlevel% NEQ 0 goto :EOF-DEAD

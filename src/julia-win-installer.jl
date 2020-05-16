@@ -435,32 +435,15 @@ if runroutine == "MAKE-EXES"
     mkpath(iconpath)
 
     for (program, shell) in [("atom", false), ("julia", true), ("IJulia-Lab", false), ("IJulia-Notebook", false)]
-        tmpexe = joinpath(iconpath, "$program.exe")
         outpath = joinpath(installdir, "$program.exe")
 
         if shell
-            nspath = joinpath(iconpath, "$program.c")
-            launcher_txt = read(open(joinpath(juliatemp, "tools", "launcher.c")),String)
-            launcher_txt = replace(launcher_txt, "__exec__" => program)
-            launcher_txt = replace(launcher_txt, "__argparams__" => "")
-            launcher_txt = replace(launcher_txt, "noShell = true" => "noShell = false")
-            open(nspath, "w") do f
-                write(f, launcher_txt)
-            end
-            run(`tcc -D_UNICODE "$nspath" -luser32 -lkernel32 -o "$tmpexe"`)
+            cp(joinpath(juliatemp, "tools", "launcher.exe"), "$outpath", force=true)
         else
-            nspath = joinpath(iconpath, "$program.nsi")
-            launcher_txt = read(open(joinpath(juliatemp, "tools", "launcher.nsi")),String)
-            launcher_txt = replace(launcher_txt, "__command__" => "\"wscript.exe\"")
-            launcher_txt = replace(launcher_txt, "__parameters__" => "\"\$EXEDIR\\bin\\noshell.vbs \$EXEDIR\\bin\\$(program).bat\"")
-            launcher_txt = replace(launcher_txt, "__outfile__" => "$(program).exe")
-            open(nspath, "w") do f
-                write(f, launcher_txt)
-            end
-            run(`makensis -V2 "$nspath"`)
+            cp(joinpath(juliatemp, "tools", "launcher-noshell.exe"), "$outpath", force=true)
         end
 
-        cp(tmpexe, "$outpath", force=true)
+
 
         if haskey(get_execs(), program)
             (i,j,k) = get_execs()[program]
@@ -470,12 +453,9 @@ if runroutine == "MAKE-EXES"
 
             read(`ResourceHacker -open "$filepath" -save "$respath_icons" -action extract -mask ICONGROUP,, `)
             #read(`ResourceHacker -open "$filepath" -save "$respath_versioninfo" -action extract -mask VERSIONINFO,, `)
-            read(`ResourceHacker -open "$tmpexe" -save "$tmpexe" -action addoverwrite -res "$respath_icons"`)
-            #read(`ResourceHacker -open "$tmpexe" -save "$tmpexe" -action addoverwrite -res "$respath_versioninfo"`)
-        end
-        if isfile(tmpexe)
-            cp(tmpexe, "$(outpath)_tmp.exe", force=true)
-        end
 
+            read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath_icons"`)
+            #read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath_versioninfo"`)
+        end
     end
 end
