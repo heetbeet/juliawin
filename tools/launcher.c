@@ -1,25 +1,9 @@
-#define _WIN32_WINNT 0x0500
+//#define _WIN32_WINNT 0x0500
 #include <windows.h>
 #include <stdbool.h>
 #include <tchar.h>
 
 int main( int argc, char ** argv ) {
-    //*******************************************
-    //Hardcoded parameters to be replaced by Julia
-    //*******************************************
-    TCHAR* exec = L"__exec__";
-    TCHAR* argparams = L"__argparams__";
-    bool noShell = true;
-
-
-    //*******************************************
-    //Hide window if we are in noShell mode
-    //*******************************************
-    //https://stackoverflow.com/a/30243650/1490584
-    HWND hWnd = GetConsoleWindow();
-    if(noShell){ ShowWindow( hWnd, SW_HIDE ); }
-
-
     //*******************************************
     //Get commanline string as a whole
     //*******************************************
@@ -30,7 +14,7 @@ int main( int argc, char ** argv ) {
 
 
     //*******************************************
-    //Split filepath and commandline
+    //Split filepath, filename, and commandline
     //*******************************************
     bool inQuote = false;
     bool isArgs = false;
@@ -77,6 +61,7 @@ int main( int argc, char ** argv ) {
     cmdBaseDir = (TCHAR*) malloc((_tcslen(cmdPath)+1)*2);
     _tcscpy(cmdBaseDir, cmdPath);
 
+
     int nrOfSlashed = 0;
     int slashLoc = 0;
     for(int i=0; i<_tcslen(cmdBaseDir); i++){
@@ -97,22 +82,57 @@ int main( int argc, char ** argv ) {
 
 
     //*******************************************
+    //Find filename without .exe
+    //*******************************************
+    TCHAR* cmdName;
+    cmdName = (TCHAR*) malloc((_tcslen(cmdPath)+1)*2);
+    _tcscpy(cmdName, cmdPath);
+
+    cmdName = &cmdPath[slashLoc==0?0:slashLoc*2+2];
+    int fnameend = _tcslen(cmdName);
+    if(0 < fnameend-4){
+        cmdName[(fnameend-4)*2]   = '\0';
+        cmdName[(fnameend-4)*2+1] = '\0';
+    }
+
+    //_tprintf(L"%s\n", cmdName);
+
+    //********************************************
+    //Bat name to be checked
+    //********************************************
+    int totlen;
+
+    TCHAR* batFile1  = cmdBaseDir;
+    TCHAR* batFile2  = L"\\bin\\";
+    TCHAR* batFile3  = cmdName;
+    TCHAR* batFile4  = L".bat";
+
+    totlen = (_tcslen(batFile1)+ _tcslen(batFile2)+ _tcslen(batFile3)+ _tcslen(batFile4));
+
+    TCHAR* batFile;
+    batFile = (TCHAR*) malloc((totlen+1)*2);
+    _tcscpy(batFile, batFile1);
+    _tcscat(batFile, batFile2);
+    _tcscat(batFile, batFile3);
+    _tcscat(batFile, batFile4);
+
+    if(0 != _waccess(batFile, 0)){
+        system("powershell -command \"[reflection.assembly]::LoadWithPartialName('System.Windows.Forms')|out-null;[windows.forms.messagebox]::Show('Could not find the launcher .bat in bin directory.', 'Execution error')\" ");
+    };
+
+    //_tprintf(L"%s\n", batFile);
+
+    //*******************************************
     //Get into this form: cmd.exe /c ""c:\path\...bat" arg1 arg2 ... "
     //*******************************************
     TCHAR* cmdLine1  = L"cmd.exe /c \"";
     TCHAR* cmdLine2  = L"\"";
-    TCHAR* cmdLine3  = cmdBaseDir;
-    TCHAR* cmdLine4  = L"\\bin\\";
-    TCHAR* cmdLine5  = exec;
-    TCHAR* cmdLine6  = L".bat\" ";
-    TCHAR* cmdLine7  = argparams;
-    TCHAR* cmdLine8  = L" ";
-    TCHAR* cmdLine9  = cmdArgs;
-    TCHAR* cmdLine10 = L"\"";
+    TCHAR* cmdLine3  = batFile;
+    TCHAR* cmdLine4  = L"\" "; 
+    TCHAR* cmdLine5  = cmdArgs;
+    TCHAR* cmdLine6 = L"\"";
 
-    int totlen = (_tcslen(cmdLine1)+ _tcslen(cmdLine2)+ _tcslen(cmdLine3)+ _tcslen(cmdLine4)+
-                  _tcslen(cmdLine5)+ _tcslen(cmdLine6)+ _tcslen(cmdLine7)+ _tcslen(cmdLine8)+
-                  _tcslen(cmdLine9));
+    totlen = (_tcslen(cmdLine1)+_tcslen(cmdLine2)+_tcslen(cmdLine3)+_tcslen(cmdLine4)+_tcslen(cmdLine5)+_tcslen(cmdLine6));
 
     TCHAR* cmdLine;
     cmdLine = (TCHAR*) malloc((totlen+1)*2);
@@ -124,10 +144,6 @@ int main( int argc, char ** argv ) {
     _tcscat(cmdLine, cmdLine4);
     _tcscat(cmdLine, cmdLine5);
     _tcscat(cmdLine, cmdLine6);
-    _tcscat(cmdLine, cmdLine7);
-    _tcscat(cmdLine, cmdLine8);
-    _tcscat(cmdLine, cmdLine9);
-    _tcscat(cmdLine, cmdLine10);
 
     //_tprintf(L"%s\n", cmdLine);
 
@@ -140,15 +156,13 @@ int main( int argc, char ** argv ) {
     memset(&si, 0, sizeof(si));
     si.cb = sizeof(si);
 
-    int bResult = CreateProcessW(NULL,
+    CreateProcessW(NULL,
       cmdLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi);
 
     //************************************
     //Return ErrorLevel
     //************************************
     DWORD result = WaitForSingleObject(pi.hProcess,15000);
-
-    if(noShell){ ShowWindow( hWnd, SW_SHOW); }
 
     if(result == WAIT_TIMEOUT){return -2;} //Timeout error
 
