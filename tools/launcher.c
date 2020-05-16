@@ -1,9 +1,16 @@
-//#define _WIN32_WINNT 0x0500
+//#define NOSHELL
+
+#define _WIN32_WINNT 0x0500
 #include <windows.h>
 #include <stdbool.h>
 #include <tchar.h>
 
-int main( int argc, char ** argv ) {
+#ifdef NOSHELL
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+#else
+int main( int argc, char ** argv ) 
+#endif
+{
     //*******************************************
     //Get commanline string as a whole
     //*******************************************
@@ -156,8 +163,11 @@ int main( int argc, char ** argv ) {
     memset(&si, 0, sizeof(si));
     si.cb = sizeof(si);
 
-    CreateProcessW(NULL,
-      cmdLine, NULL, NULL, TRUE, NULL, NULL, NULL, &si, &pi);
+    #ifdef NOSHELL
+    CreateProcessW(NULL, cmdLine, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+    #else
+    CreateProcessW(NULL, cmdLine, NULL, NULL, TRUE, NULL,             NULL, NULL, &si, &pi);
+    #endif
 
     //************************************
     //Return ErrorLevel
