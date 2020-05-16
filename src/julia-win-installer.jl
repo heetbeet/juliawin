@@ -5,7 +5,8 @@ paths = [
 (raw"packages\atom-*", "resources\\cli"),
 (raw"packages\curl-*", "bin"),
 (raw"packages\nsis-*", ""),
-(raw"packages\resource_hacker*", "")
+(raw"packages\resource_hacker*", ""),
+(raw"packages\tcc*", ""),
 ]
 
 thisfile = abspath(@__FILE__)
@@ -138,6 +139,17 @@ function expand_fullpath(filepath)
     end
 
     return joinpath(dir, sort(matches)[1])
+end
+
+#*******************************************
+# Add fullpaths to ENV["PATH"]
+#*******************************************
+fullpaths = [joinpath(expand_fullpath(joinpath(installdir, i)),j) for (i,j) in paths]
+for path in fullpaths
+    pathsep = if(Sys.iswindows()) ";" else ":" end
+    if !(path in split(ENV["PATH"], pathsep))
+        ENV["PATH"] = path*pathsep*ENV["PATH"]
+    end
 end
 
 
@@ -365,11 +377,11 @@ if runroutine == "MAKE-BATS"
             atomtxt_ = replace(atomtxt,
                 "call :EXPAND-FULLPATH "=>
                 """
+
                 ::for some reason juno hates being next to julia.bat
                 ::this is clearly a bug that needs to be addressed with atom
-                set "curdir=%~dp0"
-                set "curdir=%curdir:~0,-1%"
-                if /i "%cd%" EQU "%curdir%" cd ..\\packages
+                if exist julia.bat ( cd "%userprofile%" )
+                if exist julia.exe ( cd "%userprofile%" )
 
                 call :EXPAND-FULLPATH """)
 
@@ -418,87 +430,51 @@ end
 
 
 if runroutine == "MAKE-EXES"
-    #Original source: WinPython
-    nsistemplate = raw"""
-    ;================================================================
-    !addincludedir ""
-    !define COMMAND __command__
-    !define PARAMETERS __parameters__
-    !define WORKDIR ""
-    ;!define Icon ""
-    !define OutFile __outfile__
-    ;================================================================
-    # Standard NSIS plugins
-    !include "WordFunc.nsh"
-    !include "FileFunc.nsh"
 
-    SilentInstall silent
-    AutoCloseWindow true
-    ShowInstDetails nevershow
-    RequestExecutionLevel user
-
-    Section ""
-    Call Execute
-    SectionEnd
-
-    Function Execute
-    ;Set working Directory ===========================
-    StrCmp ${WORKDIR} "" 0 workdir
-    System::Call "kernel32::GetCurrentDirectory(i ${NSIS_MAX_STRLEN}, t .r0)"
-    SetOutPath $0
-    Goto end_workdir
-    workdir:
-    SetOutPath "${WORKDIR}"
-    end_workdir:
-    ;Get Command line parameters =====================
-    ${GetParameters} $R1
-    StrCmp "${PARAMETERS}" "" end_param 0
-    StrCpy $R1 "${PARAMETERS} $R1"
-    end_param:
-    ;===== Execution =================================
-    Exec '"${COMMAND}" $R1'
-    FunctionEnd
-    """
-
+    iconpath = joinpath(juliatemp, "icons")
+    mkpath(iconpath)
 
     for (program, shell) in [("atom", false), ("julia", true), ("IJulia-Lab", false), ("IJulia-Notebook", false)]
-        if shell
-            data = [("__command__", "\$EXEDIR\\bin\\$(program).bat"),
-                    ("__parameters__", ""),
-                    ("__outfile__", "$(program).exe")]
-        else
-            data = [("__command__", "wscript.exe"),
-                    ("__parameters__", "\$EXEDIR\\bin\\noshell.vbs \$EXEDIR\\bin\\$(program).bat"),
-                    ("__outfile__", "$(program).exe")]
-        end
-
-        nsis_txt = nsistemplate
-        for (fnd, repl) in data
-            nsis_txt = replace(nsis_txt, fnd => "\"$(repl)\"")
-        end
-
-        nspath = joinpath(juliatemp, "$program.nsi")
-        tmpexe = joinpath(juliatemp, "$program.exe")
+        tmpexe = joinpath(iconpath, "$program.exe")
         outpath = joinpath(installdir, "$program.exe")
-        open(nspath, "w") do f
-            write(f, nsis_txt)
+
+        if shell
+            nspath = joinpath(iconpath, "$program.c")
+            launcher_txt = read(open(joinpath(juliatemp, "tools", "launcher.c")),String)
+            launcher_txt = replace(launcher_txt, "__exec__" => program)
+            launcher_txt = replace(launcher_txt, "__argparams__" => "")
+            launcher_txt = replace(launcher_txt, "noShell = true" => "noShell = false")
+            open(nspath, "w") do f
+                write(f, launcher_txt)
+            end
+            run(`tcc -D_UNICODE "$nspath" -luser32 -lkernel32 -o "$tmpexe"`)
+        else
+            nspath = joinpath(iconpath, "$program.nsi")
+            launcher_txt = read(open(joinpath(juliatemp, "tools", "launcher.nsi")),String)
+            launcher_txt = replace(launcher_txt, "__command__" => "\"wscript.exe\"")
+            launcher_txt = replace(launcher_txt, "__parameters__" => "\"\$EXEDIR\\bin\\noshell.vbs \$EXEDIR\\bin\\$(program).bat\"")
+            launcher_txt = replace(launcher_txt, "__outfile__" => "$(program).exe")
+            open(nspath, "w") do f
+                write(f, launcher_txt)
+            end
+            run(`makensis -V2 "$nspath"`)
         end
 
-        run(`makensis -V2 "$nspath"`)
-        cp("$tmpexe", "$outpath", force=true)
+        cp(tmpexe, "$outpath", force=true)
 
         if haskey(get_execs(), program)
             (i,j,k) = get_execs()[program]
             filepath = joinpath(expand_fullpath(joinpath(installdir, i)), j, k)
-            respath = joinpath(juliatemp, "$(program).res")
+            respath_icons = joinpath(iconpath, "$(program)_icons.res")
+            respath_versioninfo = joinpath(iconpath, "$(program)_versioninfo.res")
 
-            #read(`ResourceHacker -open "$filepath" -save "$respath" -action extract -mask ,,, `)
-            read(`ResourceHacker -open "$tmpexe" -save "$(tmpexe)_tmp.exe" -action addoverwrite -res "$respath"`)
+            read(`ResourceHacker -open "$filepath" -save "$respath_icons" -action extract -mask ICONGROUP,, `)
+            #read(`ResourceHacker -open "$filepath" -save "$respath_versioninfo" -action extract -mask VERSIONINFO,, `)
+            read(`ResourceHacker -open "$tmpexe" -save "$tmpexe" -action addoverwrite -res "$respath_icons"`)
+            #read(`ResourceHacker -open "$tmpexe" -save "$tmpexe" -action addoverwrite -res "$respath_versioninfo"`)
         end
-        if isfile("$(tmpexe)_tmp.exe")
-            cp("$(tmpexe)_tmp.exe", "$(outpath)_tmp.exe", force=true)
-        #else
-        #    mv("$tmpexe", "$outpath", force=true)
+        if isfile(tmpexe)
+            cp(tmpexe, "$(outpath)_tmp.exe", force=true)
         end
 
     end
