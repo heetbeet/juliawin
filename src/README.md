@@ -1,4 +1,4 @@
-We decided to develop the Python, Julia, and Batch sections seperately, and deploy the, as a single cross-platform file.
+We decided to develop the Python, Julia, and Batch sections seperately, and deploy them as a single cross-platform file.
 
 The output is the concatenation:
 
