@@ -11,9 +11,9 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-You can save and run the script from this <a href="https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat" download>link</a> (Github doesn't provide a save-as popup unfortunately).
+1. You can right-click, <a href="https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat">`Save Link As`</a>, and run the script.
 
-Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
+2. Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
 ```
 powershell.exe -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat','%tmp%\jl.bat'); "%tmp%\jl.bat" /P"
 ```
@@ -36,7 +36,7 @@ Everything gets installed into a single self-contained directory. The result is 
 * Add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts)
 * Add Visual Studio Code.
 * Installer/options for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts).
-* Installer shoul clean up its `C:\Users\FooBar\AppData\Local\Temp\Juliawin` directory.
+* Installer shouls clean up its `C:\Users\FooBar\AppData\Local\Temp\Juliawin` directory.
 * Offline installation support and pinned versions (cache, zip and ship).
 * Make all addons (like IDE/packages/environments) optional with a buffet menu.
 * If Juliawin is successful, move it to an organization with it's own github.io landing page.
