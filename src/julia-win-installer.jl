@@ -1,16 +1,18 @@
 paths = [
-(raw"packages\julia-*", "bin"),
-(raw"packages\julia-*", "libexec"),
-(raw"packages\atom-*", ""),
-(raw"packages\atom-*", "resources\\cli"),
-(raw"packages\curl-*", "bin"),
-(raw"packages\nsis-*", ""),
-(raw"packages\resource_hacker*", ""),
-(raw"packages\tcc*", ""),
+    (raw"packages\julia-*", "bin"),
+    (raw"packages\julia-*", "libexec"),
+    (raw"packages\atom-*", ""),
+    (raw"packages\atom-*", "resources\\cli"),
+    (raw"packages\curl-*", "bin"),
+    (raw"packages\resource_hacker*", ""),
+    #(raw"packages\nsis-*", ""),
+    #(raw"packages\tcc*", ""),
 ]
+
 
 thisfile = abspath(@__FILE__)
 juliatemp = joinpath(tempdir(), "juliawin")
+
 
 installdir = strip(read(open(joinpath(juliatemp, "installdir.txt")), String))
 packagedir = strip(read(open(joinpath(juliatemp, "packagedir.txt")), String))
@@ -114,6 +116,7 @@ function extract_file(archive, destdir, fixdepth=true)
     end
 end
 
+
 function install_from_homepage(url, domatch; notmatch=nothing, prefix="")
     dlurl = get_dl_url(url, domatch; notmatch=notmatch, prefix=prefix)
     dlzip = download_asset(dlurl)
@@ -141,10 +144,21 @@ function expand_fullpath(filepath)
     return joinpath(dir, sort(matches)[1])
 end
 
+function writecrlf(f, txt)
+    write(f, replace(txt, "\n"=>"\r\n"))
+end
+
 #*******************************************
 # Add fullpaths to ENV["PATH"]
 #*******************************************
-fullpaths = [joinpath(expand_fullpath(joinpath(installdir, i)),j) for (i,j) in paths]
+fullpaths = []
+for (i,j) in paths
+    fullpath = expand_fullpath(joinpath(installdir, i))
+    if fullpath !== nothing
+        push!(fullpaths, joinpath(fullpath,j))
+    end
+end
+
 for path in fullpaths
     pathsep = if(Sys.iswindows()) ";" else ":" end
     if !(path in split(ENV["PATH"], pathsep))
@@ -154,37 +168,27 @@ end
 
 
 if runroutine == "HELLO-WORLD"
-
     println("() Hello World")
 
 end
 
 
 if runroutine == "ADD-STARTUP-SCRIPT"
-    juliahome = expand_fullpath(joinpath(packagedir,"julia-*"))
-    open(joinpath(juliahome, "etc", "julia", "startup.jl"), "w") do f
-        write(f, raw"""
-        # This file should contain site-specific commands to be executed on Julia startup;
-        # Users may store their own personal commands in `~/.julia/config/startup.jl`.
-
-
-        #*****************************
-        # Use portable package location
-        #*****************************
-        DEPOT_PATH[1] = abspath(String(@__DIR__)*raw"/../../../../userdata/.julia")
-
+    startupjl_txt = raw"""
+        # Juliawin uses curl as the default downloader
 
         if Sys.iswindows()
             #*****************************
             # Add curl from packages to path
             #*****************************
             for i=1 #to keep scope clear
-                packagedir = abspath(String(@__DIR__)*raw"/../../..")
+                packagedir = abspath(String(@__DIR__)*raw"/../../../packages")
                 curlpackages = [i for i in readdir(packagedir) if startswith(i, "curl")]
                 if length(curlpackages)>0
                     ENV["PATH"] = abspath(packagedir*"/"*curlpackages[1]*"/bin")*";"*ENV["PATH"]
                 end
             end
+
 
 
             #*****************************
@@ -197,8 +201,13 @@ if runroutine == "ADD-STARTUP-SCRIPT"
             end
 
         end
-        """)
+        """
+
+    mkpath(joinpath(installdir, "userdata", ".julia", "config"))
+    open(joinpath(installdir, "userdata", ".julia", "config", "startup.jl"), "w") do f
+        write(f, startupjl_txt)
     end
+
 end
 
 
@@ -282,6 +291,7 @@ if runroutine == "INSTALL-RESOURCEHACKER"
                                  prefix="http://www.angusj.com/resourcehacker/")
 end
 
+
 if runroutine == "MAKE-BATS"
     binpath = joinpath(installdir, "bin")
     mkpath(binpath)
@@ -341,7 +351,7 @@ if runroutine == "MAKE-BATS"
 
         set "JULIA_DEPOT_PATH=%~dp0..\userdata\.julia"
         set "ATOM_HOME=%~dp0..\userdata\.atom"
-
+        set "PYTHON="
 
         """*batroutines
 
@@ -354,7 +364,7 @@ if runroutine == "MAKE-BATS"
 
     #Write the environment setup to bin/juliawin-en...
     open(joinpath(binpath,"juliawin-environment.bat"), "w") do f
-        write(f, juliawinenviron)
+        writecrlf(f, juliawinenviron)
     end
 
 
@@ -365,10 +375,9 @@ if runroutine == "MAKE-BATS"
         """
         battxt = replace(battemplate, "__exec__"=>exectxt)
         open(joinpath(binpath,name*".bat"), "w") do f
-            write(f, battxt)
+            writecrlf(f, battxt)
         end
     end
-
 
     #Custom one for atom, since atom can't be next to julia.bat (why???)
     if isfile(joinpath(binpath, "atom.bat"))
@@ -385,32 +394,15 @@ if runroutine == "MAKE-BATS"
 
                 call :EXPAND-FULLPATH """)
 
-            write(f, atomtxt_)
+            writecrlf(f, atomtxt_)
         end
     end
 
-    open(joinpath(binpath, "noshell.vbs"), "w") do f
-        quadstr = "\"\"\"\""
-        write(f, """
-        If WScript.Arguments.Count >= 1 Then
-            ReDim arr(WScript.Arguments.Count-1)
-            For i = 0 To WScript.Arguments.Count-1
-                Arg = WScript.Arguments(i)
-                If InStr(Arg, " ") > 0 Then Arg = $quadstr & Arg & $quadstr
-              arr(i) = Arg
-            Next
-
-            RunCmd = Join(arr)
-            CreateObject("Wscript.Shell").Run RunCmd, 0, True
-        End If
-        """)
-    end
-
     #******************************************************
-    # Hand-picked paths
+    # Hand-picked extras
     #******************************************************
     open(joinpath(binpath,"IJulia-Lab.bat"),"w") do f
-        write(f, raw"""
+        writecrlf(f, raw"""
         @echo off
         call %~dp0\julia.bat -e "using IJulia; jupyterlab()"
         exit /b %errorlevel%
@@ -419,7 +411,7 @@ if runroutine == "MAKE-BATS"
     end
 
     open(joinpath(binpath,"IJulia-Notebook.bat"),"w") do f
-        write(f, raw"""
+        writecrlf(f, raw"""
         @echo off
         call %~dp0\julia.bat -e "using IJulia; notebook()"
         exit /b %errorlevel%
@@ -434,28 +426,32 @@ if runroutine == "MAKE-EXES"
     iconpath = joinpath(juliatemp, "icons")
     mkpath(iconpath)
 
-    for (program, shell) in [("atom", false), ("julia", true), ("IJulia-Lab", false), ("IJulia-Notebook", false)]
-        outpath = joinpath(installdir, "$program.exe")
+    for (program, shell, resource) in [("atom",            false, nothing),
+                                       ("julia",           true,  nothing),
+                                       ("IJulia-Lab",      false, "jupyter.res"),
+                                       ("IJulia-Notebook", false, "jupyter.res")]
 
+        outpath = joinpath(installdir, "$program.exe")
         if shell
             cp(joinpath(juliatemp, "tools", "launcher.exe"), "$outpath", force=true)
         else
             cp(joinpath(juliatemp, "tools", "launcher-noshell.exe"), "$outpath", force=true)
         end
 
+        #Get resource from provided files
+        if resource !== nothing
+            respath = joinpath(juliatemp, "tools", resource)
+            read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath"`)
 
-
-        if haskey(get_execs(), program)
+        #Get resource directly from exe
+        elseif haskey(get_execs(), program)
             (i,j,k) = get_execs()[program]
             filepath = joinpath(expand_fullpath(joinpath(installdir, i)), j, k)
-            respath_icons = joinpath(iconpath, "$(program)_icons.res")
-            respath_versioninfo = joinpath(iconpath, "$(program)_versioninfo.res")
-
-            read(`ResourceHacker -open "$filepath" -save "$respath_icons" -action extract -mask ICONGROUP,, `)
-            #read(`ResourceHacker -open "$filepath" -save "$respath_versioninfo" -action extract -mask VERSIONINFO,, `)
-
-            read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath_icons"`)
-            #read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath_versioninfo"`)
+            respath = joinpath(iconpath, "$(program).res")
+            for resourcename in ("ICONGROUP", "VERSIONINFO")
+                read(`ResourceHacker -open "$filepath" -save "$respath" -action extract -mask $resourcename,, `)
+                read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath"`)
+            end
         end
     end
 end

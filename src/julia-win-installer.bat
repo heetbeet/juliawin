@@ -155,7 +155,7 @@ mkdir "%installdir%" >nul 2>&1
 if "%errorlevel%" EQU "0" goto :directoryisgood
     :: directory is not good...
     :diremptychoice
-    set /P c="Directroy is not empty, continue [Y/N]?"
+    set /P c="Directory is not empty, continue [Y/N]?"
     if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto diremptychoice
     if /I "%c%" EQU "Y" goto :directoryisgood
 
@@ -190,8 +190,10 @@ ECHO () Configuring the download source
 call :BOOTSTRAP-CURL
 call :SET-PATHS
 
-call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/develop/tools/launcher.exe" "%toolsdir%\launcher.exe"
-call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/develop/tools/launcher-noshell.exe" "%toolsdir%\launcher-noshell.exe"
+ECHO () Download Juliawin assets for exe icons
+call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/launcher.exe" "%toolsdir%\launcher.exe"
+call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/launcher-noshell.exe" "%toolsdir%\launcher-noshell.exe"
+call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/jupyter.res" "%toolsdir%\jupyter.res"
 
 call :GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
 if %errorlevel% NEQ 0 goto :EOF-DEAD
@@ -213,23 +215,29 @@ call :SET-PATHS
 
 :: ========== Run Julia code scripts ======
 call julia --color=yes -e "Base.banner()"
-pause
+
 call julia "%juliafile%" ADD-STARTUP-SCRIPT
+
 call julia "%juliafile%" INSTALL-CURL
-call julia "%juliafile%" INSTALL-NSIS
-call julia "%juliafile%" INSTALL-RESOURCEHACKER
 call julia "%juliafile%" MAKE-BATS
+call :SET-PATHS
 
 call julia "%juliafile%" INSTALL-ATOM
+call julia "%juliafile%" MAKE-BATS
 call :SET-PATHS
 
 call julia "%juliafile%" INSTALL-JUNO
 call :SET-PATHS
 
 call julia "%juliafile%" INSTALL-JUPYTER
+call julia "%juliafile%" MAKE-BATS
 call :SET-PATHS
 
+call julia "%juliafile%" INSTALL-RESOURCEHACKER
 call julia "%juliafile%" MAKE-BATS
+call :SET-PATHS
+
+call julia "%juliafile%" MAKE-EXES
 
 echo () End of installation
 
