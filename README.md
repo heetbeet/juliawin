@@ -34,7 +34,6 @@ Everything gets installed into a single self-contained directory. The result is 
 * 32-bit support
 * Linux equivalent script (and pretend Juliawin refers to: Julia for the win!)
 * Add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts)
-* Any combination of arguments should work https://stackoverflow.com/a/61552059/1490584 (currently it only supports a single argument).
 * Add Visual Studio Code.
 * Installer/options for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts).
 * Installer shoul clean up its `C:\Users\FooBar\AppData\Local\Temp\Juliawin` directory.
