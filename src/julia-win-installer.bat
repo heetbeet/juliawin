@@ -441,9 +441,9 @@ goto :EOF
         :: copy curl and place in tools and (temporarily) in Juliawin
         call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl-ca-bundle.crt" "%toolsdir%\curl-ca-bundle.crt"
         call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl.exe" "%toolsdir%\curl.exe"
-        mkdir "%installdir%\curl\bin" 2>NUL        
-        copy "%toolsdir%\curl.exe" "%installdir%\curl\bin\curl.exe"
-        copy "%toolsdir%\curl-ca-bundle.crt" "%installdir%\curl\bin\curl-ca-bundle.crt"
+        mkdir "%packagedir%\curl\bin" 2>NUL        
+        copy "%toolsdir%\curl.exe" "%packagedir%\curl\bin\curl.exe"
+        copy "%toolsdir%\curl-ca-bundle.crt" "%packagedir%\curl\bin\curl-ca-bundle.crt"
     :_skipcurldownload_
 goto :EOF
 
