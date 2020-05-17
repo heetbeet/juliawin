@@ -35,11 +35,9 @@ Everything gets installed into a single self-contained directory. The result is 
 * Linux equivalent script (and pretend Juliawin refers to: Julia for the win!)
 * Add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts)
 * Any combination of arguments should work https://stackoverflow.com/a/61552059/1490584 (currently it only supports a single argument).
-* Prettier entry .exe executables rather than .bat files (Automate a NSIS pipeline)
 * Add Visual Studio Code.
 * Installer/options for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts).
 * Installer shoul clean up its `C:\Users\FooBar\AppData\Local\Temp\Juliawin` directory.
 * Offline installation support and pinned versions (cache, zip and ship).
-* Add version numbers to program directories (good for version eyeballing).
 * Make all addons (like IDE/packages/environments) optional with a buffet menu.
 * If Juliawin is successful, move it to an organization with it's own github.io landing page.
