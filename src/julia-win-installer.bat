@@ -210,7 +210,7 @@ if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
 :nodownloadjulia
 
 ECHO () Extracting into %packagedir%\%juliadirname%
-call "%tempdir%\%juliafname%" /SP- /VERYSILENT /DIR="%packagedir%\%juliadirname%"
+call :EXTRACT-INNO "%tempdir%\%juliafname%" "%packagedir%\%juliadirname%"
 call :SET-PATHS
 
 :: ========== Run Julia code scripts ======
@@ -303,6 +303,7 @@ goto :EOF
             GOTO loopargs
         )
     goto loopargs
+    
 GOTO :EOF
 
 
@@ -338,6 +339,7 @@ goto :EOF
     ) ELSE (
         set "%~1="
     )
+
 goto :EOF
 
 
@@ -356,6 +358,7 @@ goto :EOF
     if "%errorlevel%" EQU "0" goto :EOF
 
     set "PATH=%_path_%;%PATH%"
+
 goto :EOF
 
 
@@ -445,8 +448,32 @@ goto :EOF
         copy "%toolsdir%\curl.exe" "%packagedir%\curl\bin\curl.exe"
         copy "%toolsdir%\curl-ca-bundle.crt" "%packagedir%\curl\bin\curl-ca-bundle.crt"
     :_skipcurldownload_
+
 goto :EOF
 
+
+:: ***********************************************
+:: Extract MSI installer with portable settigns and 
+:: redirecting userprofile junk
+:: ***********************************************
+:EXTRACT-INNO <srce> <dest>
+    ::Don't affect surrounding scope 
+    setlocal
+
+    ::Make a decoy userprofile to capture unwanted startmenu icons and junk
+    mkdir "%TEMP%\userprofiledecoy" >nul 2>&1
+    SET "USERPROFILE=%TEMP%\userprofiledecoy"
+    SET "APPDATA=%TEMP%\userprofiledecoy"
+    SET "LOCALAPPDATE=%TEMP%\userprofiledecoy"
+
+    ::Install/extract the exe to the given location using most portable possible settings
+    mkdir "%~2" >nul 2>&1
+    call "%~1" /DIR="%~2" /SP- /VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER
+
+    ::Remove the decoy userprofile
+    del /f /q /s "%TEMP%\userprofiledecoy"
+
+goto :EOF
 
 :: ***********************************************
 :: Get a download link from a download page by matching
@@ -494,6 +521,7 @@ goto :EOF
     set "%~1=%head%"
 
     if %errorlevel% NEQ 0 goto EOF-DEAD
+
 goto :EOF
 
 
@@ -588,6 +616,7 @@ GOTO :EOF
     echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for Juliawin
     echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
     echo ^|__/                   ^|
+
 GOTO :EOF
 
 
