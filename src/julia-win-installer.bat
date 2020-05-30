@@ -109,7 +109,7 @@ Echo   [Y]es: continue
 Echo   [N]o: cancel the operation
 Echo   [D]irectory: choose my own directory
 Echo:
-set /P c="Install Julia in %installdir% [Y/N/D]?"
+set /P c="Install Julia in %installdir% [Y/N/D]? "
 if /I "%c%" EQU "Y" goto :exitchoice
 if /I "%c%" EQU "N" goto :EOF-DEAD
 if /I "%c%" EQU "D" goto :selectdir
@@ -155,7 +155,7 @@ mkdir "%installdir%" >nul 2>&1
 if "%errorlevel%" EQU "0" goto :directoryisgood
     :: directory is not good...
     :diremptychoice
-    set /P c="Directory is not empty, continue [Y/N]?"
+    set /P c="Directory is not empty, continue [Y/N]? "
     if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto diremptychoice
     if /I "%c%" EQU "Y" goto :directoryisgood
 
@@ -240,6 +240,15 @@ call :SET-PATHS
 call julia "%juliafile%" MAKE-EXES
 
 echo () End of installation
+
+:: ========== Clean up after ourselves ====
+:removetmp
+set /P c="Delete all downloads in %tmp%\juliawin [Y/N]? "
+if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto removetmp
+if /I "%c%" EQU "Y" ( 
+    del /f /q /s %tempdir% >nul 2>&1
+)
+
 
 :: ================================================
 ::    This is where we store the .bat subroutines
@@ -471,7 +480,7 @@ goto :EOF
     call "%~1" /DIR="%~2" /SP- /VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER
 
     ::Remove the decoy userprofile
-    del /f /q /s "%TEMP%\userprofiledecoy"
+    del /f /q /s "%TEMP%\userprofiledecoy" >nul 2>&1
 
 goto :EOF
 
