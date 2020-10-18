@@ -99,8 +99,8 @@ if /I "%installdir%" EQU "" (
 
 :: ========== Ensure all src and assets  ===========
 if /I "%~dp0" EQU "%tempdir%\src\" goto :continueintempdir
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/assets" "%tempdir%\assets"
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 
 :: restart from the downloaded script
 call "%tempdir%\src\julia-win-installer.bat" /DIR "%installdir%" %*
