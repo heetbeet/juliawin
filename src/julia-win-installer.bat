@@ -97,24 +97,10 @@ if /I "%installdir%" EQU "" (
 :exitchoice
 
 
-:: ========== Ensure all src and assets  ===========
-if /I "%~dp0" EQU "%tempdir%\src\" goto :continueintempdir
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
-
-:: restart from the downloaded script
-set "ARG_DIR=%installdir%"
-set "_nobanner_=1"
-"%tempdir%\src\julia-win-installer.bat"
-
-:continueintempdir
-
-
 :: ========== Remove nonempty install dir ==
 if "%ARG_RMDIR%" EQU 1 (
     call %func% DELETE-DIRECTORY "%installdir%"
 )
-
 
 :: ========== Ensure install dir is r/w ====
 mkdir "%installdir%" 2>NUL
@@ -147,6 +133,11 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
 
 :directoryisgood
 mkdir "%installdir%" >nul 2>&1
+
+
+:: ========== Ensure all src and assets  ===========
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 
 
 :: ========== Log paths to txt files ==
