@@ -25,7 +25,7 @@ set "temphome=%temp%"
 
 
 :: ========== Help Menu ===================
-CALL %func% SHOW-JULIA-ASCII
+if "%_nobanner_%" EQU "" CALL %func% SHOW-JULIA-ASCII
 
 if "%ARG_H%" EQU "1" goto help
 if "%ARG_HELP%" EQU "1" goto help
@@ -104,6 +104,7 @@ call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawi
 
 :: restart from the downloaded script
 set "ARG_DIR=%installdir%"
+set "_nobanner_=1"
 "%tempdir%\src\julia-win-installer.bat"
 
 :continueintempdir
