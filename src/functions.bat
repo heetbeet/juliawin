@@ -15,7 +15,7 @@ goto :EOF
 :: https://stackoverflow.com/a/61552059
 :: Parse commandline arguments into sane variables
 :: See the following scenario as usage example:
-:: >> thisfile.bat -a -b "c:\" -c -foo 5
+:: >> thisfile.bat /a /b "c:\" /c /foo 5
 :: >> CALL :ARG-PARSER %*
 :: ARG_a=1
 :: ARG_b=c:\
@@ -30,15 +30,15 @@ goto :EOF
         set "__arg1__=%~1"
         set "__arg2__=%~2"
 
-        :: Capture assignments: eg. -foo bar baz  -> ARG_FOO=bar ARG_FOO_1=bar ARG_FOO_2=baz
-        IF "%__arg1__:~0,1%" EQU "-"  IF "%__arg2__:~0,1%" NEQ "-" IF "%__arg2__%" NEQ "" (
+        :: Capture assignments: eg. /foo bar baz  -> ARG_FOO=bar ARG_FOO_1=bar ARG_FOO_2=baz
+        IF "%__arg1__:~0,1%" EQU "/"  IF "%__arg2__:~0,1%" NEQ "/" IF "%__arg2__%" NEQ "" (
             call :ARG-PARSER-HELPER %1 %2 %3 %4 %5 %6 %7 %8 %9
         )
         :: This is for setting ARG_FOO=1 if no value follows
-        IF "%__arg1__:~0,1%" EQU "-" IF "%__arg2__:~0,1%" EQU "-" (
+        IF "%__arg1__:~0,1%" EQU "/" IF "%__arg2__:~0,1%" EQU "/" (
             set "ARG_%__arg1__:~1%=1"
         )
-        IF "%__arg1__:~0,1%" EQU "-" IF "%__arg2__%" EQU "" (
+        IF "%__arg1__:~0,1%" EQU "/" IF "%__arg2__%" EQU "" (
             set "ARG_%__arg1__:~1%=1"
         )
 
@@ -55,7 +55,7 @@ goto :EOF
         shift
         set "__argn__=%~1"
         if "%__argn__%"      equ "" goto :EOF
-        if "%__argn__:~0,1%" equ "-" goto :EOF
+        if "%__argn__:~0,1%" equ "/" goto :EOF
 
         set /a __cnt__=__cnt__+1
         set "ARG_%__arg1__:~1%_%__cnt__%=%__argn__%"
