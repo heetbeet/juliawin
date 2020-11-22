@@ -4,9 +4,7 @@ paths = [
     (raw"packages\atom-*", ""),
     (raw"packages\atom-*", "resources\\cli"),
     (raw"packages\curl-*", "bin"),
-    (raw"packages\resource_hacker*", ""),
-    #(raw"packages\nsis-*", ""),
-    #(raw"packages\tcc*", ""),
+    (raw"packages\resource_hacker*", "")
 ]
 
 
@@ -17,6 +15,13 @@ juliatemp = joinpath(tempdir(), "juliawin")
 installdir = strip(read(open(joinpath(juliatemp, "installdir.txt")), String))
 packagedir = strip(read(open(joinpath(juliatemp, "packagedir.txt")), String))
 userdatadir =  strip(read(open(joinpath(juliatemp, "userdatadir.txt")), String))
+binpath = joinpath(installdir, "bin")
+
+
+mkpath(installdir)
+mkpath(packagedir)
+mkpath(userdatadir)
+mkpath(binpath)
 
 
 if length(ARGS)>=1
@@ -27,7 +32,7 @@ end
 
 
 #******************************************************
-# Automatic paths
+# Find all executable paths within the installation directory
 #******************************************************
 function get_execs()
     exts = ".exe .bat .cmd .vbs .vbe .js .msc" |> split
@@ -54,7 +59,7 @@ end
 
 
 #******************************************************
-# Bat method equivalent
+# Equivalent to the bat method, get a downloadable url from a website homepage
 #******************************************************
 function get_dl_url(url, domatch; notmatch=nothing, prefix="")
     urlslug = replace(url, "/"=>"-")
@@ -76,6 +81,9 @@ function get_dl_url(url, domatch; notmatch=nothing, prefix="")
 end
 
 
+#******************************************************
+# Download something to the juliawin temp directory
+#******************************************************
 function download_asset(dlurl)
     urlslug = split(dlurl, "/")[end]
     urlslug = replace(urlslug, ":"=>"")
@@ -91,6 +99,21 @@ function download_asset(dlurl)
 end
 
 
+#******************************************************
+# Get url from homepage and download the url
+#******************************************************
+function install_from_homepage(url, domatch; notmatch=nothing, prefix="")
+    dlurl = get_dl_url(url, domatch; notmatch=notmatch, prefix=prefix)
+    dlzip = download_asset(dlurl)
+    dldest = joinpath(packagedir, splitext(basename(dlzip))[1])
+    extract_file(dlzip, dldest)
+    return dldest
+end
+
+
+#******************************************************
+# Extract files using 7zip extractor
+#******************************************************
 function extract_file(archive, destdir, fixdepth=true)
     mkpath(destdir)
     if Sys.iswindows()
@@ -117,15 +140,9 @@ function extract_file(archive, destdir, fixdepth=true)
 end
 
 
-function install_from_homepage(url, domatch; notmatch=nothing, prefix="")
-    dlurl = get_dl_url(url, domatch; notmatch=notmatch, prefix=prefix)
-    dlzip = download_asset(dlurl)
-    dldest = joinpath(packagedir, splitext(basename(dlzip))[1])
-    extract_file(dlzip, dldest)
-    return dldest
-end
-
-
+#******************************************************
+# Expand paths ending with an asterix
+#******************************************************
 function expand_fullpath(filepath)
     """
     Helper to expand paths ending with an asterix
@@ -138,15 +155,91 @@ function expand_fullpath(filepath)
 
     base = replace(base, "*"=>"")
     matches = [i for i in readdir(dir) if startswith(lowercase(i), lowercase(base))]
-    if length(matches) == 0 return nothing
+    if length(matches) == 0
+        return nothing
     end
 
     return joinpath(dir, sort(matches)[1])
 end
 
+
+#*******************************************
+# Windows bat files cannot handle unix line endings
+#*******************************************
 function writecrlf(f, txt)
     write(f, replace(txt, "\n"=>"\r\n"))
 end
+
+
+#*******************************************
+# Create a program exe within the main Juliawin directory
+#*******************************************
+function make_exe(program, shell, resource)
+    iconpath = joinpath(juliatemp, "icons")
+    mkpath(iconpath)
+
+    outpath = joinpath(installdir, "$program.exe")
+    if shell
+        cp(joinpath(juliatemp, "tools", "launcher.exe"), "$outpath", force=true)
+    else
+        cp(joinpath(juliatemp, "tools", "launcher-noshell.exe"), "$outpath", force=true)
+    end
+
+    #Get resource from provided files
+    if resource !== nothing
+        respath = joinpath(juliatemp, "tools", resource)
+        read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath"`)
+
+    #Get resource directly from exe
+    elseif haskey(get_execs(), program)
+        (i,j,k) = get_execs()[program]
+        filepath = joinpath(expand_fullpath(joinpath(installdir, i)), j, k)
+        respath = joinpath(iconpath, "$(program).res")
+        for resourcename in ("ICONGROUP", "VERSIONINFO")
+            read(`ResourceHacker -open "$filepath" -save "$respath" -action extract -mask $resourcename,, `)
+            read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath"`)
+        end
+    end
+
+end
+
+
+#*******************************************
+# Function to ensure that all the executables have bat equivalents
+#*******************************************
+function make_bats()
+
+    for (name, (i,j,file)) in get_execs()
+        exectxt = """
+        call :EXPAND-FULLPATH execpath "%~dp0..\\$i" "$j"
+        call "%execpath%\\$file" %*
+        """
+        battxt = replace(battemplate, "__exec__"=>exectxt)
+        open(joinpath(binpath,name*".bat"), "w") do f
+            writecrlf(f, battxt)
+        end
+    end
+
+    #Custom one for atom, since atom.exe can't be next to julia.bat (why???)
+    if isfile(joinpath(binpath, "atom.bat"))
+        atomtxt = read(joinpath(binpath, "atom.bat"), String)
+        open(joinpath(binpath, "atom.bat"), "w") do f
+            atomtxt_ = replace(atomtxt,
+                "call :EXPAND-FULLPATH "=>
+                """
+
+                ::for some reason juno hates being next to julia.bat
+                ::this is clearly a bug that needs to be addressed with atom
+                if exist julia.bat ( cd "%userprofile%" )
+                if exist julia.exe ( cd "%userprofile%" )
+
+                call :EXPAND-FULLPATH """)
+
+            writecrlf(f, atomtxt_)
+        end
+    end
+end
+
 
 #*******************************************
 # Add fullpaths to ENV["PATH"]
@@ -167,12 +260,101 @@ for path in fullpaths
 end
 
 
-if runroutine == "HELLO-WORLD"
-    println("() Hello World")
+#*******************************************
+# Text containing usefull bat routines for wrapping exes
+#*******************************************
+batroutines = raw"""
+    goto :EOF
 
+    :: ***********************************************
+    :: Expand a asterix path to a full path
+    :: ***********************************************
+    :EXPAND-FULLPATH
+
+        ::basename with asterix expansion
+        set "_basename_="
+        for /f "tokens=*" %%F in ('dir /b "%~2" 2^> nul') do set "_basename_=%%F"
+
+        ::If asterix expansion failed, return ""
+        if "%_basename_%" NEQ "" goto :continueexpand
+            set "%~1="
+            goto :EOF
+        :continueexpand
+
+        ::If success, return "path\expandable\with\asterix\optional\second\part"
+        set "_path_=%~dp2%_basename_%"
+        if "%~3" NEQ "" set "_path_=%_path_%\%~3"
+        set "%~1=%_path_%"
+
+    goto :EOF
+
+    :: ***********************************************
+    :: Add a path to window's %PATH% (if exists)
+    :: ***********************************************
+    :ADD-TO-PATH
+
+        call :EXPAND-FULLPATH _path_ "%~1" "%~2"
+        if "%_path_%" NEQ "" set "PATH=%_path_%;%PATH%"
+
+    goto :EOF
+    """
+
+
+#*******************************************
+# Text template for launching exes within our created environment
+#*******************************************
+battemplate=raw"""
+    @echo off
+    SETLOCAL
+    call %~dp0\juliawin-environment.bat
+
+    __exec__
+
+    exit /b %errorlevel%
+
+
+    """*batroutines
+
+
+#*******************************************
+# Text template for setting up the portable Julia environment
+#*******************************************
+juliawinenviron=raw"""
+    @echo off
+
+    __setpath__
+
+    set "JULIA_DEPOT_PATH=%~dp0..\userdata\.julia"
+    set "ATOM_HOME=%~dp0..\userdata\.atom"
+    set "PYTHON="
+
+    """*batroutines
+
+
+#*******************************************
+# Fill the Julia environment template and write it to the bin directory
+#*******************************************
+juliawinenviron = replace(juliawinenviron,
+    "__setpath__"=>
+    join(["""call :ADD-TO-PATH "%~dp0..\\$(i[1])" "$(i[2])" """ for i in paths], "\n")
+)
+
+open(joinpath(binpath,"juliawin-environment.bat"), "w") do f
+    writecrlf(f, juliawinenviron)
 end
 
 
+#*******************************************
+# Hello world example
+#*******************************************
+if runroutine == "HELLO-WORLD"
+    println("() Hello World")
+end
+
+
+#*******************************************
+# Add startup script to Julia to force Julia to use proper curl library
+#*******************************************
 if runroutine == "ADD-STARTUP-SCRIPT"
     startupjl_txt = raw"""
         # Juliawin uses curl as the default downloader
@@ -207,7 +389,22 @@ if runroutine == "ADD-STARTUP-SCRIPT"
     open(joinpath(installdir, "userdata", ".julia", "config", "startup.jl"), "w") do f
         write(f, startupjl_txt)
     end
+end
 
+
+#*******************************************
+# This should be run first in order to ensure the creation of exe files
+#*******************************************
+if runroutine == "INSTALL-RESOURCEHACKER"
+    dlurl = install_from_homepage("http://www.angusj.com/resourcehacker/",
+                                 r"resource_hacker.*.zip";
+                                 prefix="http://www.angusj.com/resourcehacker/")
+    make_bats()
+end
+
+
+if runroutine == "ADD-JULIA-EXE"
+    make_exe("julia", true, nothing)
 end
 
 
@@ -219,6 +416,8 @@ if runroutine == "INSTALL-CURL"
     try
         rm(joinpath(packagedir, "curl"), recursive=true)
     catch e end
+
+    make_bats()
 end
 
 
@@ -236,6 +435,9 @@ if runroutine == "INSTALL-ATOM"
                         prefix="https://github.com/")
 
     mkpath(joinpath(userdatadir, ".atom"))
+
+    make_bats()
+    make_exe("atom", false, nothing)
 end
 
 
@@ -261,6 +463,8 @@ if runroutine == "INSTALL-JUNO"
     using Pkg;
     Pkg.add("Atom")
     Pkg.add("Juno")
+
+    make_bats()
 end
 
 
@@ -275,128 +479,6 @@ if runroutine == "INSTALL-JUPYTER"
     Conda.add("jupyterlab")
 
     Pkg.add("PyPlot")
-end
-
-
-if runroutine == "INSTALL-NSIS"
-    #extra redirect
-    dlurl = install_from_homepage("https://nsis.sourceforge.io/Download",
-                                 r"http.*//.*/nsis/nsis-.*exe.*download")
-end
-
-
-if runroutine == "INSTALL-RESOURCEHACKER"
-    dlurl = install_from_homepage("http://www.angusj.com/resourcehacker/",
-                                 r"resource_hacker.*.zip";
-                                 prefix="http://www.angusj.com/resourcehacker/")
-end
-
-
-if runroutine == "MAKE-BATS"
-    binpath = joinpath(installdir, "bin")
-    mkpath(binpath)
-
-    batroutines = raw"""
-        goto :EOF
-
-        :: ***********************************************
-        :: Expand a asterix path to a full path
-        :: ***********************************************
-        :EXPAND-FULLPATH
-
-            ::basename with asterix expansion
-            set "_basename_="
-            for /f "tokens=*" %%F in ('dir /b "%~2" 2^> nul') do set "_basename_=%%F"
-
-            ::If asterix expansion failed, return ""
-            if "%_basename_%" NEQ "" goto :continueexpand
-                set "%~1="
-                goto :EOF
-            :continueexpand
-
-            ::If success, return "path\expandable\with\asterix\optional\second\part"
-            set "_path_=%~dp2%_basename_%"
-            if "%~3" NEQ "" set "_path_=%_path_%\%~3"
-            set "%~1=%_path_%"
-
-        goto :EOF
-
-        :: ***********************************************
-        :: Add a path to window's %PATH% (if exists)
-        :: ***********************************************
-        :ADD-TO-PATH
-
-            call :EXPAND-FULLPATH _path_ "%~1" "%~2"
-            if "%_path_%" NEQ "" set "PATH=%_path_%;%PATH%"
-
-        goto :EOF
-        """
-
-    battemplate=raw"""
-        @echo off
-        SETLOCAL
-        call %~dp0\juliawin-environment.bat
-
-        __exec__
-
-        exit /b %errorlevel%
-
-
-        """*batroutines
-
-    juliawinenviron=raw"""
-        @echo off
-
-        __setpath__
-
-        set "JULIA_DEPOT_PATH=%~dp0..\userdata\.julia"
-        set "ATOM_HOME=%~dp0..\userdata\.atom"
-        set "PYTHON="
-
-        """*batroutines
-
-    #Inject the paths
-    juliawinenviron = replace(juliawinenviron,
-        "__setpath__"=>
-        join(["""call :ADD-TO-PATH "%~dp0..\\$(i[1])" "$(i[2])" """ for i in paths], "\n")
-    )
-
-
-    #Write the environment setup to bin/juliawin-en...
-    open(joinpath(binpath,"juliawin-environment.bat"), "w") do f
-        writecrlf(f, juliawinenviron)
-    end
-
-
-    for (name, (i,j,file)) in get_execs()
-        exectxt = """
-        call :EXPAND-FULLPATH execpath "%~dp0..\\$i" "$j"
-        call "%execpath%\\$file" %*
-        """
-        battxt = replace(battemplate, "__exec__"=>exectxt)
-        open(joinpath(binpath,name*".bat"), "w") do f
-            writecrlf(f, battxt)
-        end
-    end
-
-    #Custom one for atom, since atom can't be next to julia.bat (why???)
-    if isfile(joinpath(binpath, "atom.bat"))
-        atomtxt = read(joinpath(binpath, "atom.bat"), String)
-        open(joinpath(binpath, "atom.bat"), "w") do f
-            atomtxt_ = replace(atomtxt,
-                "call :EXPAND-FULLPATH "=>
-                """
-
-                ::for some reason juno hates being next to julia.bat
-                ::this is clearly a bug that needs to be addressed with atom
-                if exist julia.bat ( cd "%userprofile%" )
-                if exist julia.exe ( cd "%userprofile%" )
-
-                call :EXPAND-FULLPATH """)
-
-            writecrlf(f, atomtxt_)
-        end
-    end
 
     #******************************************************
     # Hand-picked extras
@@ -418,40 +500,8 @@ if runroutine == "MAKE-BATS"
         """
         )
     end
-end
 
-
-if runroutine == "MAKE-EXES"
-
-    iconpath = joinpath(juliatemp, "icons")
-    mkpath(iconpath)
-
-    for (program, shell, resource) in [("atom",            false, nothing),
-                                       ("julia",           true,  nothing),
-                                       ("IJulia-Lab",      false, "jupyter.res"),
-                                       ("IJulia-Notebook", false, "jupyter.res")]
-
-        outpath = joinpath(installdir, "$program.exe")
-        if shell
-            cp(joinpath(juliatemp, "tools", "launcher.exe"), "$outpath", force=true)
-        else
-            cp(joinpath(juliatemp, "tools", "launcher-noshell.exe"), "$outpath", force=true)
-        end
-
-        #Get resource from provided files
-        if resource !== nothing
-            respath = joinpath(juliatemp, "tools", resource)
-            read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath"`)
-
-        #Get resource directly from exe
-        elseif haskey(get_execs(), program)
-            (i,j,k) = get_execs()[program]
-            filepath = joinpath(expand_fullpath(joinpath(installdir, i)), j, k)
-            respath = joinpath(iconpath, "$(program).res")
-            for resourcename in ("ICONGROUP", "VERSIONINFO")
-                read(`ResourceHacker -open "$filepath" -save "$respath" -action extract -mask $resourcename,, `)
-                read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath"`)
-            end
-        end
-    end
+    make_bats()
+    make_exe("IJulia-Lab", false, "jupyter.res"),
+    make_exe("IJulia-Notebook", false, "jupyter.res")
 end
