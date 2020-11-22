@@ -97,7 +97,9 @@ int main( int argc, char ** argv )
 
     cmdName = &cmdPath[slashLoc==0?0:slashLoc*2+2];
     int fnameend = _tcslen(cmdName);
-    if(0 < fnameend-4){
+
+    // if we run as path\program.exe then we need to truncate the .exe part
+    if(0 < fnameend-4 && cmdName[(fnameend-4)*2] == '.'){
         cmdName[(fnameend-4)*2]   = '\0';
         cmdName[(fnameend-4)*2+1] = '\0';
     }
