@@ -180,14 +180,14 @@ function make_exe(program, shell, resource)
 
     outpath = joinpath(installdir, "$program.exe")
     if shell
-        cp(joinpath(juliatemp, "tools", "launcher.exe"), "$outpath", force=true)
+        cp(joinpath(juliatemp, "assets", "launcher.exe"), "$outpath", force=true)
     else
-        cp(joinpath(juliatemp, "tools", "launcher-noshell.exe"), "$outpath", force=true)
+        cp(joinpath(juliatemp, "assets", "launcher-noshell.exe"), "$outpath", force=true)
     end
 
     #Get resource from provided files
     if resource !== nothing
-        respath = joinpath(juliatemp, "tools", resource)
+        respath = joinpath(juliatemp, "assets", resource)
         read(`ResourceHacker -open "$outpath" -save "$outpath" -action addoverwrite -res "$respath"`)
 
     #Get resource directly from exe

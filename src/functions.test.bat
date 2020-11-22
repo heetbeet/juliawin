@@ -9,7 +9,7 @@ for %%a in ("%searchpaths:;=" "%") do (
 
 echo *** Start tests ***
 
-call %func% ARG-PARSER -a a -b -c c1 c2
+call %func% ARG-PARSER /a a /b /c c1 c2
 call %func% TEST-OUTCOME "%ARG_A% %ARG_B% %ARG_C% %ARG_C_1% %ARG_C_2%" "a 1 c1 c1 c2" "Argument parsing"
 
 
@@ -22,8 +22,8 @@ call %func% NO-TRAILING-SLASH result "c:\hello\"
 call %func% TEST-OUTCOME "%result%" "c:\hello"
 
 
-call %func% EXPAND-ASTERIX result "%~dp0\functions.e*"
-call %func% FULL-PATH result2 "%~dp0\functions.examples.bat"
+call %func% EXPAND-ASTERIX result "%~dp0\functions.t*"
+call %func% FULL-PATH result2 "%~dp0\functions.test.bat"
 call %func% TEST-OUTCOME "%result%" "%result2%" "Expand via asterix in name"
 
 

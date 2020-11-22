@@ -17,6 +17,8 @@ set func="%~dp0functions.bat"
 :: Parse the arguments
 call %func% ARG-PARSER %*
 
+if "%ARG_DEBUG%" EQU "1" echo %*
+
 :: Set the location to the sister-scripts
 set "batfile=%~dp0%~n0.bat"
 set "juliafile=%~dp0%~n0.jl"
@@ -42,8 +44,6 @@ ECHO /Y
 ECHO   Yes to all.
 ECHO /DIR "x:\Dirname"
 ECHO   Overwrite the default with custom directory.
-ECHO /RMDIR
-ECHO   Clear the destination install directory before installing.
 goto :EOF
 :exithelp
 
@@ -62,12 +62,14 @@ echo %batfile% > "%tempdir%\batfile.txt"
 
 
 :: ========== Custom path provided =========
-IF /I "%ARG_DIR%" NEQ "" (
-    set "installdir=%ARG_DIR%"
-    goto exitchoice
-)
+IF /I "%ARG_DIR%" NEQ "" set "installdir=%ARG_DIR%"
+
+:: ========== May we skip to the installation part? ===========
+if "%ARG_skipinitial%" NEQ "" goto :skipinitial
+
 
 :: ========== Choose Install Dir ===========
+IF "%ARG_DIR%" NEQ ""  goto exitchoice
 if "%ARG_Y%" EQU "1" goto exitchoice
 :choice
 Echo:
@@ -96,22 +98,21 @@ if /I "%installdir%" EQU "" (
 )
 :exitchoice
 
+if "%ARG_DEBUG%" NEQ "1" (
+    call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
+    call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
+) ELSE (
+    robocopy "%~dp0." "%tempdir%\src" /s /e
+    robocopy "%~dp0..\assets" "%tempdir%\assets" /s /e
+)
 
-if /I "%~dp0" EQU "%tempdir%\src\" goto :continueintempdir
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 
-:: restart from the downloaded script
-call "%tempdir%\src\julia-win-installer.bat" /Y /NOBANNER /DIR "%installdir%" %*
+:: ========== Restart from the downloaded script ===========
+call "%tempdir%\src\julia-win-installer.bat" /SKIPINITIAL /NOBANNER /DIR "%installdir%" %*
 GOTO :EOF
 
-:continueintempdir
+:skipinitial
 
-
-:: ========== Remove nonempty install dir ==
-if "%ARG_RMDIR%" EQU 1 (
-    call %func% DELETE-DIRECTORY "%installdir%"
-)
 
 :: ========== Ensure install dir is r/w ====
 mkdir "%installdir%" 2>NUL
@@ -131,7 +132,7 @@ mkdir "%installdir%" >nul 2>&1
 if "%errorlevel%" EQU "0" goto :directoryisgood
     :: directory is not good...
     :diremptychoice
-    set /P c="Directory is not empty, continue [Y/N]? "
+    set /P c="Directory is not empty. Force delete and continue [Y/N]? "
     if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto diremptychoice
     if /I "%c%" EQU "Y" goto :directoryisgood
 
@@ -143,12 +144,9 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
     goto :EOF-DEAD
 
 :directoryisgood
+
+call %func% DELETE-DIRECTORY "%installdir%" >nul 2>&1
 mkdir "%installdir%" >nul 2>&1
-
-
-:: ========== Ensure all src and assets  ===========
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
-call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 
 
 :: ========== Log paths to txt files ==
@@ -175,15 +173,18 @@ call %func% GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/wi
 if "%errorlevel%" NEQ "0" goto :EOF-DEAD "Error: could not find Julia download link from https://julialang.org/downloads"
 
 call %func% GET-URL-FILENAME juliafname "%juliaurl%"
-call %func% FILE-NOEXT juliadirname "%juliafname%"
+call %func% DIR-NAME-EXT _ juliadirname _ "%juliafname%"
+
+if "%ARG_debug%" equ "1" echo "%juliadirname%"
 
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
-if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
+if "%ARG_debug%" equ "1" if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
     call %func% DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
     if "%errorlevel%" NEQ "0" goto :EOF-DEAD "Error: could not download Julia from %juliaurl%"
 :nodownloadjulia
+
 
 ECHO () Extracting into %packagedir%\%juliadirname%
 call %func% EXTRACT-INNO "%tempdir%\%juliafname%" "%packagedir%\%juliadirname%"
@@ -209,9 +210,10 @@ echo () End of installation
 :: ========== Clean up after ourselves ====
 :removetmp
 set /P c="Delete all downloads in %tmp%\juliawin [Y/N]? "
-if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto removetmp
-if /I "%c%" EQU "Y" ( 
-    call %func% DELETE-DIRECTORY "%tempdir%" >nul 2>&1
+if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto :removetmp
+if /I "%c%" EQU "Y" (
+    REM Delete current .bat without error https://stackoverflow.com/a/20333575/1490584
+    (goto) 2>nul & call %func% DELETE-DIRECTORY "%tempdir%" >nul 2>&1
 )
 
 goto :EOF
