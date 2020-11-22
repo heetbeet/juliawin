@@ -190,27 +190,16 @@ call :SET-PATHS
 call julia --color=yes -e "Base.banner()"
 
 call julia "%juliafile%" ADD-STARTUP-SCRIPT
-
 call julia "%juliafile%" INSTALL-CURL
-call julia "%juliafile%" MAKE-BATS
-call :SET-PATHS
-
-call julia "%juliafile%" INSTALL-ATOM
-call julia "%juliafile%" MAKE-BATS
-call :SET-PATHS
-
-call julia "%juliafile%" INSTALL-JUNO
-call :SET-PATHS
-
-call julia "%juliafile%" INSTALL-JUPYTER
-call julia "%juliafile%" MAKE-BATS
 call :SET-PATHS
 
 call julia "%juliafile%" INSTALL-RESOURCEHACKER
-call julia "%juliafile%" MAKE-BATS
 call :SET-PATHS
 
-call julia "%juliafile%" MAKE-EXES
+call julia "%juliafile%" ADD-JULIA-EXE
+call julia "%juliafile%" INSTALL-ATOM
+call julia "%juliafile%" INSTALL-JUNO
+
 
 echo () End of installation
 
