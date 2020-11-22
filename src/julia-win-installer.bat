@@ -25,7 +25,7 @@ set "temphome=%temp%"
 
 
 :: ========== Help Menu ===================
-if "%_nobanner_%" EQU "" CALL %func% SHOW-JULIA-ASCII
+if "%ARG_NOBANNER%" EQU "" CALL %func% SHOW-JULIA-ASCII
 
 if "%ARG_H%" EQU "1" goto help
 if "%ARG_HELP%" EQU "1" goto help
@@ -95,6 +95,17 @@ if /I "%installdir%" EQU "" (
     goto :EOF-DEAD
 )
 :exitchoice
+
+
+if /I "%~dp0" EQU "%tempdir%\src\" goto :continueintempdir
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
+
+:: restart from the downloaded script
+call "%tempdir%\src\julia-win-installer.bat" /Y /NOBANNER /DIR "%installdir%" %*
+GOTO :EOF
+
+:continueintempdir
 
 
 :: ========== Remove nonempty install dir ==
@@ -182,27 +193,16 @@ call :SET-PATHS
 call julia --color=yes -e "Base.banner()"
 
 call julia "%juliafile%" ADD-STARTUP-SCRIPT
-
 call julia "%juliafile%" INSTALL-CURL
-call julia "%juliafile%" MAKE-BATS
-call :SET-PATHS
-
-call julia "%juliafile%" INSTALL-ATOM
-call julia "%juliafile%" MAKE-BATS
-call :SET-PATHS
-
-call julia "%juliafile%" INSTALL-JUNO
-call :SET-PATHS
-
-call julia "%juliafile%" INSTALL-JUPYTER
-call julia "%juliafile%" MAKE-BATS
 call :SET-PATHS
 
 call julia "%juliafile%" INSTALL-RESOURCEHACKER
-call julia "%juliafile%" MAKE-BATS
 call :SET-PATHS
 
-call julia "%juliafile%" MAKE-EXES
+call julia "%juliafile%" ADD-JULIA-EXE
+call julia "%juliafile%" INSTALL-ATOM
+call julia "%juliafile%" INSTALL-JUNO
+
 
 echo () End of installation
 
