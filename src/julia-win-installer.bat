@@ -25,7 +25,7 @@ set "temphome=%temp%"
 
 
 :: ========== Help Menu ===================
-CALL %func% SHOW-JULIA-ASCII
+if "%_nobanner_%" EQU "" CALL %func% SHOW-JULIA-ASCII
 
 if "%ARG_H%" EQU "1" goto help
 if "%ARG_HELP%" EQU "1" goto help
@@ -97,7 +97,6 @@ if /I "%installdir%" EQU "" (
 :exitchoice
 
 
-:: ========== Ensure all src and assets  ===========
 if /I "%~dp0" EQU "%tempdir%\src\" goto :continueintempdir
 call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
 call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
@@ -113,7 +112,6 @@ GOTO :EOF
 if "%ARG_RMDIR%" EQU 1 (
     call %func% DELETE-DIRECTORY "%installdir%"
 )
-
 
 :: ========== Ensure install dir is r/w ====
 mkdir "%installdir%" 2>NUL
@@ -146,6 +144,11 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
 
 :directoryisgood
 mkdir "%installdir%" >nul 2>&1
+
+
+:: ========== Ensure all src and assets  ===========
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
+call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 
 
 :: ========== Log paths to txt files ==
