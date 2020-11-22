@@ -103,7 +103,7 @@ call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawi
 call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 
 :: restart from the downloaded script
-call "%tempdir%\src\julia-win-installer.bat" /DIR "%installdir%" %*
+call "%tempdir%\src\julia-win-installer.bat" /Y /DIR "%installdir%" %*
 GOTO :EOF
 
 :continueintempdir
