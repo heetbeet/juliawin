@@ -6,9 +6,9 @@
 #include <tchar.h>
 
 #ifdef NOSHELL
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+    int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #else
-int main( int argc, char ** argv ) 
+    int main( int argc, char ** argv ) 
 #endif
 {
     //*******************************************
@@ -149,6 +149,10 @@ int main( int argc, char ** argv )
             else if(i==1){_tcscat(batFile, batFile3);}
             else if(i==2){_tcscat(batFile, batFile4);}
             else if(i==3){_tcscat(batFile, batFile5);}
+
+            //if the directory doesn't exist, break early
+            if(0 != _waccess(batFile, 0)){ break;}
+
             _tcscat(batFile, batFile6);
             if     (j==0){_tcscat(batFile, batFile7);}
             else if(j==1){_tcscat(batFile, batFile8);}
@@ -263,15 +267,15 @@ int main( int argc, char ** argv )
     si.cb = sizeof(si);
 
     #ifdef NOSHELL
-    CreateProcessW(NULL, cmdLine, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+        CreateProcessW(NULL, cmdLine, NULL, NULL, TRUE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
     #else
-    CreateProcessW(NULL, cmdLine, NULL, NULL, TRUE, NULL,             NULL, NULL, &si, &pi);
+        CreateProcessW(NULL, cmdLine, NULL, NULL, TRUE, NULL,             NULL, NULL, &si, &pi);
     #endif
 
     //************************************
     //Return ErrorLevel
     //************************************
-    DWORD result = WaitForSingleObject(pi.hProcess,15000);
+    DWORD result = WaitForSingleObject(pi.hProcess, INFINITE);
 
     if(result == WAIT_TIMEOUT){return -2;} //Timeout error
 
