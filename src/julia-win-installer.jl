@@ -205,43 +205,6 @@ end
 
 
 #*******************************************
-# Function to ensure that all the executables have bat equivalents
-#*******************************************
-function make_bats()
-
-    for (name, (i,j,file)) in get_execs()
-        exectxt = """
-        call :EXPAND-FULLPATH execpath "%~dp0..\\$i" "$j"
-        call "%execpath%\\$file" %*
-        """
-        battxt = replace(battemplate, "__exec__"=>exectxt)
-        open(joinpath(binpath,name*".bat"), "w") do f
-            writecrlf(f, battxt)
-        end
-    end
-
-    #Custom one for atom, since atom.exe can't be next to julia.bat (why???)
-    if isfile(joinpath(binpath, "atom.bat"))
-        atomtxt = read(joinpath(binpath, "atom.bat"), String)
-        open(joinpath(binpath, "atom.bat"), "w") do f
-            atomtxt_ = replace(atomtxt,
-                "call :EXPAND-FULLPATH "=>
-                """
-
-                ::for some reason juno hates being next to julia.bat
-                ::this is clearly a bug that needs to be addressed with atom
-                if exist julia.bat ( cd "%userprofile%" )
-                if exist julia.exe ( cd "%userprofile%" )
-
-                call :EXPAND-FULLPATH """)
-
-            writecrlf(f, atomtxt_)
-        end
-    end
-end
-
-
-#*******************************************
 # Add fullpaths to ENV["PATH"]
 #*******************************************
 fullpaths = []
@@ -343,6 +306,42 @@ open(joinpath(binpath,"juliawin-environment.bat"), "w") do f
     writecrlf(f, juliawinenviron)
 end
 
+
+#*******************************************
+# Function to ensure that all the executables have bat equivalents
+#*******************************************
+function make_bats()
+
+    for (name, (i,j,file)) in get_execs()
+        exectxt = """
+        call :EXPAND-FULLPATH execpath "%~dp0..\\$i" "$j"
+        call "%execpath%\\$file" %*
+        """
+        battxt = replace(battemplate, "__exec__"=>exectxt)
+        open(joinpath(binpath,name*".bat"), "w") do f
+            writecrlf(f, battxt)
+        end
+    end
+
+    #Custom one for atom, since atom.exe can't be next to julia.bat (why???)
+    if isfile(joinpath(binpath, "atom.bat"))
+        atomtxt = read(joinpath(binpath, "atom.bat"), String)
+        open(joinpath(binpath, "atom.bat"), "w") do f
+            atomtxt_ = replace(atomtxt,
+                "call :EXPAND-FULLPATH "=>
+                """
+
+                ::for some reason juno hates being next to julia.bat
+                ::this is clearly a bug that needs to be addressed with atom
+                if exist julia.bat ( cd "%userprofile%" )
+                if exist julia.exe ( cd "%userprofile%" )
+
+                call :EXPAND-FULLPATH """)
+
+            writecrlf(f, atomtxt_)
+        end
+    end
+end
 
 #*******************************************
 # Hello world example
@@ -467,6 +466,60 @@ if runroutine == "INSTALL-JUNO"
     make_bats()
 end
 
+if runroutine == "INSTALL-PLUTO"
+    using Pkg
+    Pkg.add("Pluto")
+    (i,j,k) = get_execs()["julia"]
+
+    exectxt = """
+    call :EXPAND-FULLPATH execpath "%~dp0..\\$i" "$j"
+    call "%execpath%\\$file" "%~dp0pluto.jl" %*
+    """
+    battxt = replace(battemplate, "__exec__"=>exectxt)
+
+    open(joinpath(binpath, "pluto.bat"), "w") do f
+        writecrlf(f, battxt)
+    end
+
+    open(joinpath(binpath, "pluto.jl"), "w") do f
+        writecrlf(f, """
+            using Pluto
+
+
+            if length(ARGS) == 1 && lowercase(ARGS[1]) == "--help"
+                println("The available arguments to Pluto isn't straight-forward and more tailored towards developers.")
+                println("Here is the Configuration logic for Pluto in GitHub.")
+                Base.run(`powershell.exe Start "https://github.com/fonsp/Pluto.jl/blob/master/src/Configuration.jl"`)
+                exit()
+            end
+
+
+            if length(ARGS)%2 != 0
+                error("Commandline arguments must come in pairs, like --foo 1 --bar 2")
+            end
+
+            kwargs = Dict{Symbol, Any}()
+            for i = (1:floor(Int, length(ARGS)/2))
+                key = Symbol(lstrip(ARGS[i*2-1], ['-']))
+                value = ARGS[i*2]
+                try
+                    value = parse(Bool, ARGS[i*2])
+                catch e end
+                try
+                    value = parse(Float, ARGS[i*2])
+                catch e end
+                try
+                    value = parse(Int, ARGS[i*2])
+                catch e end
+            end
+
+            Pluto.run(;kwargs...)
+        """)
+    end
+
+    make_exe("pluto", true, nothing)
+
+end
 
 if runroutine == "INSTALL-JUPYTER"
     using Pkg
