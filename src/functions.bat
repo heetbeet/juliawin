@@ -259,11 +259,11 @@ goto :EOF
     mkdir "%TEMP%\userprofiledecoy" >nul 2>&1
     SET "USERPROFILE=%TEMP%\userprofiledecoy"
     SET "APPDATA=%TEMP%\userprofiledecoy"
-    SET "LOCALAPPDATE=%TEMP%\userprofiledecoy"
+    SET "LOCALAPPDATA=%TEMP%\userprofiledecoy"
 
     ::Install/extract the exe to the given location using most portable possible settings
     mkdir "%~2" >nul 2>&1
-    call "%~1" /DIR="%~2" /SP- /VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER
+    call "%~1" /DIR="%~2" /SP- /VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER /DisableFinishedPage=yes /skipifsilent
 
     ::Remove the decoy userprofile
     call :DELETE-DIRECTORY "%TEMP%\userprofiledecoy" >nul 2>&1
@@ -703,18 +703,7 @@ goto :EOF
         echo: > "%~1"
     )
 
-    ::start notepad
-    for /f "tokens=2 delims==; " %%a in (' wmic process call create "notepad.exe "%~1"" ^| find "ProcessId" ') do set PID=%%a
-
-    call :GET-FOCUS-OF-PID %PID%
-
-    ::wait until closed
-    :waitfornotepad
-        TASKLIST | findstr "notepad.*%PID%.*" > "%temp%\checkfindstroutput.txt"
-        FOR /F "usebackq" %%A IN ('%temp%\checkfindstroutput.txt') DO set checkfindstroutput=%%~zA
-        IF "%checkfindstroutput%" EQU "0" goto :donewithnotepad
-        goto :waitfornotepad
-    :donewithnotepad
+    call notepad.exe "%~1"
 
 goto :EOF
 

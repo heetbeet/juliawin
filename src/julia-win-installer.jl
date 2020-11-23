@@ -2,6 +2,7 @@ paths = [
     (raw"packages\julia-*", "bin"),
     (raw"packages\julia-*", "libexec"),
     (raw"packages\atom-*", ""),
+    (raw"packages\vscode-x6*", ""),
     (raw"packages\atom-*", "resources\\cli"),
     (raw"packages\curl-*", "bin"),
     (raw"packages\resource_hacker*", "")
@@ -65,6 +66,8 @@ function get_dl_url(url, domatch; notmatch=nothing, prefix="")
     urlslug = replace(url, "/"=>"-")
     urlslug = replace(urlslug, ":"=>"")
     urlslug = replace(urlslug, "?"=>"-")
+    urlslug = replace(urlslug, "="=>"-")
+
     lnkpath = joinpath(juliatemp, urlslug)
     download(url, lnkpath)
     println(lnkpath)
@@ -88,8 +91,8 @@ function download_asset(dlurl)
     urlslug = split(dlurl, "/")[end]
     urlslug = replace(urlslug, ":"=>"")
     urlslug = replace(urlslug, "?"=>"-")
-
-    path = joinpath(juliatemp, urlslug)
+    urlslug = replace(urlslug, "="=>"-")
+        path = joinpath(juliatemp, urlslug)
     if !isfile(path)
         println("() Downloading $dlurl to")
         println("() $path, this may take a while")
@@ -155,11 +158,12 @@ function expand_fullpath(filepath)
 
     base = replace(base, "*"=>"")
     matches = [i for i in readdir(dir) if startswith(lowercase(i), lowercase(base))]
+
     if length(matches) == 0
         return nothing
+    else
+        return joinpath(dir, sort(matches)[1])
     end
-
-    return joinpath(dir, sort(matches)[1])
 end
 
 
@@ -341,6 +345,16 @@ function make_bats()
         end
 
         cp(joinpath(binpath, "atom.bat"), joinpath(binpath, "juno.bat"), force=true)
+    end
+
+    # Custom for vscode to set --user-data-dir
+    if isfile(joinpath(binpath, "Code.bat"))
+        codetxt = read(joinpath(binpath, "Code.bat"), String)
+        codetxt = replace(codetxt, ".exe\" %*" => ".exe\" --user-data-dir=\"%~dp0..\\userdata\\.vscode\" --extensions-dir=\"%~dp0..\\userdata\\.vscode\\extensions\" %*")
+        codetxt_cli = replace(codetxt, ".exe\"" => "\\..\\bin\\code.cmd\"")
+        open(joinpath(binpath, "Code.bat"), "w") do f writecrlf(f, codetxt) end
+        open(joinpath(binpath, "code-cli.bat"), "w") do f writecrlf(f, codetxt_cli) end
+
     end
 end
 
@@ -528,8 +542,6 @@ if runroutine == "INSTALL-JUPYTER"
     Conda.add("jupyter")
     Conda.add("jupyterlab")
 
-    Pkg.add("PyPlot")
-
     #******************************************************
     # Hand-picked extras
     #******************************************************
@@ -552,6 +564,38 @@ if runroutine == "INSTALL-JUPYTER"
     end
 
     make_bats()
-    make_exe("IJulia-Lab", true, "jupyter.res"),
+    make_exe("IJulia-Lab", true, "jupyter.res")
     make_exe("IJulia-Notebook", true, "jupyter.res")
+end
+
+
+if runroutine == "INSTALL-VSCODE"
+    run(`"$installdir/bin/curl" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
+
+    # Extract in the background
+    t = @task run(`"$juliatemp/src/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$installdir/packages/vscode-x64"`)
+    schedule(t)
+
+    # Jam code.exe in order that the installer cannot open the file upon completion
+    while(! istaskdone(t))
+        if isfile("$installdir/packages/vscode-x64/Code.exe")
+            try
+                mv("$installdir/packages/vscode-x64/Code.exe", "$installdir/packages/vscode-x64/Code_.exe", force=true)
+            catch end
+        end
+        sleep(0)
+    end
+    mv("$installdir/packages/vscode-x64/Code_.exe", "$installdir/packages/vscode-x64/Code.exe", force=true)
+    mkpath("$installdir/packages/vscode-x64/data")
+
+    # Create the launchers
+    make_bats()
+    make_exe("Code", false, nothing)
+
+    run(`"$installdir/bin/code-cli.bat" --install-extension julialang.language-julia`)
+
+    # Do a bit of renaming
+    mv("$installdir/Code.exe", "$installdir/julia-vscode.exe", force=true)
+    cp("$installdir/bin/Code.bat", "$installdir/bin/julia-vscode.bat", force=true)
+
 end
