@@ -682,7 +682,22 @@ GOTO :EOF
 
 
 :: ***********************************************
-:: Print the Julia logo
+:: Get settings via a bat file
+:: ***********************************************
+:GET-SETTINGS-VIA-BAT-FILE <batfile>
+    set "batname=%~n1"
+    set "tempfile=%temp%\%batname%%random%%random%.bat%"
+    echo f | xcopy "%~1" "%tempfile%" /y > nul 2>1
+
+    call :EDIT-FILE-IN-NOTEPAD "%tempfile%"
+    call "%tempfile%"
+
+    del "%tempfile%" /s /f /q > nul 2>1
+
+goto :EOF
+
+:: ***********************************************
+:: Open notepad to edit a file
 :: ***********************************************
 :EDIT-FILE-IN-NOTEPAD <filepath>
     if not exist "%~1" (
@@ -716,7 +731,7 @@ goto :EOF
     echo }                                                       >>  "%temp%\focusmaker%randnum%.js"
 
     cscript //E:JScript //nologo "%temp%\focusmaker%randnum%.js" "focusmaker%randnum%.js" "%~1"
-    del "%temp%\focusmaker%randnum%.js" /s /f /q
+    del "%temp%\focusmaker%randnum%.js" /s /f /q > nul 2>1
 
 goto :EOF
 
