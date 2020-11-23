@@ -44,6 +44,8 @@ ECHO /Y
 ECHO   Yes to all.
 ECHO /DIR "x:\Dirname"
 ECHO   Overwrite the default with custom directory.
+ECHO /NOREPL
+ECHO   Disable the pop-up REPL that is launched while waiting for the installer
 goto :EOF
 :exithelp
 
@@ -201,6 +203,11 @@ call julia "%juliafile%" INSTALL-RESOURCEHACKER
 call :SET-PATHS
 
 call julia "%juliafile%" ADD-JULIA-EXE
+
+IF "%ARG_NOREPL%" EQU "" (
+    start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia! & echo You may play here while waiting for the installer to finish & echo: & julia --banner=no"
+)
+
 call julia "%juliafile%" INSTALL-ATOM
 call julia "%juliafile%" INSTALL-JUNO
 
