@@ -9,7 +9,8 @@ SETLOCAL EnableDelayedExpansion
 :: =====================================================
 
 :: To minimise unsuspecting clashes, reset path to minimal OS programs
-set "PATH=%systemroot%;%systemroot%\System32;%systemroot%\System32\WindowsPowerShell\v1.0"
+set "PATH=%systemroot%;%systemroot%\System32;%systemroot%\System32\WindowsPowerShell\v1.0;%systemroot%\System32\wbem"
+
 
 :: Access to external functions
 set func="%~dp0functions.bat"
@@ -58,35 +59,29 @@ set "toolsdir=%tempdir%\tools"
 mkdir "%toolsdir%" 2>NUL
 SET "PATH=%toolsdir%;%PATH%"
 
-set "target-location=%userprofile%\Juliawin"
+set "install-directory=%userprofile%\Juliawin"
 
 echo %batfile% > "%tempdir%\batfile.txt"
+
+
+:: ========== Custom path provided =========
+IF /I "%ARG_DIR%" NEQ "" set "install-directory=%ARG_DIR%"
 
 
 :: ========== Default configurations =========
 set "config=%tempdir%\juliawin-config.bat"
 
-echo :: Edit and save this file to overwrite the defaults       >  "%config%"
-echo :: The syntax is `.bat` compliant, so no spaces around `=` >> "%config%"
-echo:                                                           >> "%config%"
-echo :::: Location ::::                                         >> "%config%"
-echo:                                                           >> "%config%"
-echo set target-location="%target-location%"                         >> "%config%"
-echo:                                                           >> "%config%"
-echo :::: Programs ::::                                         >> "%config%"
-echo:                                                           >> "%config%"
-echo set     install-juno=1                                     >> "%config%"
-echo set    install-pluto=1                                     >> "%config%"
-echo set   install-vscode=0                                     >> "%config%"
-echo set  install-jupyter=0                                     >> "%config%"
-echo:                                                           >> "%config%"
-echo :::: Settings ::::                                         >> "%config%"
-echo:                                                           >> "%config%"
-echo set add-to-user-path=0                                     >> "%config%"
+echo :: Edit and save to overwrite the defaults. Don't add spaces! >  "%config%"
+echo: >> "%config%"
+echo set winpython-directory="%install-directory%" >> "%config%"
+echo: >> "%config%"
+echo set install-juno=1 >> "%config%"
+echo set install-pluto=1 >> "%config%"
+echo set install-vscode=1 >> "%config%"
+echo set install-python-jupyter=0 >> "%config%"
+echo: >> "%config%"
+echo set add-winpython-to-user-path=0 >> "%config%"
 
-
-:: ========== Custom path provided =========
-IF /I "%ARG_DIR%" NEQ "" set "target-location=%ARG_DIR%"
 
 :: ========== May we skip to the installation part? ===========
 if "%ARG_skipinitial%" NEQ "" goto :skipinitial
@@ -100,7 +95,7 @@ Echo   [E]dit: choose my own settings
 Echo   [D]efault: use default settings
 Echo   [C]ancel: cancel the installation
 Echo:
-set /P c="Edit default settings for %target-location% [E/D/C]? "
+set /P c="Edit default settings for %install-directory% [E/D/C]? "
 if /I "%c%" EQU "E" goto :selectdir
 if /I "%c%" EQU "D" goto :exitchoice
 if /I "%c%" EQU "C" goto :EOF-DEAD
@@ -108,8 +103,9 @@ goto :choice
 :selectdir
 
 echo Please edit your selection in Notepad
+echo call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
-call %func% FULL-PATH target-location %target-location%
+call %func% FULL-PATH install-directory %install-directory%
 
 :exitchoice
 
@@ -123,26 +119,26 @@ if "%ARG_DEBUG%" NEQ "1" (
 
 
 :: ========== Restart from the downloaded script ===========
-call "%tempdir%\src\julia-win-installer.bat" /SKIPINITIAL /NOBANNER /DIR "%target-location%" %*
+call "%tempdir%\src\julia-win-installer.bat" /SKIPINITIAL /NOBANNER /DIR "%install-directory%" %*
 GOTO :EOF
 
 :skipinitial
 
 
 :: ========== Ensure install dir is r/w ====
-mkdir "%target-location%" 2>NUL
-echo: > "%target-location%\thisisatestfiledeleteme"
-del /f /q "%target-location%\thisisatestfiledeleteme" >nul 2>&1
+mkdir "%install-directory%" 2>NUL
+echo: > "%install-directory%\thisisatestfiledeleteme"
+del /f /q "%install-directory%\thisisatestfiledeleteme" >nul 2>&1
 if %errorlevel% NEQ 0 (
     ECHO: 1>&2
-    ECHO Error, can't read/write to %target-location% 1>&2
+    ECHO Error, can't read/write to %install-directory% 1>&2
     goto :EOF-DEAD
 )
 
 :: ========== Ensure no files in dir ====
 :: Test if directory is empty/clean
-rmdir "%target-location%" >nul 2>&1
-mkdir "%target-location%" >nul 2>&1
+rmdir "%install-directory%" >nul 2>&1
+mkdir "%install-directory%" >nul 2>&1
 if "%errorlevel%" EQU "0" goto :directoryisgood
     :: directory is not good...
     :diremptychoice
@@ -155,24 +151,24 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
     ECHO Error: the install directory is not empty. 1>&2
     ECHO:
     ECHO You can run the remove command and try again: 1>&2
-    ECHO ^>^> rmdir /s "%target-location%" 1>&2
+    ECHO ^>^> rmdir /s "%install-directory%" 1>&2
     goto :EOF-DEAD
 
 :directoryisgood
 
-call %func% DELETE-DIRECTORY "%target-location%" >nul 2>&1
-mkdir "%target-location%" >nul 2>&1
+call %func% DELETE-DIRECTORY "%install-directory%" >nul 2>&1
+mkdir "%install-directory%" >nul 2>&1
 
 :directoryisgood_skipdelete
 
 :: ========== Log paths to txt files ==
-echo %target-location% > "%tempdir%\target-location.txt"
+echo %install-directory% > "%tempdir%\install-directory.txt"
 
-set "packagedir=%target-location%\packages"
+set "packagedir=%install-directory%\packages"
 mkdir "%packagedir%" >nul 2>&1
 echo %packagedir% > "%tempdir%\packagedir.txt"
 
-set "userdatadir=%target-location%\userdata"
+set "userdatadir=%install-directory%\userdata"
 mkdir "%userdatadir%" >nul 2>&1
 echo %userdatadir% > "%tempdir%\userdatadir.txt"
 
@@ -223,18 +219,29 @@ IF "%ARG_NO-REPL%" EQU "1" goto :skip_repl
     start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia^! & echo You can play in this REPL while waiting for the installer to finish & echo: & julia --banner=no"
 :skip_repl
 
+if "%install-pluto%" equ "1" (
+    call :SET-PATHS
+    call julia "%juliafile%" INSTALL-PLUTO
+)
 
-call :SET-PATHS
-call julia "%juliafile%" INSTALL-PLUTO
+if "%install-vscode%" equ "1" (
+    call julia "%juliafile%" INSTALL-VSCODE
+)
 
-call julia "%juliafile%" INSTALL-ATOM
-call julia "%juliafile%" INSTALL-JUNO
+if "%install-juno%" equ "1" (
+    call julia "%juliafile%" INSTALL-ATOM
+    call julia "%juliafile%" INSTALL-JUNO
+)
+
+if "%install-python-jupyter%" equ "1" (
+   call julia "%juliafile%" INSTALL-JUPYTER
+)
 
 echo () End of installation
 
 :: ========== Clean up after ourselves ====
 :removetmp
-set /P c="Delete all downloads in %tmp%\juliawin [Y/N]? "
+set /P c="Clean up leftover files in %tmp%\juliawin [Y/N]? "
 if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto :removetmp
 if /I "%c%" EQU "Y" (
     REM Delete current .bat without error https://stackoverflow.com/a/20333575/1490584
