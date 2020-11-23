@@ -81,8 +81,11 @@ call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin
 
 ::call %func% EDIT-FILE-IN-NOTEPAD "%temp%\hello.txt"
 
-echo echo hello > "%temp%\echohello.bat"
-call %func% GET-SETTINGS-VIA-BAT-FILE "%temp%\echohello.bat"
+::echo echo hello > "%temp%\echohello.bat"
+::call %func% GET-SETTINGS-VIA-BAT-FILE "%temp%\echohello.bat"
 
+set bla="%temp%"
+call %func% FULL-PATH bla %bla%
+echo %bla%
 
 echo *** Complete tests ***

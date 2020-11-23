@@ -58,46 +58,59 @@ set "toolsdir=%tempdir%\tools"
 mkdir "%toolsdir%" 2>NUL
 SET "PATH=%toolsdir%;%PATH%"
 
-set "installdir=%userprofile%\Juliawin"
+set "target-location=%userprofile%\Juliawin"
 
 echo %batfile% > "%tempdir%\batfile.txt"
 
 
+:: ========== Default configurations =========
+set "config=%tempdir%\juliawin-config.bat"
+
+echo :: Edit and save this file to overwrite the defaults       >  "%config%"
+echo :: The syntax is `.bat` compliant, so no spaces around `=` >> "%config%"
+echo:                                                           >> "%config%"
+echo :::: Location ::::                                         >> "%config%"
+echo:                                                           >> "%config%"
+echo set target-location="%target-location%"                         >> "%config%"
+echo:                                                           >> "%config%"
+echo :::: Programs ::::                                         >> "%config%"
+echo:                                                           >> "%config%"
+echo set     install-juno=1                                     >> "%config%"
+echo set    install-pluto=1                                     >> "%config%"
+echo set   install-vscode=0                                     >> "%config%"
+echo set  install-jupyter=0                                     >> "%config%"
+echo:                                                           >> "%config%"
+echo :::: Settings ::::                                         >> "%config%"
+echo:                                                           >> "%config%"
+echo set add-to-user-path=0                                     >> "%config%"
+
+
 :: ========== Custom path provided =========
-IF /I "%ARG_DIR%" NEQ "" set "installdir=%ARG_DIR%"
+IF /I "%ARG_DIR%" NEQ "" set "target-location=%ARG_DIR%"
 
 :: ========== May we skip to the installation part? ===========
 if "%ARG_skipinitial%" NEQ "" goto :skipinitial
 
 
 :: ========== Choose Install Dir ===========
-IF "%ARG_DIR%" NEQ ""  goto exitchoice
 if "%ARG_Y%" EQU "1" goto exitchoice
 :choice
 Echo:
-Echo   [Y]es: continue
-Echo   [N]o: cancel the operation
-Echo   [D]irectory: choose my own directory
+Echo   [E]dit: choose my own settings
+Echo   [D]efault: use default settings
+Echo   [C]ancel: cancel the installation
 Echo:
-set /P c="Install Julia in %installdir% [Y/N/D]? "
-if /I "%c%" EQU "Y" goto :exitchoice
-if /I "%c%" EQU "N" goto :EOF-DEAD
-if /I "%c%" EQU "D" goto :selectdir
+set /P c="Edit default settings for %target-location% [E/D/C]? "
+if /I "%c%" EQU "E" goto :selectdir
+if /I "%c%" EQU "D" goto :exitchoice
+if /I "%c%" EQU "C" goto :EOF-DEAD
 goto :choice
 :selectdir
 
-call %func% BROWSE-FOR-FOLDER installdir
-if /I "%installdir%" EQU "Dialog Cancelled" (
-    ECHO: 1>&2
-    ECHO Dialog box cancelled 1>&2
-    goto :EOF-DEAD
-)
+echo Please edit your selection in Notepad
+call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
+call %func% FULL-PATH target-location %target-location%
 
-if /I "%installdir%" EQU "" (
-    ECHO: 1>&2
-    ECHO Error, folder selection broke 1>&2
-    goto :EOF-DEAD
-)
 :exitchoice
 
 if "%ARG_DEBUG%" NEQ "1" (
@@ -110,26 +123,26 @@ if "%ARG_DEBUG%" NEQ "1" (
 
 
 :: ========== Restart from the downloaded script ===========
-call "%tempdir%\src\julia-win-installer.bat" /SKIPINITIAL /NOBANNER /DIR "%installdir%" %*
+call "%tempdir%\src\julia-win-installer.bat" /SKIPINITIAL /NOBANNER /DIR "%target-location%" %*
 GOTO :EOF
 
 :skipinitial
 
 
 :: ========== Ensure install dir is r/w ====
-mkdir "%installdir%" 2>NUL
-echo: > "%installdir%\thisisatestfiledeleteme"
-del /f /q "%installdir%\thisisatestfiledeleteme" >nul 2>&1
+mkdir "%target-location%" 2>NUL
+echo: > "%target-location%\thisisatestfiledeleteme"
+del /f /q "%target-location%\thisisatestfiledeleteme" >nul 2>&1
 if %errorlevel% NEQ 0 (
     ECHO: 1>&2
-    ECHO Error, can't read/write to %installdir% 1>&2
+    ECHO Error, can't read/write to %target-location% 1>&2
     goto :EOF-DEAD
 )
 
 :: ========== Ensure no files in dir ====
 :: Test if directory is empty/clean
-rmdir "%installdir%" >nul 2>&1
-mkdir "%installdir%" >nul 2>&1
+rmdir "%target-location%" >nul 2>&1
+mkdir "%target-location%" >nul 2>&1
 if "%errorlevel%" EQU "0" goto :directoryisgood
     :: directory is not good...
     :diremptychoice
@@ -142,24 +155,24 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
     ECHO Error: the install directory is not empty. 1>&2
     ECHO:
     ECHO You can run the remove command and try again: 1>&2
-    ECHO ^>^> rmdir /s "%installdir%" 1>&2
+    ECHO ^>^> rmdir /s "%target-location%" 1>&2
     goto :EOF-DEAD
 
 :directoryisgood
 
-call %func% DELETE-DIRECTORY "%installdir%" >nul 2>&1
-mkdir "%installdir%" >nul 2>&1
+call %func% DELETE-DIRECTORY "%target-location%" >nul 2>&1
+mkdir "%target-location%" >nul 2>&1
 
 :directoryisgood_skipdelete
 
 :: ========== Log paths to txt files ==
-echo %installdir% > "%tempdir%\installdir.txt"
+echo %target-location% > "%tempdir%\target-location.txt"
 
-set "packagedir=%installdir%\packages"
+set "packagedir=%target-location%\packages"
 mkdir "%packagedir%" >nul 2>&1
 echo %packagedir% > "%tempdir%\packagedir.txt"
 
-set "userdatadir=%installdir%\userdata"
+set "userdatadir=%target-location%\userdata"
 mkdir "%userdatadir%" >nul 2>&1
 echo %userdatadir% > "%tempdir%\userdatadir.txt"
 
