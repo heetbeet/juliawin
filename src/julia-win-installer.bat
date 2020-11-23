@@ -126,7 +126,6 @@ if %errorlevel% NEQ 0 (
     goto :EOF-DEAD
 )
 
-
 :: ========== Ensure no files in dir ====
 :: Test if directory is empty/clean
 rmdir "%installdir%" >nul 2>&1
@@ -135,8 +134,9 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
     :: directory is not good...
     :diremptychoice
     set /P c="Directory is not empty. Force delete and continue [Y/N]? "
-    if /I "%c%" NEQ "Y" if /I "%c%" NEQ "N" goto diremptychoice
+    if /I "%c%" EQU "_" goto :directoryisgood_skipdelete
     if /I "%c%" EQU "Y" goto :directoryisgood
+    if /I "%c%" NEQ "N" goto diremptychoice
 
     ECHO: 1>&2
     ECHO Error: the install directory is not empty. 1>&2
@@ -150,6 +150,7 @@ if "%errorlevel%" EQU "0" goto :directoryisgood
 call %func% DELETE-DIRECTORY "%installdir%" >nul 2>&1
 mkdir "%installdir%" >nul 2>&1
 
+:directoryisgood_skipdelete
 
 :: ========== Log paths to txt files ==
 echo %installdir% > "%tempdir%\installdir.txt"
@@ -182,6 +183,7 @@ if "%ARG_debug%" equ "1" echo "%juliadirname%"
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
+
 if "%ARG_debug%" equ "1" if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
     call %func% DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
     if "%errorlevel%" NEQ "0" goto :EOF-DEAD "Error: could not download Julia from %juliaurl%"
@@ -204,13 +206,16 @@ call :SET-PATHS
 
 call julia "%juliafile%" ADD-JULIA-EXE
 
-IF "%ARG_NO-REPL%" EQU "" (
-    start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia! & echo You may play here while waiting for the installer to finish & echo: & julia --banner=no"
-)
+IF "%ARG_NO-REPL%" EQU "1" goto :skip_repl
+    start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia! & echo You may play here while waiting for the installer to finish & echo ^  & julia --banner=no"
+:skip_repl
+
+
+call :SET-PATHS
+call julia "%juliafile%" INSTALL-PLUTO
 
 call julia "%juliafile%" INSTALL-ATOM
 call julia "%juliafile%" INSTALL-JUNO
-
 
 echo () End of installation
 
