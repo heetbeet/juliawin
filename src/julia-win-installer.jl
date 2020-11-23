@@ -328,8 +328,7 @@ function make_bats()
         atomtxt = read(joinpath(binpath, "atom.bat"), String)
         open(joinpath(binpath, "atom.bat"), "w") do f
             atomtxt_ = replace(atomtxt,
-                "call :EXPAND-FULLPATH "=>
-                """
+                "call :EXPAND-FULLPATH " => """
 
                 ::for some reason juno hates being next to julia.bat
                 ::this is clearly a bug that needs to be addressed with atom
@@ -340,6 +339,8 @@ function make_bats()
 
             writecrlf(f, atomtxt_)
         end
+
+        cp(joinpath(binpath, "atom.bat"), joinpath(binpath, "juno.bat"), force=true)
     end
 end
 
@@ -436,7 +437,6 @@ if runroutine == "INSTALL-ATOM"
     mkpath(joinpath(userdatadir, ".atom"))
 
     make_bats()
-    make_exe("atom", false, nothing)
 end
 
 
@@ -464,27 +464,25 @@ if runroutine == "INSTALL-JUNO"
     Pkg.add("Juno")
 
     make_bats()
+    make_exe("juno", false, "juno.res")
 end
 
 if runroutine == "INSTALL-PLUTO"
     using Pkg
     Pkg.add("Pluto")
-    (i,j,k) = get_execs()["julia"]
 
-    exectxt = """
-    call :EXPAND-FULLPATH execpath "%~dp0..\\$i" "$j"
-    call "%execpath%\\$file" "%~dp0pluto.jl" %*
-    """
-    battxt = replace(battemplate, "__exec__"=>exectxt)
+    tripquote = "\"\"\""
 
     open(joinpath(binpath, "pluto.bat"), "w") do f
-        writecrlf(f, battxt)
-    end
-
-    open(joinpath(binpath, "pluto.jl"), "w") do f
         writecrlf(f, """
-            using Pluto
+            $tripquote 2> nul
+            @echo off
+            cls
+            "%~dp0julia.bat" "%~0" %*
+            goto :EOF
+            $tripquote
 
+            using Pluto
 
             if length(ARGS) == 1 && lowercase(ARGS[1]) == "--help"
                 println("The available arguments to Pluto isn't straight-forward and more tailored towards developers.")
@@ -492,7 +490,6 @@ if runroutine == "INSTALL-PLUTO"
                 Base.run(`powershell.exe Start "https://github.com/fonsp/Pluto.jl/blob/master/src/Configuration.jl"`)
                 exit()
             end
-
 
             if length(ARGS)%2 != 0
                 error("Commandline arguments must come in pairs, like --foo 1 --bar 2")
@@ -517,7 +514,7 @@ if runroutine == "INSTALL-PLUTO"
         """)
     end
 
-    make_exe("pluto", true, nothing)
+    make_exe("pluto", true, "pluto.res")
 
 end
 
@@ -555,6 +552,6 @@ if runroutine == "INSTALL-JUPYTER"
     end
 
     make_bats()
-    make_exe("IJulia-Lab", false, "jupyter.res"),
-    make_exe("IJulia-Notebook", false, "jupyter.res")
+    make_exe("IJulia-Lab", true, "jupyter.res"),
+    make_exe("IJulia-Notebook", true, "jupyter.res")
 end
