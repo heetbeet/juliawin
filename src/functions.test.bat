@@ -80,4 +80,7 @@ call %func% TEST-OUTCOME "%result%" "HELLO"
 
 call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/" "%TEMP%\blablibloop"
 
+
+call %func% EDIT-FILE-IN-NOTEPAD "%temp%\hello.txt"
+
 echo *** Complete tests ***

@@ -207,7 +207,7 @@ call :SET-PATHS
 call julia "%juliafile%" ADD-JULIA-EXE
 
 IF "%ARG_NO-REPL%" EQU "1" goto :skip_repl
-    start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia! & echo You may play here while waiting for the installer to finish & echo ^  & julia --banner=no"
+    start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia^! & echo You can play in this REPL while waiting for the installer to finish & echo: & julia --banner=no"
 :skip_repl
 
 

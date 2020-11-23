@@ -682,6 +682,46 @@ GOTO :EOF
 
 
 :: ***********************************************
+:: Print the Julia logo
+:: ***********************************************
+:EDIT-FILE-IN-NOTEPAD <filepath>
+    if not exist "%~1" (
+        echo: > "%~1"
+    )
+
+    ::start notepad
+    for /f "tokens=2 delims==; " %%a in (' wmic process call create "notepad.exe "%~1"" ^| find "ProcessId" ') do set PID=%%a
+
+    call :GET-FOCUS-OF-PID %PID%
+
+    ::wait until closed
+    :waitfornotepad
+        TASKLIST | findstr "notepad.*%PID%.*" > "%temp%\checkfindstroutput.txt"
+        FOR /F "usebackq" %%A IN ('%temp%\checkfindstroutput.txt') DO set checkfindstroutput=%%~zA
+        IF "%checkfindstroutput%" EQU "0" goto :donewithnotepad
+        goto :waitfornotepad
+    :donewithnotepad
+
+goto :EOF
+
+
+:: ***********************************************
+:: Get the focus of a window via it's PID
+:: ***********************************************
+:GET-FOCUS-OF-PID <PID>
+    set "randnum=%RANDOM%%RANDOM%RANDOM"
+    echo var sh=new ActiveXObject("WScript.Shell");              >   "%temp%\focusmaker%randnum%.js"
+    echo if (sh.AppActivate(WScript.Arguments.Item(1)) == 0) {   >>  "%temp%\focusmaker%randnum%.js"
+    echo     sh.SendKeys("%% r");                                >>  "%temp%\focusmaker%randnum%.js"
+    echo }                                                       >>  "%temp%\focusmaker%randnum%.js"
+
+    cscript //E:JScript //nologo "%temp%\focusmaker%randnum%.js" "focusmaker%randnum%.js" "%~1"
+    del "%temp%\focusmaker%randnum%.js" /s /f /q
+
+goto :EOF
+
+
+:: ***********************************************
 :: End in error
 :: ***********************************************
 :EOF-DEAD
