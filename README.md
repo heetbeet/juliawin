@@ -11,12 +11,21 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-1. You can download/clone this repository and run the `src/julia-win-installer.bat` file,
+1. You can download and run the `juliawin-bootstrap.bat` file,
 
-2. Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
+2. Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
 ```
 cmd /c "powershell -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/juliawin-bootstrap.bat','%tmp%\jl.bat');" & "%tmp%\jl.bat""
 ```
+
+## Options
+
+During installation, you have the option to choose any of the following packages
+
+ - [ ] Juno https://junolab.org/
+ - [ ] Pluto https://github.com/fonsp/Pluto.jl
+ - [ ] Visual Studio Code https://www.julia-vscode.org/
+ - [ ] Jupyter notebooks https://github.com/JuliaLang/IJulia.jl (note, this adds ~2Gb Anaconda dependancies)
 
 ## Outcome
 
@@ -29,9 +38,3 @@ Everything gets installed into a single self-contained directory. The result is 
 <img src="https://github.com/heetbeet/juliawin/raw/master/images/example-usage.png" width="600" /> 
 </p>
 
-## Todo's
-
-* Add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts)
-* Installer/options for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts)
-* Offline installation support and pinned versions (cache, zip and ship)
-* Make all additions like IDE/packages/environments optional with a buffet menu
