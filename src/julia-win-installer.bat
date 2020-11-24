@@ -77,7 +77,7 @@ echo set "install-pluto=1" >> "%config%"
 echo set "install-vscode=1" >> "%config%"
 echo set "install-python-jupyter=0" >> "%config%"
 echo: >> "%config%"
-echo set "add-juliawin-to-user-path=0" >> "%config%"
+:: echo set "add-juliawin-to-user-path=0" >> "%config%"
 
 call "%config%"
 
@@ -211,9 +211,9 @@ IF "%ARG_NO-REPL%" EQU "1" goto :skip_repl
     start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia^! & echo You can play in this REPL while waiting for the installer to finish & echo: & julia --banner=no"
 :skip_repl
 
-if "%add-juliawin-to-user-path%" equ "1"(
-    setx PATH "%juliawin-directory%;%PATH%"
-)
+:: if "%add-juliawin-to-user-path%" equ "1" (
+::     setx PATH "%juliawin-directory%;%PATH%"
+:: )
 
 if "%install-pluto%" equ "1" (
     call :SET-PATHS
