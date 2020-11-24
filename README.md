@@ -1,5 +1,5 @@
 # Julia on Windows with batteries included
-Juliawin is a Julia installer for Windows: it includes Julia as well as tools like Atom/Juno, Jupyter and the scientific Python stack. The installer is a single .bat file with a collection of batch and Julia routines to dynamically fetch and install all content from the original sources.
+Juliawin is a Julia installer for Windows: it includes Julia as well as tools like Juno, VSCode, Pluto, Jupyter and the scientific Python stack. The installer is a single .bat file with a collection of batch and Julia routines to dynamically fetch and install all content from the original sources.
 
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
@@ -13,7 +13,7 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-1. You can download and run the `juliawin-bootstrap.bat` file,
+1. You can download and run the single `juliawin-bootstrap.bat` file,
 
 2. Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
 ```
@@ -24,10 +24,10 @@ cmd /c "powershell -c "(new-object net.webclient).DownloadFile('https://raw.gith
 
 During installation, you have the option to choose any of the following packages
 
- - [ ] Juno https://junolab.org/
- - [ ] Pluto https://github.com/fonsp/Pluto.jl
- - [ ] Visual Studio Code https://www.julia-vscode.org/
- - [ ] Jupyter notebooks https://github.com/JuliaLang/IJulia.jl (note, this adds ~2Gb Anaconda dependancies)
+ - <img src="https://avatars2.githubusercontent.com/u/8275281?v=4" height="20" /> Juno https://junolab.org/
+ - <img src="https://julialang.org/assets/infra/pluto_jl.svg" height="20" /> Pluto https://github.com/fonsp/Pluto.jl
+ - <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/768px-Visual_Studio_Code_1.35_icon.svg.png" height="20" /> Visual Studio Code https://www.julia-vscode.org/
+ - <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Jupyter_logo.svg/250px-Jupyter_logo.svg.png" width="20" /> Jupyter notebooks https://github.com/JuliaLang/IJulia.jl (warning: adds 3Gb Python/Conda dependencies)
 
 ## Outcome
 
