@@ -703,7 +703,7 @@ goto :EOF
         echo: > "%~1"
     )
 
-    call notepad.exe "%~1"
+    notepad.exe "%~1"
 
 goto :EOF
 
