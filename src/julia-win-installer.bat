@@ -105,7 +105,7 @@ call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 
 :exitchoice
 
-call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
+::call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
 call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/assets" "%tempdir%\assets"
 
 if "%ARG_debug%" NEQ "1" goto :overwite_local
