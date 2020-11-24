@@ -1,4 +1,5 @@
 @echo off
-powershell.exe -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/refactor/src/julia-win-installer.bat', '%tmp%\julia-win-installer.bat')"
-powershell.exe -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/refactor/src/functions.bat', '%tmp%\functions.bat')"
-"%tmp%\julia-win-installer.bat"
+mkdir "%temp%\juliawin\src" > nul 2>&1
+powershell.exe -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/src/julia-win-installer.bat', '%temp%\juliawin\src\julia-win-installer.bat')"
+powershell.exe -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/src/functions.bat', '%temp%\juliawin\src\functions.bat')"
+call "%temp%\juliawin\src\julia-win-installer.bat"
