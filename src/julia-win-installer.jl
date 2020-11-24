@@ -13,7 +13,7 @@ thisfile = abspath(@__FILE__)
 juliatemp = joinpath(tempdir(), "juliawin")
 
 
-installdir = strip(read(open(joinpath(juliatemp, "installdir.txt")), String))
+installdir = strip(read(open(joinpath(juliatemp, "install-directory.txt")), String))
 packagedir = strip(read(open(joinpath(juliatemp, "packagedir.txt")), String))
 userdatadir =  strip(read(open(joinpath(juliatemp, "userdatadir.txt")), String))
 binpath = joinpath(installdir, "bin")
