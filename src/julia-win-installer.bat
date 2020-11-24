@@ -103,7 +103,6 @@ goto :choice
 :selectdir
 
 echo Please edit your selection in Notepad
-echo call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 call %func% FULL-PATH install-directory %install-directory%
 
