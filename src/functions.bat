@@ -702,8 +702,10 @@ goto :EOF
     if not exist "%~1" (
         echo: > "%~1"
     )
-
-    notepad.exe "%~1"
+    
+    set "waitnotepad=%temp%\notepad%random%.bat"
+    echo call notepad.exe "%~1" > "%waitnotepad%"
+    call "%waitnotepad%"
 
 goto :EOF
 
