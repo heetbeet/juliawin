@@ -678,7 +678,7 @@ GOTO :EOF
         goto :EOF
     :__guardgithubdownload__
 
-GOTO :EOF
+goto :EOF
 
 
 :: ***********************************************

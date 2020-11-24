@@ -105,13 +105,13 @@ call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 
 :exitchoice
 
-if "%ARG_debug%" NEQ "1" (
-    call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
-    call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/assets" "%tempdir%\assets"
-) ELSE (
+call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
+call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/assets" "%tempdir%\assets"
+
+if "%ARG_debug%" NEQ "1" goto :overwite_local
     robocopy "%~dp0." "%tempdir%\src" /s /e > nul 2>&1
     robocopy "%~dp0..\assets" "%tempdir%\assets" /s /e  > nul 2>&1
-)
+:overwite_local
 
 
 :: ========== Restart from the downloaded script ===========
