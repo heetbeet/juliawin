@@ -687,11 +687,11 @@ GOTO :EOF
 :GET-SETTINGS-VIA-BAT-FILE <batfile>
     set "batname=%~n1"
     set "tempfile=%temp%\%batname%-%random%%random%.bat%"
-    echo f | xcopy "%~1" "%tempfile%" /y > nul 2>1
+    echo f | xcopy "%~1" "%tempfile%" /y > nul 2>&1
 
     call :EDIT-FILE-IN-NOTEPAD "%tempfile%"
     call "%tempfile%"
-    del "%tempfile%" /s /f /q > nul 2>1
+    del "%tempfile%" /s /f /q > nul 2>&1
 
 goto :EOF
 
@@ -719,7 +719,7 @@ goto :EOF
     echo }                                                       >>  "%temp%\focusmaker%randnum%.js"
 
     cscript //E:JScript //nologo "%temp%\focusmaker%randnum%.js" "focusmaker%randnum%.js" "%~1"
-    del "%temp%\focusmaker%randnum%.js" /s /f /q > nul 2>1
+    del "%temp%\focusmaker%randnum%.js" /s /f /q > nul 2>&1
 
 goto :EOF
 

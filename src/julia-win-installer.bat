@@ -18,7 +18,7 @@ set func="%~dp0functions.bat"
 :: Parse the arguments
 call %func% ARG-PARSER %*
 
-if "%ARG_DEBUG%" EQU "1" echo %*
+if "%ARG_debug%" EQU "1" echo %*
 
 :: Set the location to the sister-scripts
 set "batfile=%~dp0%~n0.bat"
@@ -71,16 +71,16 @@ IF /I "%ARG_DIR%" NEQ "" set "install-directory=%ARG_DIR%"
 :: ========== Default configurations =========
 set "config=%tempdir%\juliawin-config.bat"
 
-echo :: Edit and save to overwrite the defaults. Don't add spaces! >  "%config%"
+echo :: Save and exit to overwrite the defaults. Don't add spaces! >  "%config%"
 echo: >> "%config%"
-echo set winpython-directory="%install-directory%" >> "%config%"
+echo set "juliawin-directory=%install-directory%" >> "%config%"
 echo: >> "%config%"
-echo set install-juno=1 >> "%config%"
-echo set install-pluto=1 >> "%config%"
-echo set install-vscode=1 >> "%config%"
-echo set install-python-jupyter=0 >> "%config%"
+echo set "install-juno=1" >> "%config%"
+echo set "install-pluto=1" >> "%config%"
+echo set "install-vscode=1" >> "%config%"
+echo set "install-python-jupyter=0" >> "%config%"
 echo: >> "%config%"
-echo set add-winpython-to-user-path=0 >> "%config%"
+echo set "add-juliawin-to-user-path=0" >> "%config%"
 
 
 :: ========== May we skip to the installation part? ===========
@@ -105,16 +105,19 @@ goto :choice
 echo Please edit your selection in Notepad
 echo call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
-call %func% FULL-PATH install-directory %install-directory%
 
 :exitchoice
 
-if "%ARG_DEBUG%" NEQ "1" (
+call call "%config%"
+:: call %func% FULL-PATH install-directory %install-directory%
+
+
+if "%ARG_debug%" NEQ "1" (
     call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
     call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 ) ELSE (
-    robocopy "%~dp0." "%tempdir%\src" /s /e
-    robocopy "%~dp0..\assets" "%tempdir%\assets" /s /e
+    robocopy "%~dp0." "%tempdir%\src" /s /e > nul 2>&1
+    robocopy "%~dp0..\assets" "%tempdir%\assets" /s /e  > nul 2>&1
 )
 
 
@@ -187,16 +190,13 @@ if "%errorlevel%" NEQ "0" goto :EOF-DEAD "Error: could not find Julia download l
 call %func% GET-URL-FILENAME juliafname "%juliaurl%"
 call %func% DIR-NAME-EXT _ juliadirname _ "%juliafname%"
 
-if "%ARG_debug%" equ "1" echo "%juliadirname%"
 
 ECHO () Download %juliaurl% to
 ECHO () %tempdir%\%juliafname%
 
 
-if "%ARG_debug%" equ "1" if exist "%tempdir%\%juliafname%" goto :nodownloadjulia
-    call %func% DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
-    if "%errorlevel%" NEQ "0" goto :EOF-DEAD "Error: could not download Julia from %juliaurl%"
-:nodownloadjulia
+call %func% DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
+if "%errorlevel%" NEQ "0" goto :EOF-DEAD "Error: could not download Julia from %juliaurl%"
 
 
 ECHO () Extracting into %packagedir%\%juliadirname%
@@ -218,6 +218,10 @@ call julia "%juliafile%" ADD-JULIA-EXE
 IF "%ARG_NO-REPL%" EQU "1" goto :skip_repl
     start cmd /c "julia --color=yes -e "Base.banner()" & echo Welcome to Julia^! & echo You can play in this REPL while waiting for the installer to finish & echo: & julia --banner=no"
 :skip_repl
+
+if "%add-juliawin-to-user-path%" equ "1"(
+    setx PATH "%juliawin-directory%;%PATH%"
+)
 
 if "%install-pluto%" equ "1" (
     call :SET-PATHS
