@@ -110,8 +110,8 @@ call %func% FULL-PATH install-directory %install-directory%
 :exitchoice
 
 if "%ARG_DEBUG%" NEQ "1" (
-    call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
-    call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
+    call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/src" "%tempdir%\src"
+    call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/refactor/assets" "%tempdir%\assets"
 ) ELSE (
     robocopy "%~dp0." "%tempdir%\src" /s /e
     robocopy "%~dp0..\assets" "%tempdir%\assets" /s /e
