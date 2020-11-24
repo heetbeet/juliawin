@@ -79,6 +79,8 @@ echo set "install-python-jupyter=0" >> "%config%"
 echo: >> "%config%"
 echo set "add-juliawin-to-user-path=0" >> "%config%"
 
+call "%config%"
+
 :: ========== May we skip to the installation part? ===========
 if "%ARG_skipinitial%" NEQ "" goto :skipinitial
 
@@ -102,8 +104,6 @@ echo Please edit your selection in Notepad
 call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 
 :exitchoice
-
-call "%config%"
 
 if "%ARG_debug%" NEQ "1" (
     call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
