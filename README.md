@@ -15,7 +15,7 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 2. Or you can <kbd>Ctrl</kbd>+<kbd>c</kbd> and <kbd>Ctrl</kbd>+<kbd>v</kbd> and run the following command in <kbd>Ctrl</kbd>+<kbd>r</kbd> or Command Prompt:
 ```
-powershell.exe -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/refactor/juliawin-bootstrap.bat','%tmp%\jl.bat'); "%tmp%\jl.bat""
+cmd /c "powershell -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/master/juliawin-bootstrap.bat','%tmp%\jl.bat');" & "%tmp%\jl.bat""
 ```
 
 ## Outcome
