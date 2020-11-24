@@ -31,9 +31,7 @@ Everything gets installed into a single self-contained directory. The result is 
 
 ## Todo's
 
-* 32-bit support
-* Linux equivalent script (and pretend Juliawin refers to: Julia for the win!)
 * Add/remove Juliawin to Windows path (maybe add `register-juliawin-distribution.bat` and `unregister-juliawin-distribution.bat` to scripts)
 * Installer/options for curated Julia Pro packages (maybe add `install-curated-packages.bat` to scripts)
 * Offline installation support and pinned versions (cache, zip and ship)
-* Make all addition (like IDE/packages/environments) optional with a buffet menu
+* Make all additions like IDE/packages/environments optional with a buffet menu

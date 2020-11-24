@@ -18,6 +18,7 @@ set func="%~dp0functions.bat"
 :: Parse the arguments
 call %func% ARG-PARSER %*
 
+
 if "%ARG_debug%" EQU "1" echo %*
 
 :: Set the location to the sister-scripts
@@ -78,7 +79,6 @@ echo set "install-python-jupyter=0" >> "%config%"
 echo: >> "%config%"
 echo set "add-juliawin-to-user-path=0" >> "%config%"
 
-
 :: ========== May we skip to the installation part? ===========
 if "%ARG_skipinitial%" NEQ "" goto :skipinitial
 
@@ -99,7 +99,6 @@ goto :choice
 :selectdir
 
 echo Please edit your selection in Notepad
-echo call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 
 :exitchoice
@@ -107,8 +106,8 @@ call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 call "%config%"
 
 if "%ARG_debug%" NEQ "1" (
-    call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
-    call %func% :DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/assets" "%tempdir%\assets"
+    call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
+    call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/assets" "%tempdir%\assets"
 ) ELSE (
     robocopy "%~dp0." "%tempdir%\src" /s /e > nul 2>&1
     robocopy "%~dp0..\assets" "%tempdir%\assets" /s /e  > nul 2>&1
@@ -191,7 +190,6 @@ ECHO () %tempdir%\%juliafname%
 
 call %func% DOWNLOAD-FILE "%juliaurl%" "%tempdir%\%juliafname%"
 if "%errorlevel%" NEQ "0" goto :EOF-DEAD "Error: could not download Julia from %juliaurl%"
-
 
 ECHO () Extracting into %packagedir%\%juliadirname%
 call %func% EXTRACT-INNO "%tempdir%\%juliafname%" "%packagedir%\%juliadirname%"

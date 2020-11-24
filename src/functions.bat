@@ -687,6 +687,7 @@ GOTO :EOF
 :GET-SETTINGS-VIA-BAT-FILE <batfile>
     set "batname=%~n1"
     set "tempfile=%temp%\%batname%-%random%%random%.bat%"
+
     echo f | xcopy "%~1" "%tempfile%" /y > nul 2>&1
 
     call :EDIT-FILE-IN-NOTEPAD "%tempfile%"
@@ -729,5 +730,5 @@ goto :EOF
 :: ***********************************************
 :EOF-DEAD
     exit /b 1
-
+    
 GOTO :EOF
