@@ -4,9 +4,11 @@ Juliawin is a Julia installer for Windows: it includes Julia as well as tools li
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 <p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Julia_Programming_Language_Logo.svg/220px-Julia_Programming_Language_Logo.svg.png" width="200" />
-  <img src="https://avatars2.githubusercontent.com/u/8275281?v=4" width="130" /> 
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Julia_Programming_Language_Logo.svg/220px-Julia_Programming_Language_Logo.svg.png" width="200" /> &nbsp
+  <img src="https://avatars2.githubusercontent.com/u/8275281?v=4" width="130" /> &nbsp
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/768px-Visual_Studio_Code_1.35_icon.svg.png" height="110" /> &nbsp&nbsp&nbsp
   <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Jupyter_logo.svg/250px-Jupyter_logo.svg.png" width="100" />
+  <img src="https://julialang.org/assets/infra/pluto_jl.svg" height="100" />
 </p>
 
 ## Instalation
