@@ -81,9 +81,6 @@ echo: >> "%config%"
 
 call "%config%"
 
-:: ========== May we skip to the installation part? ===========
-if "%ARG_skipinitial%" NEQ "" goto :skipinitial
-
 
 :: ========== Choose Install Dir ===========
 if "%ARG_Y%" EQU "1" goto exitchoice
@@ -105,20 +102,12 @@ call %func% GET-SETTINGS-VIA-BAT-FILE "%config%"
 
 :exitchoice
 
-::call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/src" "%tempdir%\src"
 call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/tree/master/assets" "%tempdir%\assets"
 
 if "%ARG_debug%" NEQ "1" goto :overwite_local
     robocopy "%~dp0." "%tempdir%\src" /s /e > nul 2>&1
     robocopy "%~dp0..\assets" "%tempdir%\assets" /s /e  > nul 2>&1
 :overwite_local
-
-
-:: ========== Restart from the downloaded script ===========
-call "%tempdir%\src\julia-win-installer.bat" /SKIPINITIAL /NOBANNER /DIR "%install-directory%" %*
-GOTO :EOF
-
-:skipinitial
 
 
 :: ========== Ensure install dir is r/w ====
