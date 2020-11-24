@@ -570,7 +570,8 @@ end
 
 
 if runroutine == "INSTALL-VSCODE"
-    run(`"$installdir/bin/curl" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
+        
+    run(`"$installdir/bin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
 
     # Extract in the background
     t = @task run(`"$juliatemp/src/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$installdir/packages/vscode-x64"`)
