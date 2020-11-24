@@ -27,7 +27,7 @@ During installation, you have the option to choose any of the following packages
  - <img src="https://avatars2.githubusercontent.com/u/8275281?v=4" height="20" /> Juno https://junolab.org/
  - <img src="https://julialang.org/assets/infra/pluto_jl.svg" height="20" /> Pluto https://github.com/fonsp/Pluto.jl
  - <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/768px-Visual_Studio_Code_1.35_icon.svg.png" height="20" /> Visual Studio Code https://www.julia-vscode.org/
- - <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Jupyter_logo.svg/250px-Jupyter_logo.svg.png" width="20" /> Jupyter notebooks https://github.com/JuliaLang/IJulia.jl (warning: adds 3Gb Python/Conda dependencies)
+ - <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Jupyter_logo.svg/250px-Jupyter_logo.svg.png" width="20" /> Jupyter https://github.com/JuliaLang/IJulia.jl (warning: adds 3Gb Python/Conda dependencies)
 
 ## Outcome
 
