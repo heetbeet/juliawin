@@ -1,1 +1,5 @@
-temp
+packages/atom
+packages/curl
+packages/VSCode
+packages/julia
+userdata/.atom

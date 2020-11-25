@@ -11,7 +11,7 @@
 # ****************************************************************************
 # Over here is the sh/bash part of the script
 # ****************************************************************************
-"$JULIAWIN_PACKAGES\julia\bin\julia.exe" "$@"
+"$(dirname "$0")\..\packages\julia\bin\julia.exe" "$@"
 exit $?
 
 
@@ -22,7 +22,7 @@ exit $?
 @echo off
 setlocal
 
-call "%~dp0\juliawin-environment.bat"
+call "%~dp0\set-juliawin-environment.bat"
 call %functions% GET-GIT-BASH-PATH git-bash-path
 
 

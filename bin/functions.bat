@@ -740,6 +740,38 @@ goto :EOF
 goto :EOF
 
 
+:: ***************************************************
+:: Search the regular Git places for a path to sh.exe
+:: **************************************************
+:GET-GIT-BASH-PATH <path>
+set "%~1="
+
+    FOR /F "tokens=* USEBACKQ" %%I IN (`where git`) do (
+        if exist "%%I\..\..\bin\sh.exe" (
+            set "%~1=%%I\..\..\bin\sh.exe"
+            goto :eof
+        )
+    )
+
+    if exist "%PROGRAMFILES%\Git\bin\sh.exe" (
+        set "%~1=%PROGRAMFILES%\Git\bin\sh.exe"
+        goto :eof
+    )
+
+    if exist "%PROGRAMFILES(x86)%\Git\bin\sh.exe" (
+        set "%~1=%PROGRAMFILES(x86)%\Git\bin\sh.exe"
+        goto :eof
+    )
+
+    FOR /F "tokens=* USEBACKQ" %%I IN (`where sh`) do (
+        if exist "%%I" (
+            set "%~1=%%I"
+            goto :eof
+        )
+    )
+
+goto :eof
+
 
 :: ***********************************************
 :: End in error
