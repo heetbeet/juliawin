@@ -1,6 +1,3 @@
-packages/atom
-packages/curl
-packages/VSCode
-packages/julia
+packages/*
 userdata/.atom
 userdata/.julia
