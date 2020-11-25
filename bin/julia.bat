@@ -29,7 +29,7 @@ call %functions% GET-GIT-BASH-PATH git-bash-path
 if "%git-bash-path%" equ "" goto :cannot-run-bash
 
 	:: Running under bash
-	call "%git-bash-path%" "%~0" %*
+	call "%git-bash-path%" "%~dp0%~n0.bat" %*
 	exit /b %errorlevel%
 
 

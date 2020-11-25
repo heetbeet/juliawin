@@ -1,6 +1,7 @@
+using Pkg
 
 # We assume this file is located under packages\Juliawin
-juliawinhome = joinpath(@__DIR__, "..", "..")
+juliawinhome = abspath(joinpath(@__DIR__, ".."))
 juliawinbin = joinpath(juliawinhome, "bin")
 juliawinpackages = joinpath(juliawinhome, "packages")
 juliawinuserdata = joinpath(juliawinhome, "userdata")
@@ -180,20 +181,17 @@ function install_juno()
     run(`$apmbin install hyperclick`)
     run(`$apmbin install tool-bar`)
 
-    using Pkg;
     Pkg.add("Atom")
     Pkg.add("Juno")
 end
 
 
 function install_pluto()
-    using Pkg
     Pkg.add("Pluto")
 end
 
 
 function install_jupyter()
-    using Pkg
     Pkg.add("PyCall")
     Pkg.add("IJulia")
     Pkg.add("Conda")

@@ -3,3 +3,4 @@ packages/curl
 packages/VSCode
 packages/julia
 userdata/.atom
+userdata/.julia
