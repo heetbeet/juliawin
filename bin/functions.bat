@@ -746,7 +746,14 @@ goto :EOF
 :GET-GIT-BASH-PATH <path>
 set "%~1="
 
-    FOR /F "tokens=* USEBACKQ" %%I IN (`where git`) do (
+    FOR /F "tokens=* USEBACKQ" %%I IN (`where sh 2^>nul`) do (
+        if exist "%%I" (
+            set "%~1=%%I"
+            goto :eof
+        )
+    )
+
+    FOR /F "tokens=* USEBACKQ" %%I IN (`where git 2^>nul`) do (
         if exist "%%I\..\..\bin\sh.exe" (
             set "%~1=%%I\..\..\bin\sh.exe"
             goto :eof
@@ -763,12 +770,6 @@ set "%~1="
         goto :eof
     )
 
-    FOR /F "tokens=* USEBACKQ" %%I IN (`where sh`) do (
-        if exist "%%I" (
-            set "%~1=%%I"
-            goto :eof
-        )
-    )
 
 goto :eof
 
