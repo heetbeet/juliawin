@@ -11,7 +11,7 @@
 # ****************************************************************************
 # Over here is the sh/bash part of the script
 # ****************************************************************************
-"$(dirname "$0")\..\packages\atom\atom.exe" "$@"
+"$@"
 exit $?
 
 
@@ -23,13 +23,6 @@ exit $?
 setlocal
 
 call "%~dp0\set-juliawin-environment.bat"
-
-::for some reason juno hates being next to julia.bat
-::this is clearly a bug that needs to be addressed with atom
-if exist julia.bat ( cd "%userprofile%" )
-if exist julia.exe ( cd "%userprofile%" )
-
-
 call %functions% GET-GIT-BASH-PATH git-bash-path
 
 
@@ -47,5 +40,5 @@ if "%git-bash-path%" equ "" goto :cannot-run-bash
 	echo `where sh`, `where git`, %%PROGRAMFILES%%\Git\bin\sh.exe and %%ProgramFiles(x86)%%\Git\bin\sh.exe
 	echo You need to have Git installed from git-scm.com for Julia to access the posix shell.
 
-	call "%juliawin_packages%\atom\atom.exe" %*
+	call %*
 	exit /b %errorlevel%
