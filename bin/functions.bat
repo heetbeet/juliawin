@@ -173,7 +173,7 @@ goto :EOF
     :: Download the download-page html
     call :DOWNLOAD-FILE "%~2" "%_htmlfile_%"
 
-    if %errorlevel% NEQ 0 goto EOF-DEAD
+    if "%errorlevel%" NEQ "0" goto EOF-DEAD
 
     :: Split file on '"' quotes so that valid urls will land on a seperate line
     powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
@@ -339,7 +339,7 @@ goto :EOF
 ::*********************************************************
 :TEST-GIT <return>
     call git --version >nul 2>&1
-    if %errorlevel% neq 0 (
+    if "%errorlevel%" neq "0" (
         echo "Git is not installed or added to your path!"
         echo "Get git from https://git-scm.com/downloads"
         set "%1=0"
@@ -411,7 +411,9 @@ goto :EOF
 :: Get the local date in format yyyy-mm-dd
 ::*********************************************************
 :LOCAL-DATE <return>
+
     :: adapted from http://stackoverflow.com/a/10945887/1810071
+    set "MyDate="
     for /f "skip=1" %%x in ('wmic os get localdatetime') do if not defined MyDate set MyDate=%%x
     for /f %%x in ('wmic path win32_localtime get /format:list ^| findstr "="') do set %%x
     set fmonth=00%Month%
@@ -510,19 +512,19 @@ goto :EOF
 
     call curl --help >nul 2>&1
     set downloadmethod=curl
-    if %errorlevel% EQU 0 goto :_dlmethodsuccess_
+    if "%errorlevel%" EQU "0" goto :_dlmethodsuccess_
 
     call powershell -Command "gcm Invoke-WebRequest" >nul 2>&1
     set downloadmethod=webrequest
-    if %errorlevel% EQU 0 goto :_dlmethodsuccess_
+    if "%errorlevel%" EQU "0" goto :_dlmethodsuccess_
 
     call wget --help >nul 2>&1
     set downloadmethod=wget
-    if %errorlevel% EQU 0 goto :_dlmethodsuccess_
+    if "%errorlevel%" EQU "0" goto :_dlmethodsuccess_
 
     call powershell -Command "(New-Object Net.WebClient)" >nul 2>&1
     set downloadmethod=webclient
-    if %errorlevel% EQU 0 goto :_dlmethodsuccess_
+    if "%errorlevel%" EQU "0" goto :_dlmethodsuccess_
 
     SET downloadmethod=
 
@@ -552,22 +554,22 @@ goto :EOF
 
     IF "%downloadmethod%" == "curl" (
         call curl -g -L -f -o "%~2" "%~1"
-        if %errorlevel% NEQ 0 goto EOF-DEAD
+        if "%errorlevel%" NEQ 0 goto EOF-DEAD
 
     ) ELSE IF "%downloadmethod%" == "webrequest" (
 
         call powershell -Command "Invoke-WebRequest '%~1' -OutFile '%~2'"
-        if %errorlevel% NEQ 0 goto EOF-DEAD
+        if "%errorlevel%" NEQ 0 goto EOF-DEAD
 
     ) ELSE IF "%downloadmethod%" == "wget" (
 
         call wget "%1" -O "%2"
-        if %errorlevel% NEQ 0 goto EOF-DEAD
+        if "%errorlevel%" NEQ 0 goto EOF-DEAD
 
     ) ELSE IF "%downloadmethod%" == "webclient" (
     
         call powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
-        if %errorlevel% NEQ 0 goto EOF-DEAD
+        if "%errorlevel%" NEQ 0 goto EOF-DEAD
     )
 
 goto :EOF
@@ -594,8 +596,8 @@ goto :EOF
     ::I have no idea how this works exactly...
     ::https://stackoverflow.com/a/39593074/1490584
     set %~1=
-    set _vbs_="%temp%\browse_for_folder.vbs"
-    set _cmd_="%temp%\browse_for_folder.cmd"
+    set _vbs_="%temp%\browse_for_folder_%random%%random%.vbs"
+    set _cmd_="%temp%\browse_for_folder_%random%%random%.cmd"
     for %%f in (%_vbs_% %_cmd_%) do if exist %%f del %%f
     for %%g in ("_vbs_ _cmd_") do if defined %%g set %%g=
     (
@@ -657,7 +659,7 @@ GOTO :EOF
     :: Download the download-page html
     call :DOWNLOAD-FILE "%~1" "%_htmlfile_%" >nul 2>&1
 
-    if %errorlevel% NEQ 0 goto EOF-DEAD
+    if "%errorlevel%" NEQ "0" goto EOF-DEAD
 
     :: Split file on '"' quotes so that valid urls will land on a seperate line
     powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
