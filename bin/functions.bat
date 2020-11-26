@@ -164,6 +164,7 @@ goto :EOF
 ::
 :: ***********************************************
 :GET-DL-URL <outputvarname> <download page url> <regex string>
+    set "%~1="
 
     call :SLUGIFY-URL _urlslug_ "%~2"
 
@@ -173,7 +174,7 @@ goto :EOF
     :: Download the download-page html
     call :DOWNLOAD-FILE "%~2" "%_htmlfile_%"
 
-    if "%errorlevel%" NEQ "0" goto EOF-DEAD
+    if not exist "%_htmlfile_%" goto EOF-DEAD
 
     :: Split file on '"' quotes so that valid urls will land on a seperate line
     powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
@@ -255,17 +256,19 @@ goto :EOF
     setlocal
 
     ::Make a decoy userprofile to capture unwanted startmenu icons and junk
-    mkdir "%TEMP%\userprofiledecoy" >nul 2>&1
-    SET "USERPROFILE=%TEMP%\userprofiledecoy"
-    SET "APPDATA=%TEMP%\userprofiledecoy"
-    SET "LOCALAPPDATA=%TEMP%\userprofiledecoy"
+    set "userdecoy=%TEMP%\userprofiledecoy"
+    
+    mkdir "userdecoy" >nul 2>&1
+    SET "USERPROFILE=%userdecoy%"
+    SET "APPDATA=%userdecoy%"
+    SET "LOCALAPPDATA=%userdecoy%"
 
     ::Install/extract the exe to the given location using most portable possible settings
     mkdir "%~2" >nul 2>&1
     call "%~1" /DIR="%~2" /SP- /VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER /DisableFinishedPage=yes /skipifsilent
 
     ::Remove the decoy userprofile
-    call :DELETE-DIRECTORY "%TEMP%\userprofiledecoy" >nul 2>&1
+    call :DELETE-DIRECTORY "%userdecoy%" >nul 2>&1
 
 goto :EOF
 
@@ -508,7 +511,8 @@ goto :EOF
 :: ***********************************************
 :: Find Download method
 :: ***********************************************
-:REGISTER-DOWNLOAD-METHOD
+:REGISTER-DOWNLOAD-METHOD <downloadmethod>
+    set "%~1="
 
     call curl --help >nul 2>&1
     set downloadmethod=curl
@@ -526,7 +530,6 @@ goto :EOF
     set downloadmethod=webclient
     if "%errorlevel%" EQU "0" goto :_dlmethodsuccess_
 
-    SET downloadmethod=
 
     :: We can't find any download method
     ECHO: 1>&2
@@ -550,7 +553,7 @@ goto :EOF
 :: ***********************************************
 :DOWNLOAD-FILE <url> <filelocation>
     call :REGISTER-DOWNLOAD-METHOD downloadmethod
-    if "%errorlevel%" NEQ "0" goto :EOF-DEAD
+    if "downloadmethod" EQU "" goto :EOF-DEAD
 
     IF "%downloadmethod%" == "curl" (
         call curl -g -L -f -o "%~2" "%~1"
@@ -774,6 +777,19 @@ set "%~1="
 
 
 goto :eof
+
+
+:: ***************************************************
+:: Test if a directory is empty
+:: **************************************************
+:IS-DIRECTORY-EMPTY <flag>
+    set "%~1=0"
+    for /F %%i in ('dir /b "c:\test directory\*.*"') do (
+       echo set "%~1=1"
+       goto :eof
+    )
+goto :eof
+
 
 
 :: ***********************************************
