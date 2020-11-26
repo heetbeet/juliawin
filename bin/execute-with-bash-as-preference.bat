@@ -1,10 +1,12 @@
 @goto :batch-script > /dev/null 2>&1 # > nul
 
 # ****************************************************************************
+# Usage: execute-with-bash-as-preference program arg1 arg2 arg3...
+#
 # This is a Polyglot script that is interperated differently by bash and batch
-# We use this to first set the JuliaWin environment in batch and to search
-# for a possible sh.exe binary in bash and then finally run this file under
-# sh.exe in order to pass all commandline arguments directly.
+# We use this to first set the JuliaWin environment in batch and then search
+# for a possible sh.exe binary also in bash and then finally run the command
+# under sh.exe in order to pass all commandline arguments directly.
 # ****************************************************************************
 
 
