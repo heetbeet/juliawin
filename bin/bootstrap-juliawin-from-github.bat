@@ -2,9 +2,9 @@
 SETLOCAL EnableDelayedExpansion
 
 :: ***************************************
-:: This is the start of our juliawin bootstrapping
-:: Unfortunately we may not use any external function yet
-:: We may also not use any gotos yet:
+:: With this script Juliawin can bootstrap inself from absolute nothing
+:: For this to work, we can unfortunately not use any external function or scripts yet
+:: Note that we have no control over the user's line-endings of this file, and may therefore not use any gotos or labels!
 :: https://serverfault.com/questions/429594/is-it-safe-to-write-batch-files-with-unix-line-endings
 :: ***************************************
 

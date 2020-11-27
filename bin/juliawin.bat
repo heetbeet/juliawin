@@ -1,0 +1,1 @@
+@call "%~dp0\julia.bat" "%~dp0\..\internals\juliawin_cli.jl" %*
