@@ -4,7 +4,7 @@ SETLOCAL EnableDelayedExpansion
 
 :: Access to external functions
 set functions="%~dp0functions.bat"
-functions FULL-PATH juliawinhome "%~dp0.."
+call functions FULL-PATH juliawinhome "%~dp0.."
 
 call %functions% ARG-PARSER %*
 if "%ARG_h%%ARG_help%" NEQ "" (
