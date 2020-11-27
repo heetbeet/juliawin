@@ -12,7 +12,7 @@ if "%ARG_h%%ARG_help%" NEQ "" (
 )
 
 :: Test if we should forcefully install julia
-if exist "%dp0..\packages\julia\bin\julia.exe" if "%ARG_force%" neq "1" (
+if exist "%~dp0..\packages\julia\bin\julia.exe" if "%ARG_force%" neq "1" (
     call :PROMPT-FORCEINSTALL forceinstall
 )
 if /i "%forceinstall%" EQU "N" exit /b -1
