@@ -3,10 +3,33 @@ SETLOCAL EnableDelayedExpansion
 
 :: ***************************************
 :: With this script Juliawin can bootstrap inself from absolute nothing
-:: For this to work, we can unfortunately not use any external function or scripts yet
-:: Note that we have no control over the user's line-endings of this file, and may therefore not use any gotos or labels!
-:: https://serverfault.com/questions/429594/is-it-safe-to-write-batch-files-with-unix-line-endings
+:: For this to work, we can unfortunately not use any external function or scripts yet.
+::
+:: Note that we have no control over the user's line-endings of this file, and may therefore not use any
+:: bat features that breaks with linux line endings, such as goto or labels. This makes writing this script
+:: really difficult: https://serverfault.com/questions/429594
 :: ***************************************
+if /i "%1" equ "/help" (
+    echo Script to download and run the Juliawin installer directly from Github
+    echo:
+    echo Usage:
+    echo   bootstrap-juliawin-from-github [options]
+    echo Options:
+    echo   /h, /help          Print these options
+    echo   /dir ^<folder^>      Set installation directory
+    echo   /force             Overwrite destination without prompting
+    exit /b 0
+)
+
+set "force=0"
+if /i "%1" equ "/force" set "force=1"
+if /i "%2" equ "/force" set "force=1"
+if /i "%3" equ "/force" set "force=1"
+
+set "custom-directory=0"
+set "install-directory=%userprofile%\Juliawin"
+if /i "%1" equ "/dir" set "install-directory=%~2" & set "custom-directory=1"
+if /i "%2" equ "/dir" set "install-directory=%~3" & set "custom-directory=1"
 
 
 :: ***************************************
@@ -40,7 +63,6 @@ del "%vbs%" /f /q > nul 2>&1
 :: ***************************************
 :: Set destination directory
 :: ***************************************
-set "install-directory=%userprofile%\Juliawin"
 set "vbs=%temp%\_%random%%random%.vbs"
 set "bat=%vbs%.bat"
 
@@ -50,9 +72,11 @@ echo   [Y]es: choose the default installation directory
 echo   [N]o: cancel the installation
 echo   [D]irectory: choose my own directory
 echo:
-for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
-    if /i "!defaultinstall!" neq "Y" if /i "!defaultinstall!" neq "N"  if /i "!defaultinstall!" neq "D" (
-        set /P defaultinstall="Install to %install-directory%  [Y/N/D]? "
+if "%force%" equ "0" if "%custom-directory%" equ "0" (
+    for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
+        if /i "!defaultinstall!" neq "Y" if /i "!defaultinstall!" neq "N"  if /i "!defaultinstall!" neq "D" (
+            set /P defaultinstall="Install to %install-directory% [Y/N/D]? "
+        )
     )
 )
 if /i "%defaultinstall%" EQU "N" exit /b -1
@@ -89,14 +113,16 @@ if /i "%defaultinstall%" equ "D" (
 :: ***************************************
 
 :: Does the destination directory exist?
-for /F %%i in ('dir /b /a "%install-directory%\*"') do (
-    for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
-        if /i "!overwrite!" neq "Y" if /i "!overwrite!" neq "N"  (
-            set /P overwrite="Destination is not empty. Overwrite  [Y/N]? "
+if "%force%" equ "0" (
+    for /F %%i in ('dir /b /a "%install-directory%\*"') do (
+        for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
+            if /i "!overwrite!" neq "Y" if /i "!overwrite!" neq "N"  (
+                set /P overwrite="Destination is not empty. Overwrite [Y/N]? "
+            )
         )
     )
 )
-if /i "%overwrite%" neq "Y" (
+if /i "%overwrite%" equ "N" (
     echo ^(^) Installation cancelled
     pause
     exit /b -1
@@ -107,6 +133,6 @@ del "%juliawinzip%" /f /q > nul 2>&1
 
 
 :: ***************************************
-:: Run the newly aquired local version
+:: Run the newly acquired local julia bootstrapper
 :: ***************************************
 call "%install-directory%\bin\bootstrap-juliawin-from-local-directory.bat"
