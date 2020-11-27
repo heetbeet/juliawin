@@ -167,36 +167,21 @@ goto :EOF
     set "%~1="
 
     call :SLUGIFY-URL _urlslug_ "%~2"
-
     set "_htmlfile_=%temp%\%_urlslug_%"
-    set "_linksfile_=%temp%\%_urlslug_%-links.txt"
 
     :: Download the download-page html
     call :DOWNLOAD-FILE "%~2" "%_htmlfile_%"
-
     if not exist "%_htmlfile_%" goto EOF-DEAD
 
     :: Split file on '"' quotes so that valid urls will land on a seperate line
     powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
 
-    ::Find the lines of all the valid Regex download links
-    findstr /i /r /c:"%~3" "%_htmlfile_%--split" > "%_linksfile_%"
-
-
-    ::Save first occurance to head by reading the file with powershell and taking the first line
-    for /f "usebackq delims=" %%a in (`powershell -Command "(Get-Content '%_linksfile_%')[0]"`) do (set "head=%%a")
-
-
-    ::Save the result to the outputvariable
-    set "%~1=%head%"
-
-    if "%_linksfile_%" EQU "" (
-        echo Could not find regex %~3 on webpage %~2
-        goto :EOF-DEAD
+    FOR /F "tokens=* USEBACKQ" %%I IN (`findstr /i /r /c:"%~3" "%_htmlfile_%--split"`) do (
+        set "%1=%%I"
+        goto :EOF
     )
+    goto EOF-DEAD
 
-    set _htmlfile_=
-    set _linksfile_=
 goto :EOF
 
 
@@ -332,7 +317,11 @@ goto :EOF
 ::*********************************************************
 :EXEC <returnvar> <returnerror> <command>
     set "errorlevel=0"
-    FOR /F "tokens=* USEBACKQ" %%I IN (`%3`) do set "%1=%%I"
+    FOR /F "tokens=* USEBACKQ" %%I IN (`%3`) do (
+        set "%1=%%I"
+        goto :_done_first_line_
+    )
+    :_done_first_line_
     set "%2=%errorlevel%"
 goto :EOF
 

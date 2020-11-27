@@ -19,8 +19,12 @@ if "%ARG_h%%ARG_help%" NEQ "" (
 if "%ARG_temp%" EQU "" set "ARG_temp=%TEMP%\julia-bootstrap-download-%random%%random%"
 mkdir "%ARG_temp%" >nul 2>&1
 
+:: Set the url for the julia download
+set "hompageurl=https://julialang.org/downloads"
+if "%ARG_use-nightly-build%" equ "1" set "hompageurl=https://julialang.org/downloads/nightlies"
 
-call %functions% GET-DL-URL juliaurl "https://julialang.org/downloads" "https.*bin/winnt/x64/.*win64.exe"
+:: Get the url of the binary
+call %functions% GET-DL-URL juliaurl "%hompageurl%" "https.*bin/winnt/x64/.*win64.exe"
 if "%juliaurl%" EQU "" (
     echo Error: could not find Julia download link from https://julialang.org/downloads
     exit /b -1
@@ -53,10 +57,11 @@ goto :eof
     echo Usage:
     echo   %~n0 [options]
     echo Options:
-    echo   /h, /help          Print these options
-    echo   /dest ^<folder^>     Portable Julia destination
-    echo   /temp ^<folder^>     Optional: Path to download the julia exe to
-    echo   /nocleanup         Optional: Don't delete the downloads in %%temp%%\julia-bootstrap-download-*
+    echo   /h, /help           Print these options
+    echo   /use-nightly-build  For developer previews and not intended for normal use
+    echo   /dest ^<folder^>      Portable Julia destination
+    echo   /temp ^<folder^>      Optional: Path to download the julia exe to
+    echo   /nocleanup          Optional: Don't delete the downloads in %%temp%%\julia-bootstrap-download-*
 goto :eof
 
 
