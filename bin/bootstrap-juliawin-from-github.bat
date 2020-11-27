@@ -38,7 +38,7 @@ del "%vbs%" /f /q > nul 2>&1
 
 
 :: ***************************************
-:: Copy everything to the final location
+:: Set destination directory
 :: ***************************************
 set "install-directory=%userprofile%\Juliawin"
 set "vbs=%temp%\_%random%%random%.vbs"
@@ -81,6 +81,25 @@ if /i "%defaultinstall%" equ "D" (
     ) else (
         set "install-directory=%__returnval__%"
     )
+)
+
+
+:: ***************************************
+:: Copy to destination directory
+:: ***************************************
+
+:: Does the destination directory exist?
+for /F %%i in ('dir /b /a "%install-directory%\*"') do (
+    for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
+        if /i "!overwrite!" neq "Y" if /i "!overwrite!" neq "N"  (
+            set /P overwrite="Destination is not empty. Overwrite  [Y/N]? "
+        )
+    )
+)
+if /i "%overwrite%" neq "Y" (
+    echo ^(^) Installation cancelled
+    pause
+    exit /b -1
 )
 
 robocopy "%juliawintemp%\juliawin2-main" "%install-directory%" /s /e /mov
