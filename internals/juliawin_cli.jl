@@ -3,12 +3,17 @@ using Pkg
 include(joinpath(@__DIR__, "routines.jl"))
 add_startup_script()
 
-Pkg.add("Revise")
-Pkg.add("OhMyREPL")
-Pkg.add("ArgParse")
+function lazyinstall(pkgstring)
+  if pkgstring ∈ keys(Pkg.installed())
+    Pkg.add(pkgstring)
+  end
+end
+
+lazyinstall("Revise")
+lazyinstall("OhMyREPL")
+lazyinstall("ArgParse")
 
 using ArgParse
-
 s = ArgParseSettings(description = "This is the main commandline interface to Juliawin.")
 @add_arg_table s begin
     "--install"

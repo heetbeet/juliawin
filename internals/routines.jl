@@ -128,13 +128,13 @@ function add_startup_script()
     header = """include(joinpath(@__DIR__, "juliawinconfig.jl"))
     """
 
-    old_txt = if isfile(scriptpath) read(scriptpath, String) else "" end
-    if !contains(old_txt, strip(header))
-        new_txt = header * old_txt
+    txt = if isfile(scriptpath) read(scriptpath, String) else "" end
+    if !contains(txt, strip(header))
+        txt = header * txt
     end
 
     open(scriptpath, "w") do f
-        write(f, new_txt)
+        write(f, txt)
     end
 end
 
