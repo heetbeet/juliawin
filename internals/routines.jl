@@ -196,7 +196,7 @@ function install_jupyter()
     Pkg.add("IJulia")
     Pkg.add("Conda")
 
-    using Conda
+    @eval using Conda
     Conda.add("jupyter")
     Conda.add("jupyterlab")
 
