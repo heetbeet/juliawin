@@ -128,7 +128,7 @@ if /i "%overwrite%" equ "N" (
     exit /b -1
 )
 
-robocopy "%juliawintemp%\juliawin2-main" "%install-directory%" /s /e /mov
+robocopy "%juliawintemp%\juliawin2-main" "%install-directory%" /s /e /mov 2> nul
 del "%juliawinzip%" /f /q > nul 2>&1
 
 
