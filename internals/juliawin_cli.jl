@@ -1,10 +1,11 @@
 using Pkg
-include(joinpath(@__DIR__, "routines.jl"))
 
+include(joinpath(@__DIR__, "routines.jl"))
 add_startup_script()
-using Pkg.add("Revise")
-using Pkg.add("OhMyREPL")
-using Pkg.add("ArgParse")
+
+Pkg.add("Revise")
+Pkg.add("OhMyREPL")
+Pkg.add("ArgParse")
 
 using ArgParse
 

@@ -129,7 +129,7 @@ function add_startup_script()
     """
 
     old_txt = if isfile(scriptpath) read(scriptpath, String) else "" end
-    if not contains(old_txt, strip(header))
+    if !contains(old_txt, strip(header))
         new_txt = header * old_txt
     end
 
