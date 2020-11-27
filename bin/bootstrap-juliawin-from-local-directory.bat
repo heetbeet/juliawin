@@ -18,7 +18,7 @@ if /i "%forceinstall%" EQU "N" exit /b -1
 
 :: Install Julia
 call %functions% DELETE-DIRECTORY "%~dp0..\packages\julia" 2 > nul
-call "%~dp0\bootstrap-julia-from-julialang-org.bat" "%~dp0..\packages\julia"
+call "%~dp0\bootstrap-julia-from-julialang-org.bat" /dest "%~dp0..\packages\julia"
 
 
 :: Run juliawin installation script
