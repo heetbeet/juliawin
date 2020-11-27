@@ -136,6 +136,6 @@ del "%juliawinzip%" /f /q > nul 2>&1
 :: Run the newly acquired local julia bootstrapper
 :: ***************************************
 set "args="
-if "%force%" equ "1" set "args= /force "
+if "%force%" equ "1" set "args=/force"
 
 call "%install-directory%\bin\bootstrap-juliawin-from-local-directory.bat" %args%
