@@ -1,8 +1,10 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
 
+
 :: Access to external functions
 set functions="%~dp0functions.bat"
+functions FULL-PATH juliawinhome "%~dp0.."
 
 call %functions% ARG-PARSER %*
 if "%ARG_h%%ARG_help%" NEQ "" (
@@ -48,7 +50,7 @@ goto :eof
     set "%~1="
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!forceinstall!" neq "Y"  if /i "!forceinstall!" neq "N" (
-            set /P forceinstall="Julia installation in packages/julia exist, overwrite [Y/N]? "
+            set /P forceinstall="Julia installation in %juliawinhome%\packages\julia exist, overwrite [Y/N]? "
         )
     )
     set "%~1=%forceinstall%"
