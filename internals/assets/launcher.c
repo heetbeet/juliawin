@@ -11,9 +11,9 @@
     int main( int argc, char ** argv ) 
 #endif
 {
-    //*******************************************
-    //Get commanline string as a whole
-    //*******************************************
+    // *******************************************
+    // Get commanline string as a whole
+    // *******************************************
     TCHAR* cmdArgs = GetCommandLineW();
     TCHAR* cmdPath;
     cmdPath = (TCHAR*) malloc((_tcslen(cmdArgs)+1)*2);
@@ -23,9 +23,10 @@
     _tcscpy(cmdPath, cmdArgs);
 
 
-    //*******************************************
-    //Split filepath, filename, and commandline
-    //*******************************************
+    // *******************************************
+    // Split filepath, filename, and commandline
+    // http://www.windowsinspired.com/how-a-windows-programs-splits-its-command-line-into-individual-arguments/
+    // *******************************************
     bool inQuote = false;
     bool isArgs = false;
     int j = 0;
@@ -51,22 +52,25 @@
     }
 
 
-    //*******************************************
-    //Remove quotes around filepath
-    //*******************************************
-    if(*(TCHAR *)(&cmdPath[0]) == L'"'){
-      cmdPath = &cmdPath[2];
-    }
+    // *******************************************
+    // Remove remaining quotes from the filepath
+    // *******************************************
     int cmdPathEnd = _tcslen(cmdPath);
-    if(*(TCHAR *)(&cmdPath[(cmdPathEnd-1)*2]) == L'"'){
-      cmdPath[(cmdPathEnd-1)*2]='\0';
-      cmdPath[(cmdPathEnd-1)*2+1]='\0';
+    j = 0;
+    for(int i=0; i<cmdPathEnd+1; i++){
+        if(*(TCHAR *)(&cmdPath[(i)*2]) == L'"'){
+            continue;
+        }
+
+        cmdPath[j*2] = cmdPath[i*2];
+        cmdPath[j*2+1] = cmdPath[i*2+1];
+        j++;
     }
 
 
-    //*******************************************
-    //Find basedir of cmdPath
-    //*******************************************
+    // *******************************************
+    // Find basedir of cmdPath
+    // *******************************************
     TCHAR* cmdBaseDir;
     cmdBaseDir = (TCHAR*) malloc((_tcslen(cmdPath)+1)*2);
     cmdBaseDir[0] = '\0';
@@ -94,9 +98,9 @@
     }
 
 
-    //*******************************************
-    //Find filename without .exe
-    //*******************************************
+    // *******************************************
+    // Find filename without .exe
+    // *******************************************
     TCHAR* cmdName;
     cmdName = (TCHAR*) malloc((_tcslen(cmdPath)+1)*2);
     cmdName[0] = '\0';
@@ -116,9 +120,9 @@
     //_tprintf(cmdName);
     //_tprintf(L"\n");
 
-    //********************************************
-    //Bat name to be checked
-    //********************************************
+    // ********************************************
+    // Bat name to be checked
+    // ********************************************
     int totlen;
 
     TCHAR* batFile1  = cmdBaseDir;
@@ -179,9 +183,9 @@
     //_tprintf(L"\n");
 
 
-    //******************************************
-    //Do we have a Python path anywhere in ...\bin\python\python.exe
-    //******************************************
+    // ******************************************
+    // Do we have a Python path anywhere in ...\bin\python\python.exe
+    // ******************************************
     TCHAR* pythonPath;
     if(!is_python){
         goto breakout_python;
@@ -214,9 +218,9 @@
     breakout_python:;
 
 
-    //*******************************************
-    //Get into this form: cmd.exe /c ""c:\path\...bat" arg1 arg2 ... "
-    //*******************************************
+    // *******************************************
+    // Get into this form: cmd.exe /c ""c:\path\...bat" arg1 arg2 ... "
+    // *******************************************
     //TCHAR* cmdLine?  = L"python.exe ";
     TCHAR* cmdLine1  = L"powershell.exe -executionpolicy bypass ";
     TCHAR* cmdLine2  = L"cmd.exe /c \"";
@@ -257,9 +261,9 @@
     //_tprintf(cmdLine);
     //_tprintf(L"\n");
 
-    //************************************
-    //Prepare and run CreateProcessW
-    //************************************
+    // ************************************
+    // Prepare and run CreateProcessW
+    // ************************************
     PROCESS_INFORMATION pi;
     STARTUPINFO si;
         
@@ -272,9 +276,9 @@
         CreateProcessW(NULL, cmdLine, NULL, NULL, TRUE, NULL,             NULL, NULL, &si, &pi);
     #endif
 
-    //************************************
-    //Return ErrorLevel
-    //************************************
+    // ************************************
+    // Return ErrorLevel
+    // ************************************
     DWORD result = WaitForSingleObject(pi.hProcess, INFINITE);
 
     if(result == WAIT_TIMEOUT){return -2;} //Timeout error
