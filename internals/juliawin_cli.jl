@@ -4,7 +4,7 @@ include(joinpath(@__DIR__, "routines.jl"))
 add_startup_script()
 
 function lazyinstall(pkgstring)
-  if pkgstring ∈ keys(Pkg.installed())
+  if !(pkgstring ∈ keys(Pkg.installed()))
     Pkg.add(pkgstring)
   end
 end
