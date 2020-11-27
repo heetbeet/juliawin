@@ -45,11 +45,18 @@ set "vbs=%temp%\_%random%%random%.vbs"
 set "bat=%vbs%.bat"
 
 :: Wow, this is so difficult without a goto...
+echo:
+echo   [Y]es: choose the default installation directory
+echo   [N]o: cancel the installation
+echo   [D]irectory: choose my own directory
+echo:
 for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
-    if /i "!defaultinstall!" neq "Y" if /i "!defaultinstall!" neq "N" (
-        set /P defaultinstall="Install into default location %install-directory% [Y/N]? "
+    if /i "!defaultinstall!" neq "Y" if /i "!defaultinstall!" neq "N"  if /i "!defaultinstall!" neq "D" (
+        set /P defaultinstall="Install to %install-directory%  [Y/N/D]? "
     )
 )
+if /i "%defaultinstall%" EQU "N" exit /b -1
+
 > "%vbs%" echo set shell=WScript.CreateObject("Shell.Application")
 >>"%vbs%" echo set f=shell.BrowseForFolder(0,"Select Juliwin install directory",0,"")
 >>"%vbs%" echo if typename(f)="Nothing" Then
@@ -59,13 +66,14 @@ for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 >>"%vbs%" echo set fs=f.Items():set fi=fs.Item()
 >>"%vbs%" echo p=fi.Path:wscript.echo "set __returnval__=" ^& p
 
-if /i "%defaultinstall%" NEQ "Y" (
-    call cscript //nologo "%vbs%" > "%bat%" && call "%bat%"
+if /i "%defaultinstall%" equ "D" (
+    call cscript //nologo "%vbs%" > "%bat%"
+    call "%bat%"
 )
 del "%vbs%" /f /q > nul 2>&1
 del "%bat%" /f /q > nul 2>&1
 
-if /i "%defaultinstall%" NEQ "Y" (
+if /i "%defaultinstall%" equ "D" (
     if "%__returnval__%" equ "" (
         echo ^(^) Invalid or no directory provided, please restart installer.
         pause
@@ -82,4 +90,4 @@ del "%juliawinzip%" /f /q > nul 2>&1
 :: ***************************************
 :: Run the newly aquired local version
 :: ***************************************
-call "%install-directory%\bootstrap-juliawin-from-local-directory.bat"
+call "%install-directory%\bin\bootstrap-juliawin-from-local-directory.bat"
