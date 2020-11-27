@@ -2,17 +2,17 @@
 set functions="%~dp0functions.bat"
 
 
-:: Set package specific environment variables
-set "JULIA_DEPOT_PATH=%~dp0..\userdata\.julia"
-set "ATOM_HOME=%~dp0..\userdata\.atom"
-set "PYTHON="
-
-
 :: Set convenient variables
 call %functions% FULL-PATH juliawin_home "%~dp0.."
 set "juliawin_bin=%juliawin_home%\bin"
 set "juliawin_packages=%juliawin_home%\packages"
 set "juliawin_userdata=%juliawin_home%\userdata"
+
+
+:: Set package specific environment variables
+set "JULIA_DEPOT_PATH=%juliawin_userdata%\.julia"
+set "ATOM_HOME=%juliawin_userdata%\.atom"
+set "PYTHON="
 
 
 :: Return early if Windows Path environment is already set
