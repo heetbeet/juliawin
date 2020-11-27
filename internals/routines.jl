@@ -125,7 +125,7 @@ function add_startup_script()
     scripthome = joinpath(juliawinhome, "userdata", ".julia", "config")
     scriptpath = joinpath(scripthome, "startup.jl")
 
-    header = """include(joinpath(@__DIR__, "juliawinconfig.jl")
+    header = """include(joinpath(@__DIR__, "juliawinconfig.jl"))
     """
 
     old_txt = if isfile(scriptpath) read(scriptpath, String) else "" end
