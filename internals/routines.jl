@@ -193,6 +193,10 @@ end
 
 
 function install_juno()
+    activate_binary("atom")
+    activate_binary("apm")
+    activate_binary("juno")
+
     apmbin = if Sys.iswindows() "apm.cmd" else apmbin = "apm" end
 
     # https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
@@ -209,9 +213,6 @@ function install_juno()
     Pkg.add("Atom")
     Pkg.add("Juno")
 
-    activate_binary("atom")
-    activate_binary("apm")
-    activate_binary("juno")
 end
 
 
@@ -237,6 +238,9 @@ end
 
 
 function install_vscode()
+    activate_binary("code")
+    activate_binary("code-cli")
+    activate_binary("julia-vscode")
 
     vscodehome = joinpath(juliawinpackages, "vscode")
 
@@ -261,9 +265,6 @@ function install_vscode()
 
     run(`"$juliawinhome/bin/code-cli.bat" --user-data-dir "$vscodehome/data/user-data" --extensions-dir "$vscodehome/data/extensions" --install-extension julialang.language-julia`)
 
-    activate_binary("code")
-    activate_binary("code-cli")
-    activate_binary("julia-vscode")
 end
 
 
