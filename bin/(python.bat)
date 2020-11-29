@@ -1,0 +1,2 @@
+@call "%~dp0\..\internals\scripts\execute-with-bash-as-preference.bat" "%~dp0\..\packages\conda\python.exe" %*
+@exit /b %errorlevel%

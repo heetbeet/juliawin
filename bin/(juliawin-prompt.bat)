@@ -1,0 +1,21 @@
+@echo off
+
+if exist "%~dp0\..\packages\conda\Scripts\activate.bat" (
+    call "%~dp0\..\packages\conda\Scripts\activate.bat"
+)
+
+call "%~dp0\..\internals\scripts\set-juliawin-environment.bat"
+call %functions% GET-GIT-BASH-PATH git-bash-path
+
+
+if "%~1%~2%~3%~4%~5%~6%~7%~8%~9" equ "" ( 
+    if "%git-bash-path%" neq "" (
+        call "%git-bash-path%"
+    ) else (
+        call cmd 
+    )
+) else (
+    call "%~dp0\..\internals\scripts\execute-with-bash-as-preference.bat" %*
+)
+
+exit /b %errorlevel%
