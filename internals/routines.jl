@@ -31,22 +31,22 @@ end
 
 function activate_binary(name)
     if isfile(joinpath(juliawinhome, "($name.exe)"))
-        mv(joinpath(juliawinhome, "($name.exe)"), joinpath(juliawinhome, "$name.exe"))
+        mv(joinpath(juliawinhome, "($name.exe)"), joinpath(juliawinhome, "$name.exe"), force=true)
     end
 
     if isfile(joinpath(juliawinbin, "($name.bat)"))
-        mv(joinpath(juliawinbin, "($name.bat)"), joinpath(juliawinbin, "$name.bat"))
+        mv(joinpath(juliawinbin, "($name.bat)"), joinpath(juliawinbin, "$name.bat"), force=true)
     end
 end
 
 
 function deactivate_binary(name)
     if isfile(joinpath(juliawinhome, "$name.exe"))
-        mv(joinpath(juliawinhome, "$name.exe"), joinpath(juliawinhome, "($name.exe)"))
+        mv(joinpath(juliawinhome, "$name.exe"), joinpath(juliawinhome, "($name.exe)"), force=true)
     end
 
     if isfile(joinpath(juliawinbin, "$name.bat"))
-        mv(joinpath(juliawinbin, "$name.bat"), joinpath(juliawinbin, "($name.bat)"))
+        mv(joinpath(juliawinbin, "$name.bat"), joinpath(juliawinbin, "($name.bat)"), force=true)
     end
 end
 
