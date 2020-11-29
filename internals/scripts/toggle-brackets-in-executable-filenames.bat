@@ -3,8 +3,11 @@ setlocal
 
 call "%~dp0set-juliawin-environment.bat"
 
-if exist "%juliawin_home%\(julia.exe)" call :REMOVE-BRACKETS-FROM-EXECUTABLES
-else if exist "%juliawin_home%\julia.exe" call :ADD-BRACKETS-TO-EXECUTABLES
+if exist "%juliawin_home%\(julia.exe)" (
+    call :REMOVE-BRACKETS-FROM-EXECUTABLES
+) else if exist "%juliawin_home%\julia.exe" (
+    call :ADD-BRACKETS-TO-EXECUTABLES
+)
 
 goto :eof
 
@@ -13,8 +16,8 @@ goto :eof
 :: Add brackets to all juliawin executables
 :: ***************************************
 :ADD-BRACKETS-TO-EXECUTABLES
-	for /r %%i in ("%juliawin_home%") do call :ADD-BRACKET %%i
-	for /r %%i in ("%juliawin_home%\bin") do call :ADD-BRACKET %%i
+	for /f "delims=" %%i in ('dir /b /a-d-h-s "%juliawin_home%"') do call :ADD-BRACKET "%juliawin_home%\%%i"
+	for /f "delims=" %%i in ('dir /b /a-d-h-s "%juliawin_home%\bin"') do call :ADD-BRACKET "%juliawin_home%\bin\%%i"
 goto :eof
 
 
@@ -22,8 +25,8 @@ goto :eof
 :: Remove brackets from all juliawin executables
 :: ***************************************
 :REMOVE-BRACKETS-FROM-EXECUTABLES
-	for /r %%i in ("%juliawin_home%") do call :REMOVE-BRACKET %%i
-	for /r %%i in ("%juliawin_home%\bin") do call :REMOVE-BRACKET %%i
+	for /f "delims=" %%i in ('dir /b /a-d-h-s "%juliawin_home%"') do call :REMOVE-BRACKET "%juliawin_home%\%%i"
+	for /f "delims=" %%i in ('dir /b /a-d-h-s "%juliawin_home%\bin"') do call :REMOVE-BRACKET "%juliawin_home%\bin\%%i"
 goto :eof
 
 
@@ -36,7 +39,7 @@ goto :eof
 	goto :eof
 
 	:doadd
-		move "%~1" "%~dp1\(%~nx1)"
+		move "%~1" "%~dp1\(%~nx1)" > nul
 
 goto :eof
 
@@ -52,7 +55,7 @@ goto :eof
 	:doremove
 		set "filename=%~nx1"
 		set "filename=%filename:~1,-1%"
-		move "%~1" "%~dp1\%filename%"
+		move "%~1" "%~dp1\%filename%" > nul
 	
 goto :eof
 
