@@ -68,27 +68,27 @@ goto :EOF
 :: Cd up up up until the file is found
 ::*********************************************************
 :FIND-PARENT-WITH-FILE <returnvar> <startdir> <filename>
-	pushd "%~2"
-		:__filesearchloop__
-			set "__thisdir__=%cd%"
-			if "%__thisdir__%" neq "%__thisdir_prev__%" goto :__continuefilesearch__
-			    echo Could not find Application.yaml
-			    set "%1=NUL"
-			    goto :__filesearchcomplete__
-			:__continuefilesearch__
+    pushd "%~2"
+        :__filesearchloop__
+            set "__thisdir__=%cd%"
+            if "%__thisdir__%" neq "%__thisdir_prev__%" goto :__continuefilesearch__
+                echo Could not find Application.yaml
+                set "%1=NUL"
+                goto :__filesearchcomplete__
+            :__continuefilesearch__
 
-			if exist "%3" (
-				set "%1=%cd%"
-				goto :__filesearchcomplete__
-			)
-		    cd ..
-		    set "__thisdir_prev__=%thisdir%"
-			goto :__filesearchloop__
+            if exist "%3" (
+                set "%1=%cd%"
+                goto :__filesearchcomplete__
+            )
+            cd ..
+            set "__thisdir_prev__=%thisdir%"
+            goto :__filesearchloop__
 
-	:__filesearchcomplete__
-	popd
+    :__filesearchcomplete__
+    popd
 
-	set __thisdir__=
+    set __thisdir__=
     set __thisdir_prev__=
 goto :EOF
 
@@ -239,11 +239,12 @@ goto :EOF
 :EXTRACT-INNO <srce> <dest>
     ::Don't affect surrounding scope
     setlocal
+    set __COMPAT_LAYER=RUNASINVOKER
 
     ::Make a decoy userprofile to capture unwanted startmenu icons and junk
-    set "userdecoy=%TEMP%\userprofiledecoy"
+    set "userdecoy=%TEMP%\userprofiledecoy%random%%random%"
     
-    mkdir "userdecoy" >nul 2>&1
+    mkdir "%userdecoy%" >nul 2>&1
     SET "USERPROFILE=%userdecoy%"
     SET "APPDATA=%userdecoy%"
     SET "LOCALAPPDATA=%userdecoy%"
@@ -740,7 +741,25 @@ goto :EOF
 :GET-GIT-BASH-PATH <path>
     set "%~1="
 
-    :: Is sh in path and is it path of Git+MinGW?
+    :: Is sh in expected juliawin directory?
+    if exist "%~dp0..\..\packages\git\bin\sh.exe" (
+        set "%~1=%~dp0..\..\packages\git\bin\sh.exe"
+        goto :eof
+    )
+
+    :: Is sh in expected git installation directory?
+    if exist "%PROGRAMFILES%\Git\bin\sh.exe" (
+        set "%~1=%PROGRAMFILES%\Git\bin\sh.exe"
+        goto :eof
+    )
+
+    :: Is sh in another expected git installation directory?
+    if exist "%PROGRAMFILES(x86)%\Git\bin\sh.exe" (
+        set "%~1=%PROGRAMFILES(x86)%\Git\bin\sh.exe"
+        goto :eof
+    )
+
+    :: Is sh in path and is it part of Git+MinGW?
     FOR /F "tokens=* USEBACKQ" %%I IN (`where sh 2^>nul`) do (
         if exist "%%I\..\..\cmd\git.exe" (
             set "%~1=%%I"
@@ -754,18 +773,6 @@ goto :EOF
             set "%~1=%%I\..\..\bin\sh.exe"
             goto :eof
         )
-    )
-
-    :: Is sh in expected git installation directory?
-    if exist "%PROGRAMFILES%\Git\bin\sh.exe" (
-        set "%~1=%PROGRAMFILES%\Git\bin\sh.exe"
-        goto :eof
-    )
-
-    :: Is sh in expected git installation directory?
-    if exist "%PROGRAMFILES(x86)%\Git\bin\sh.exe" (
-        set "%~1=%PROGRAMFILES(x86)%\Git\bin\sh.exe"
-        goto :eof
     )
 
 goto :eof

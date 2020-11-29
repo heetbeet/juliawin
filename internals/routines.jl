@@ -29,6 +29,28 @@ function urlslug(url)
 end
 
 
+function activate_binary(name)
+    if isfile(joinpath(juliawinhome, "($name.exe)"))
+        mv(joinpath(juliawinhome, "($name.exe)"), joinpath(juliawinhome, "$name.exe"))
+    end
+
+    if isfile(joinpath(juliawinbin, "($name.bat)"))
+        mv(joinpath(juliawinbin, "($name.bat)"), joinpath(juliawinbin, "$name.bat"))
+    end
+end
+
+
+function deactivate_binary(name)
+    if isfile(joinpath(juliawinhome, "$name.exe"))
+        mv(joinpath(juliawinhome, "$name.exe"), joinpath(juliawinhome, "($name.exe)"))
+    end
+
+    if isfile(joinpath(juliawinbin, "$name.bat"))
+        mv(joinpath(juliawinbin, "$name.bat"), joinpath(juliawinbin, "($name.bat)"))
+    end
+end
+
+
 #******************************************************
 # Get a downloadable url from a website's homepage
 #******************************************************
@@ -227,5 +249,16 @@ function install_vscode()
     mkpath("$vscodehome/data/extensions")
 
     run(`"$juliawinhome/bin/code-cli.bat" --user-data-dir "$vscodehome/data/user-data" --extensions-dir "$vscodehome/data/extensions" --install-extension julialang.language-julia`)
+
+end
+
+
+function install_git()
+
+    # https://github.com/git-for-windows/git/releases/download/v2.29.2.windows.2/PortableGit-2.29.2.2-64-bit.7z.exe
+    git_zip = download_from_homepage("https://github.com/git-for-windows/git/releases/",
+                        r"/download/.*PortableGit.*64-bit.7z.exe";
+                        prefix="https://github.com/")
+    extract_file(git_zip, joinpath(juliawinpackages, "git"))
 
 end

@@ -4,7 +4,8 @@ include(joinpath(@__DIR__, "routines.jl"))
 add_startup_script()
 
 function lazyinstall(pkgstring)
-  if !(pkgstring ∈ keys(Pkg.installed()))
+  # There must be a better way to infer the package location...
+  if !isdir(joinpath(@__DIR__, "..", "userdata", ".julia", "packages", pkgstring))
     Pkg.add(pkgstring)
   end
 end
@@ -22,7 +23,7 @@ s = ArgParseSettings(description = "This is the main commandline interface to Ju
         help = "Enter the installation guide."
         action = :store_true
 end
-  
+
 parsed_args = parse_args(ARGS, s)
 
 
@@ -38,31 +39,43 @@ end
 
 if parsed_args["install"] !== nothing
     println("This is not implemented yet")
-  
+
 elseif parsed_args["install-dialog"]
-  
+
+    gitinstall = ask_yn("Install MinGW? (This in in order to use Unix shell commands, note "*
+                        "that this option is not necessary if you have Git installed on your system) [Y/N]? ")
+
     vscodeinstall = ask_yn("Install VSCode [Y/N]? ")
     junoinstall = ask_yn("Install Juno [Y/N]? ")
     plutoinstall = ask_yn("Install Pluto [Y/N]? ")
-    jupyterinstall = ask_yn("Install Python/Conda and Jupyter [Y/N]? ")
+    pycallinstall = ask_yn("Install PyCall [Y/N]? ")
+    jupyterinstall = ask_yn("Install Jupyter [Y/N]? ")
 
     if !isfile("$juliawinpackages/curl/bun/curl.exe")
         install_curl()
     end
-  
+
+    if gitinstall == "y"
+        install_git()
+    end
+
     if vscodeinstall == "y"
         install_vscode()
     end
-   
+
     if junoinstall == "y"
         install_atom()
         install_juno()
     end
-  
+
     if plutoinstall == "y"
         install_pluto()
     end
-    
+
+    if pycallinstall == "y"
+        eval Pkg.add("PyCall")
+    end
+
     if jupyterinstall == "y"
        install_jupyter()
     end
