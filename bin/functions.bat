@@ -738,15 +738,17 @@ goto :EOF
 :: Search the regular Git places for a path to sh.exe
 :: **************************************************
 :GET-GIT-BASH-PATH <path>
-set "%~1="
+    set "%~1="
 
+    :: Is sh in path and is it path of Git+MinGW?
     FOR /F "tokens=* USEBACKQ" %%I IN (`where sh 2^>nul`) do (
-        if exist "%%I" (
+        if exist "%%I\..\..\cmd\git.exe" (
             set "%~1=%%I"
             goto :eof
         )
     )
 
+    :: Is git in path and does it have a sh companion?
     FOR /F "tokens=* USEBACKQ" %%I IN (`where git 2^>nul`) do (
         if exist "%%I\..\..\bin\sh.exe" (
             set "%~1=%%I\..\..\bin\sh.exe"
@@ -754,16 +756,17 @@ set "%~1="
         )
     )
 
+    :: Is sh in expected git installation directory?
     if exist "%PROGRAMFILES%\Git\bin\sh.exe" (
         set "%~1=%PROGRAMFILES%\Git\bin\sh.exe"
         goto :eof
     )
 
+    :: Is sh in expected git installation directory?
     if exist "%PROGRAMFILES(x86)%\Git\bin\sh.exe" (
         set "%~1=%PROGRAMFILES(x86)%\Git\bin\sh.exe"
         goto :eof
     )
-
 
 goto :eof
 
@@ -778,7 +781,6 @@ goto :eof
        goto :eof
     )
 goto :eof
-
 
 
 :: ***********************************************
