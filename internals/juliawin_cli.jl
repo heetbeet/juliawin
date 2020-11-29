@@ -38,11 +38,12 @@ end
 
 function ask_yn(message)
     answer = nothing
-    while !(answer in ("y", "n"))
-        global answer
+    while true
         answer = lowercase(input(message))
+        if answer == "y" || answer == "n"
+            return answer
+        end
     end
-    return answer
 end
 
 
