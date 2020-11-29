@@ -9,6 +9,9 @@ if exist "%juliawin_home%\(julia.exe)" (
     call :ADD-BRACKETS-TO-EXECUTABLES
 )
 
+move "%juliawin_home%\(Juliawin Setup.exe)" "%juliawin_home%\Juliawin Setup.exe" > nul 2>&1
+move "%juliawin_home%\bin\(Juliawin Setup.bat)" "%juliawin_home%\bin\Juliawin Setup.bat" > nul 2>&1
+
 goto :eof
 
 

@@ -23,7 +23,7 @@ call "%~dp0\bootstrap-julia-from-julialang-org.bat" /dest "%juliawin_packages%\j
 
 
 :: Run juliawin installation script
-call "%juliawin_home%\bin\juliawin.bat" --install
+call "%juliawin_packages%\julia\bin\julia\julia.exe" "%juliawin_home%\internals\juliawin_cli.jl" --install
 
 
 goto :eof

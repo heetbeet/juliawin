@@ -1,6 +1,11 @@
 using Pkg
 
 include(joinpath(@__DIR__, "routines.jl"))
+
+activate_binary("julia")
+activate_binary("juliawin-prompt")
+activate_binary("7z")
+
 add_startup_script()
 
 function lazyinstall(pkgstring)
@@ -51,7 +56,7 @@ elseif parsed_args["install-dialog"]
     pycallinstall = ask_yn("Install PyCall [Y/N]? ")
     jupyterinstall = ask_yn("Install Jupyter [Y/N]? ")
 
-    if !isfile("$juliawinpackages/curl/bun/curl.exe")
+    if !isfile("$juliawinpackages/curl/bin/curl.exe")
         install_curl()
     end
 
@@ -73,7 +78,8 @@ elseif parsed_args["install-dialog"]
     end
 
     if pycallinstall == "y"
-        eval Pkg.add("PyCall")
+        @eval Pkg.add("PyCall")
+        activate_binary("python")
     end
 
     if jupyterinstall == "y"

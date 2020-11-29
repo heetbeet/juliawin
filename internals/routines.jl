@@ -169,6 +169,7 @@ function install_curl()
     )
 
     extract_file(curl_zip, joinpath(juliawinpackages, "curl"))
+    activate_binary("curl")
 end
 
 
@@ -186,6 +187,8 @@ function install_atom()
                         prefix="https://github.com/")
 
     extract_file(atom_zip, joinpath(juliawinpackages, "atom"))
+    activate_binary("atom")
+    activate_binary("apm")
 end
 
 
@@ -205,11 +208,16 @@ function install_juno()
 
     Pkg.add("Atom")
     Pkg.add("Juno")
+
+    activate_binary("atom")
+    activate_binary("apm")
+    activate_binary("juno")
 end
 
 
 function install_pluto()
     Pkg.add("Pluto")
+    activate_binary("pluto")
 end
 
 
@@ -222,6 +230,9 @@ function install_jupyter()
     Conda.add("jupyter")
     Conda.add("jupyterlab")
 
+    activate_binary("python")
+    activate_binary("IJulia-notebook")
+    activate_binary("IJulia-lab")
 end
 
 
@@ -250,6 +261,9 @@ function install_vscode()
 
     run(`"$juliawinhome/bin/code-cli.bat" --user-data-dir "$vscodehome/data/user-data" --extensions-dir "$vscodehome/data/extensions" --install-extension julialang.language-julia`)
 
+    activate_binary("code")
+    activate_binary("code-cli")
+    activate_binary("julia-vscode")
 end
 
 
