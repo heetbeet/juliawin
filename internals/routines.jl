@@ -243,7 +243,7 @@ function install_vscode()
     run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
 
     # Extract in the background
-    t = @task run(`"$juliawinbin/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$vscodehome"`)
+    t = @task run(`"$juliawinbin/internals/scripts/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$vscodehome"`)
     schedule(t)
 
     # Jam code.exe in order that the installer cannot open the file upon completion
