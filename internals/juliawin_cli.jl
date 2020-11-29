@@ -31,12 +31,16 @@ end
 
 parsed_args = parse_args(ARGS, s)
 
+function input(prompt::String="")::String
+    print(prompt)
+    return chomp(readline())
+end
 
 function ask_yn(message)
     answer = nothing
     while !(answer in ("y", "n"))
         global answer
-        answer = lowercase(Input(message))
+        answer = lowercase(input(message))
     end
     return answer
 end
