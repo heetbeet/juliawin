@@ -19,7 +19,11 @@ if /i "%forceinstall%" EQU "N" exit /b -1
 
 :: Install Julia
 call %functions% DELETE-DIRECTORY "%juliawin_packages%\julia" 2 > nul
-call "%~dp0\bootstrap-julia-from-julialang-org.bat" /dest "%juliawin_packages%\julia"
+set "args="
+if "%ARG_use-nightly-build%" equ "1" (
+    set "args=/use-nightly-build"
+)
+call "%~dp0\bootstrap-julia-from-julialang-org.bat" /dest "%juliawin_packages%\julia" %args%
 
 
 :: Run juliawin installation script
@@ -37,8 +41,9 @@ goto :eof
     echo Usage:
     echo   %~n0 [options]
     echo Options:
-    echo   /h, /help      Print these options
-    echo   /force         Overwrite current "/packages/julia" installation without prompt
+    echo   /h, /help           Print these options
+    echo   /force              Overwrite current "/packages/julia" installation without prompt
+    echo   /use-nightly-build  For developer previews and not intended for normal use
 goto :eof
 
 

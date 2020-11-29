@@ -15,9 +15,10 @@ if /i "%1" equ "/help" (
     echo Usage:
     echo   bootstrap-juliawin-from-github [options]
     echo Options:
-    echo   /h, /help          Print these options
-    echo   /dir ^<folder^>      Set installation directory
-    echo   /force             Overwrite destination without prompting
+    echo   /h, /help           Print these options
+    echo   /dir ^<folder^>       Set installation directory
+    echo   /force              Overwrite destination without prompting
+    echo   /use-nightly-build  For developer previews and not intended for normal use
     exit /b 0
 )
 
@@ -25,11 +26,19 @@ set "force=0"
 if /i "%1" equ "/force" set "force=1"
 if /i "%2" equ "/force" set "force=1"
 if /i "%3" equ "/force" set "force=1"
+if /i "%4" equ "/force" set "force=1"
+
+set "use-nightly-build=0"
+if /i "%1" equ "/use-nightly-build" set "use-nightly-build=1"
+if /i "%2" equ "/use-nightly-build" set "use-nightly-build=1"
+if /i "%3" equ "/use-nightly-build" set "use-nightly-build=1"
+if /i "%4" equ "/use-nightly-build" set "use-nightly-build=1"
 
 set "custom-directory=0"
 set "install-directory=%userprofile%\Juliawin"
 if /i "%1" equ "/dir" set "install-directory=%~2" & set "custom-directory=1"
 if /i "%2" equ "/dir" set "install-directory=%~3" & set "custom-directory=1"
+if /i "%3" equ "/dir" set "install-directory=%~4" & set "custom-directory=1"
 
 
 :: ***************************************
@@ -138,5 +147,6 @@ del "%juliawinzip%" /f /q > nul 2>&1
 :: ***************************************
 set "args="
 if "%force%" equ "1" set "args=/force"
+if "%use-nightly-build%" equ "1" set "args=%args% /use-nightly-build"
 
 call "%install-directory%\internals\scripts\bootstrap-juliawin-from-local-directory.bat" %args%
