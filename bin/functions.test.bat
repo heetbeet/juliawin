@@ -46,7 +46,7 @@ call %func% TEST-OUTCOME "2 3" "%result%" "Shifting arguments"
 
 
 set "pathsave=%PATH%"
-call %func% ADD-ASTERIXABLE-TO-PATH "%~dp0..\sr*" "foo\bar"
+call %func% ADD-ASTERIXABLE-TO-PATH "%~dp0..\bi*" "foo\bar"
 set "pathsave2=%PATH%"
 call %func% TEST-OUTCOME "%~dp0foo\bar;%pathsave%" "%pathsave2%"
 
