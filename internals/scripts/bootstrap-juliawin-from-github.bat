@@ -114,7 +114,7 @@ if /i "%defaultinstall%" equ "D" (
 
 :: Does the destination directory exist?
 if "%force%" equ "0" (
-    for /F %%i in ('dir /b /a "%install-directory%\*"') do (
+    for /F %%i in ('dir /b /a "%install-directory%\*" 2^> nul') do (
         for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
             if /i "!overwrite!" neq "Y" if /i "!overwrite!" neq "N"  (
                 set /P overwrite="Destination is not empty. Overwrite [Y/N]? "
