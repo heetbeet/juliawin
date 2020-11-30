@@ -268,7 +268,7 @@ function install_vscode()
     mkpath("$vscodehome/data/user-data")
     mkpath("$vscodehome/data/extensions")
 
-    run(`"$juliawinhome/bin/code-cli.bat" --user-data-dir "$vscodehome/data/user-data" --extensions-dir "$vscodehome/data/extensions" --install-extension julialang.language-julia`)
+    run(`"$juliawinhome/bin/code-cli.bat" --install-extension julialang.language-julia`)
 
 end
 
