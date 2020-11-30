@@ -56,7 +56,7 @@ elseif parsed_args["install-dialog"]
             "If you already have Git installed, you already have a proper MinGW installation, and can skip installation. "*
             "If you are unsure, go ahead and mark MinGW for installation.")
 
-    gitinstall = ask_yn("Install MinGW [Y/N]")
+    gitinstall = ask_yn("Install MinGW [Y/N]? ")
     vscodeinstall = ask_yn("Install VSCode [Y/N]? ")
     junoinstall = ask_yn("Install Juno [Y/N]? ")
     plutoinstall = ask_yn("Install Pluto [Y/N]? ")
