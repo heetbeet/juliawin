@@ -107,7 +107,9 @@ end
 # Extract files using 7zip extractor
 #******************************************************
 function extract_file(archive, destdir, fixdepth=true)
+    rm(destdir, recursive=true, force=true)
     mkpath(destdir)
+
     if Sys.iswindows()
         run(`7z x -y "-o$destdir" "$archive"`)
     else
