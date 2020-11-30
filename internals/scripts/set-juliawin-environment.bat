@@ -14,7 +14,7 @@ set "JULIA_DEPOT_PATH=%juliawin_userdata%\.julia"
 set "ATOM_HOME=%juliawin_userdata%\.atom"
 set "CONDA_JL_HOME=%juliawin_packages%\conda"
 
-:: These should also be set in Julia
+:: These should also be set in Julia (under juliawinconfig.jl)
 :: set "JULIA_PKG_SERVER="
 :: set "PYTHON="
 
