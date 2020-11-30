@@ -2,6 +2,9 @@ using Pkg
 
 include(joinpath(@__DIR__, "routines.jl"))
 
+# We cannot be sure that Julia have already setup it's startup script
+include(joinpath(@__DIR__, "..", "userdata", ".julia", "config", "juliawinconfig.jl"))
+
 activate_binary("julia")
 activate_binary("juliawin-prompt")
 activate_binary("7z")
