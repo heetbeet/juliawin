@@ -11,11 +11,12 @@ set "juliawin_userdata=%juliawin_home%\userdata"
 
 :: Set package specific environment variables
 set "JULIA_DEPOT_PATH=%juliawin_userdata%\.julia"
-set "JULIA_PKG_SERVER="
 set "ATOM_HOME=%juliawin_userdata%\.atom"
-
 set "CONDA_JL_HOME=%juliawin_packages%\conda"
-set "PYTHON="
+
+:: These should also be set in Julia
+:: set "JULIA_PKG_SERVER="
+:: set "PYTHON="
 
 
 :: Return early if Windows Path environment is already set
