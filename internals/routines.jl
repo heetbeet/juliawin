@@ -227,13 +227,18 @@ function install_jupyter()
     Pkg.add("IJulia")
     Pkg.add("Conda")
 
-    @eval using Conda
-    Conda.add("jupyter")
-    Conda.add("jupyterlab")
+    # Everything is in an eval to get around global scope and 
+    # the world age problem
+    @eval begin 
+        using Conda
+        Conda.add("jupyter")
+        Conda.add("jupyterlab")
+    end
 
     activate_binary("python")
     activate_binary("IJulia-notebook")
     activate_binary("IJulia-lab")
+
 end
 
 
