@@ -254,6 +254,7 @@ function install_vscode()
     run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
 
     # Extract in the background
+    rm(vscodehome, force=true, recursive=true)
     t = @task run(`"$juliawinhome/internals/scripts/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$vscodehome"`)
     schedule(t)
 
