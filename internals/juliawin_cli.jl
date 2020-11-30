@@ -52,9 +52,11 @@ if parsed_args["install"] !== nothing
 
 elseif parsed_args["install-dialog"]
 
-    gitinstall = ask_yn("Install MinGW? (This in in order to use Unix shell commands, note "*
-                        "that this option is not necessary if you have Git installed on your system) [Y/N]? ")
+    println("Note: For a good posix shell experience in in Julia, you will need a MinGW installation. "*
+            "If you already have Git installed, you already have a proper MinGW installation, and can skip installation. "*
+            "If you are unsure, go ahead and mark MinGW for installation.")
 
+    gitinstall = ask_yn("Install MinGW [Y/N]")
     vscodeinstall = ask_yn("Install VSCode [Y/N]? ")
     junoinstall = ask_yn("Install Juno [Y/N]? ")
     plutoinstall = ask_yn("Install Pluto [Y/N]? ")
