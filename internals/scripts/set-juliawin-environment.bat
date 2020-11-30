@@ -11,6 +11,7 @@ set "juliawin_userdata=%juliawin_home%\userdata"
 
 :: Set package specific environment variables
 set "JULIA_DEPOT_PATH=%juliawin_userdata%\.julia"
+set "JULIA_PKG_SERVER="
 set "ATOM_HOME=%juliawin_userdata%\.atom"
 
 set "CONDA_JL_HOME=%juliawin_packages%\conda"
