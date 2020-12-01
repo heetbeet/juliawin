@@ -16,8 +16,16 @@ if Sys.iswindows()
     # Make use of curl and overwrite download_powershell for stubborn libraries.
     if Sys.which("curl") !== nothing
         ENV["BINARYPROVIDER_DOWNLOAD_ENGINE"] = "curl"
-        Base.download_powershell(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
-        download = Base.download
+
+        # try to overwrite download_powershell
+        try
+	        Base.download_powershell(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
+	        download = Base.download
+		catch x
+		    if !isa(x, LoadError) && !isa(x, UndefVarError)
+		        throw(x)
+		    end
+		end
     end
 
 end
