@@ -13,7 +13,7 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-1. You can download and run the single `juliawin-bootstrap.bat` file,
+1. You can download and run the single `Juliawin Bootstrap From Github.bat` file,
 
 2. Or you can <kbd>Ctrl+C</kbd> and <kbd>Ctrl+V</kbd> the following command in Command Prompt or <kbd>Ctrl+R</kbd>:
 ```
