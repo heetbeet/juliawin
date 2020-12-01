@@ -6,9 +6,9 @@ SETLOCAL EnableDelayedExpansion
 :: this to work, we can unfortunately not use any external function or scripts yet.
 ::
 :: Also, we have no control where this script will come from or the line-endings that the supplier will use.
-:: Github is notorious for replacing windows line endings with uniz line endings. Batch is notorious for 
-:: breaking gotos and labels when running with unix line endings. This makes writing this script really 
-:: difficult to write. We may not use any goto! Goto considered harmfull for a whole different reason.
+:: Github is notorious for replacing windows line endings with unix line endings. Batch is notorious for
+:: breaking gotos and labels when running with unix line endings. This made this script really
+:: difficult to write, since we may not use any goto! Goto considered harmful for a whole different reason.
 :: See https://serverfault.com/questions/429594
 :: ***************************************
 
