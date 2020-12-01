@@ -61,7 +61,7 @@ if /i "%3" equ "/dir" set "install-directory=%~4" & set "custom-directory=1"
 :: This is the most general legacy powershell download command. It should be available on any powershell
 echo () Download juliawin from github to temp
 set "juliawinzip=%temp%\juliawin-%random%%random%.zip"
-call powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/heetbeet/juliawin2/archive/main.zip', '%juliawinzip%')"
+call powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/heetbeet/juliawin/archive/main.zip', '%juliawinzip%')"
 
 
 :: ***************************************
@@ -152,7 +152,7 @@ if /i "%overwrite%" equ "N" (
 )
 
 del "%install-directory%\packages\julia" /f /q /s > nul 2>&1
-robocopy "%juliawintemp%\juliawin2-main" "%install-directory%" /s /e /mov > nul 2>&1
+robocopy "%juliawintemp%\juliawin-main" "%install-directory%" /s /e /mov > nul 2>&1
 del "%juliawinzip%" /f /q > nul 2>&1
 
 
