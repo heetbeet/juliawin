@@ -2,13 +2,27 @@
 SETLOCAL EnableDelayedExpansion
 
 :: ***************************************
-:: With this script Juliawin can bootstrap inself from absolute nothing
-:: For this to work, we can unfortunately not use any external function or scripts yet.
+:: With this script Juliawin can bootstrap itself from absolute nothing, but for all
+:: this to work, we can unfortunately not use any external function or scripts yet.
 ::
-:: Note that we have no control over the user's line-endings of this file, and may therefore not use any
-:: bat features that breaks with linux line endings, such as goto or labels. This makes writing this script
-:: really difficult: https://serverfault.com/questions/429594
+:: Also, we have no control where this script will come from or the line-endings that the supplier will use.
+:: Github is notorious for replacing windows line endings with uniz line endings. Batch is notorious for 
+:: breaking gotos and labels when running with unix line endings. This makes writing this script really 
+:: difficult to write. We may not use any goto! Goto considered harmfull for a whole different reason.
+:: See https://serverfault.com/questions/429594
 :: ***************************************
+
+
+echo                _
+echo    _       _ _(_)_     ^|  Documentation: https://docs.julialang.org
+echo   (_)     ^| (_) (_)    ^|
+echo    _ _   _^| ^|_  __ _   ^|  Run with "/h" for help
+echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|
+echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for Juliawin
+echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
+echo ^|__/                   ^|
+echo:
+
 if /i "%1" equ "/help" (
     echo Script to download and run the Juliawin installer directly from Github
     echo:
