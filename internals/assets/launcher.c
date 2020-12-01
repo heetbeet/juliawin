@@ -12,19 +12,28 @@
 #endif
 {
     // *******************************************
-    // Get commanline string as a whole
+    //Get a direct path to the current running exe
+    // *******************************************
+    int size = 125;
+    TCHAR* cmdPath = (TCHAR*)malloc(1);
+
+    // read until GetModuleFileNameW writes less than its cap (of size)
+    do {
+        size *= 2;
+        free(cmdPath);
+        cmdPath = (TCHAR*)malloc(size*2);
+
+        // If , then it's
+    } while (GetModuleFileNameW(NULL, cmdPath, size) == size);
+
+
+    // *******************************************
+    // Get commandline string as a whole
     // *******************************************
     TCHAR* cmdArgs = GetCommandLineW();
-    TCHAR* cmdPath;
-    cmdPath = (TCHAR*) malloc((_tcslen(cmdArgs)+1)*2);
-    cmdPath[0] = '\0';
-    cmdPath[1] = '\0';
-
-    _tcscpy(cmdPath, cmdArgs);
-
 
     // *******************************************
-    // Split filepath, filename, and commandline
+    // Remove argument 0 from the commandline string
     // http://www.windowsinspired.com/how-a-windows-programs-splits-its-command-line-into-individual-arguments/
     // *******************************************
     bool inQuote = false;
@@ -38,33 +47,12 @@
       if(c == L'"'){inQuote = !inQuote;}
       if(c == L' ' && !inQuote){ isArgs = true;}
 
-      if(isArgs){
-        cmdPath[i*2]   = '\0';
-        cmdPath[i*2+1] = '\0';
-      }
-
       //do for both unicode bits
       cmdArgs[j*2  ] = cmdArgs[i*2  ];
       cmdArgs[j*2+1] = cmdArgs[i*2+1];
 
       //sync j with i after filepath
       if(isArgs){ j++; }
-    }
-
-
-    // *******************************************
-    // Remove remaining quotes from the filepath
-    // *******************************************
-    int cmdPathEnd = _tcslen(cmdPath);
-    j = 0;
-    for(int i=0; i<cmdPathEnd+1; i++){
-        if(*(TCHAR *)(&cmdPath[(i)*2]) == L'"'){
-            continue;
-        }
-
-        cmdPath[j*2] = cmdPath[i*2];
-        cmdPath[j*2+1] = cmdPath[i*2+1];
-        j++;
     }
 
 
