@@ -22,7 +22,7 @@ exit $?
 @echo off
 setlocal
 
-call "%~dp0\..\internals\scripts\set-juliawin-environment.bat"
+call "%~dp0\activate-juliawin-environment.bat"
 
 ::for some reason juno hates being next to julia.bat
 ::this is clearly a bug that needs to be addressed with atom

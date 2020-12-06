@@ -1,4 +1,4 @@
-@call "%~dp0\..\internals\scripts\set-juliawin-environment.bat"
-@call "%~dp0\..\packages\conda\Scripts\activate.bat"
-@call "%~dp0\..\packages\conda\python.exe" %*
+@call "%~dp0\activate-juliawin-environment.bat"
+@call "%juliawin_packages%\conda\Scripts\activate.bat"
+@call "%juliawin_packages%\conda\python.exe" %*
 @exit /b %errorlevel%
