@@ -24,8 +24,7 @@ exit $?
 @echo off
 setlocal
 
-call "%~dp0\set-juliawin-environment.bat"
-call %functions% GET-GIT-BASH-PATH git-bash-path
+call "%~dp0\functions.bat" GET-GIT-BASH-PATH git-bash-path
 
 
 if "%git-bash-path%" equ "" goto :cannot-run-bash

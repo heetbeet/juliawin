@@ -1,2 +1,3 @@
+@call "%~dp0\activate-juliawin-environment.bat"
 @call "%~dp0\..\internals\scripts\execute-with-bash-as-preference.bat" "%juliawin_packages%\vscode\bin\code.cmd" --user-data-dir "%juliawin_userdata%\.vscode\data\user-data" --extensions-dir "%juliawin_userdata%\.vscode\extensions" %*
 @exit /b %errorlevel%
