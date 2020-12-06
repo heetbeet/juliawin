@@ -779,6 +779,27 @@ goto :eof
 
 
 :: ***************************************************
+:: Some libraries compile and then keeps on to incorrect file locations
+:: ***************************************************
+:DELETE-COMPILED-PACKAGES-IF-RELOCATED <juliawin home>
+    setlocal
+    set "juliawin_home=%~1"
+    set "txt-save=%juliawin_home%\userdata\last-seen-path.txt"
+
+    set "last-seen-juliawin_home="
+    if exist "%txt-save%" (
+        set /p last-seen-juliawin_home=<"%txt-save%"
+    )
+
+    if "%juliawin_home%" neq "%last-seen-juliawin_home%" (
+        call :DELETE-DIRECTORY "%juliawin_home%\userdata\.julia\compiled"
+    )
+    echo %juliawin_home%>"%txt-save%"
+
+goto :EOF
+
+
+:: ***************************************************
 :: Test if a directory is empty
 :: **************************************************
 :IS-DIRECTORY-EMPTY <flag>

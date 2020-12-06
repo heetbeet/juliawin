@@ -20,6 +20,10 @@ set "CONDA_JL_HOME=%juliawin_packages%\conda"
 :: set "PYTHON="
 
 
+:: Make sure packages recompile after relocating
+call %functions% DELETE-COMPILED-PACKAGES-IF-RELOCATED "%juliawin_home%"
+
+
 :: Return early if Windows Path environment is already set
 call %functions% TEST-JULIAWIN-PATHS testflag
 if "%testflag%" equ "1" (
