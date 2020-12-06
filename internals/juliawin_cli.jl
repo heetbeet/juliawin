@@ -11,22 +11,25 @@ activate_binary("7z")
 
 add_startup_script()
 
-function lazyinstall(pkgstring)
-  # There must be a better way to infer the package location...
-  if !isdir(joinpath(@__DIR__, "..", "userdata", ".julia", "packages", pkgstring))
-    Pkg.add(pkgstring)
-  end
+function installAndUse(pkgsym)
+     try
+        @eval using $pkgsym
+        return true
+    catch e
+        Pkg.add(String(pkgsym))
+        @eval using $pkgsym
+    end
 end
 
-lazyinstall("Revise")
-lazyinstall("OhMyREPL")
-lazyinstall("ArgParse")
+installAndUse(:Revise)
+installAndUse(:OhMyREPL)
+installAndUse(:ArgParse)
 
 using ArgParse
 s = ArgParseSettings(description = "This is the main commandline interface to Juliawin.")
 @add_arg_table s begin
     "--install"
-        help = "Choose specifig package to install"
+        help = "Choose specific package to install"
     "--install-dialog", "-d"
         help = "Enter the installation guide."
         action = :store_true
