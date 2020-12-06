@@ -3,7 +3,7 @@ SETLOCAL EnableDelayedExpansion
 
 
 :: Access to external functions
-call "%~dp0\set-juliawin-environment.bat"
+call "%~dp0\..\..\bin\activate-juliawin-environment.bat"
 
 call %functions% ARG-PARSER %*
 if "%ARG_h%%ARG_help%" NEQ "" (
