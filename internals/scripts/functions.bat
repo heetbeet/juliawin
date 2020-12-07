@@ -799,11 +799,10 @@ goto :eof
         call del "%juliawin_userdata%\.julia\prefs\IJulia" /f /q > nul 2>&1
 
         REM Rebuild PyCall
-        if exist "%juliawin_userdata%\.julia\packages\Conda" (
-            call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"Conda\");"
-        )
         if exist "%juliawin_userdata%\.julia\packages\IJulia" (
             call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"IJulia\")"
+        ) else if exist "%juliawin_userdata%\.julia\packages\Conda" (
+            call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"Conda\");"
         )
     )
     echo %juliawin_home%>"%txt-save%"
