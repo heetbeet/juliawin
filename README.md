@@ -13,11 +13,11 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-1. You can download and run the single `Juliawin Bootstrap From Github.bat` file,
+1. Download the <a href="https://github.com/heetbeet/juliawin/raw/make-exe-version-of-installer/Juliawin%20Bootstrap%20From%20Github.exe">thin installer</a> ,
 
 2. Or you can <kbd>Ctrl+C</kbd> and <kbd>Ctrl+V</kbd> the following command in Command Prompt or <kbd>Ctrl+R</kbd>:
 ```
-cmd /c "powershell -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/main/Juliawin Bootstrap From Github.bat','%tmp%\_.bat')" & "%tmp%\_.bat""
+cmd /c "powershell -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/main/bin/Juliawin Bootstrap From Github.bat','%tmp%\_.bat')" & "%tmp%\_.bat""
 ```
 
 ## Options
