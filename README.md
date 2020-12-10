@@ -13,7 +13,7 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
 ## Instalation
 
-1. Download the <a href="https://github.com/heetbeet/juliawin/raw/make-exe-version-of-installer/Juliawin%20Bootstrap%20From%20Github.exe">thin installer</a> ,
+1. <a href="https://github.com/heetbeet/juliawin/raw/make-exe-version-of-installer/Juliawin%20Bootstrap%20From%20Github.exe"><img src="https://i.redd.it/t4f6ysfremu11.png" height="35" /> Click here</a> to download the thin installer,
 
 2. Or you can <kbd>Ctrl+C</kbd> and <kbd>Ctrl+V</kbd> the following command in Command Prompt or <kbd>Ctrl+R</kbd>:
 ```
