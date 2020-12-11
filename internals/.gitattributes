@@ -1,0 +1,8 @@
+# By default, convert line endings automatically.
+* text=auto
+
+# Declare files that will always have CRLF line endings on checkout.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.sh text eol=lf
+
