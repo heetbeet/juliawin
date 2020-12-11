@@ -62,18 +62,19 @@ elseif parsed_args["install-dialog"]
             "If you already have Git installed, you already have a proper MinGW installation, and can skip installation. "*
             "If you are unsure, go ahead and mark MinGW for installation.")
 
-    gitinstall = ask_yn("Install MinGW [Y/N]? ")
+    if Sys.iswindows()  gitinstall = ask_yn("Install MinGW [Y/N]? ") end
     vscodeinstall = ask_yn("Install VSCode [Y/N]? ")
     junoinstall = ask_yn("Install Juno [Y/N]? ")
     plutoinstall = ask_yn("Install Pluto [Y/N]? ")
     pycallinstall = ask_yn("Install PyCall [Y/N]? ")
     jupyterinstall = ask_yn("Install Jupyter [Y/N]? ")
 
-    if !isfile("$juliawinpackages/curl/bin/curl.exe")
-        install_curl()
+    if Sys.iswindows() && !isfile("$juliawinpackages/curl/bin/curl.exe")
+            install_curl()
     end
 
-    if gitinstall == "y"
+
+    if Sys.iswindows() && gitinstall == "y"
         install_git()
     end
 

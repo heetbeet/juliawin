@@ -252,7 +252,7 @@ function install_vscode()
     vscodehome = joinpath(juliawinpackages, "vscode")
 
     if Sys.iswindows()
-        run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
+        run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://update.code.visualstudio.com/latest/win32-x64/stable"`)
         # Extract in the background
 
         rm(vscodehome, force=true, recursive=true)
@@ -272,14 +272,14 @@ function install_vscode()
         mv("$vscodehome/Code_.exe", "$vscodehome/Code.exe", force=true)
 
     else
-        run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.tar.gz" "https://code.visualstudio.com/docs/?dv=linux"`)
+        run(`curl -L -o"$juliatemp/vscode.tar.gz" "https://update.code.visualstudio.com/latest/linux-x64/stable"`)
         extract_file("$juliatemp/vscode.tar.gz", vscodehome)
     end
 
     mkpath("$vscodehome/data/user-data")
     mkpath("$vscodehome/data/extensions")
 
-    run(`"$juliawinhome/bin/code-cli.bat" --install-extension julialang.language-julia`)
+    run(`"$juliawinpackages/vscode/bin/code" --install-extension julialang.language-julia`)
 
 end
 

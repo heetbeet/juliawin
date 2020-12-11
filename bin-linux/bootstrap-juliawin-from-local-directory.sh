@@ -1,8 +1,7 @@
 #!/bin/bash
 
 DIR="$(dirname "$(readlink -f "$0")")"
-JULIA_HOME="$(realpath "$DIR/..")"
-JULIA_PACKAGES="$JULIA_HOME/packages"
+source "$DIR/activate-juliawin-environment.sh"
 
 
 if test -f "$JULIA_PACKAGES/julia/bin/julia"; then
@@ -10,7 +9,7 @@ if test -f "$JULIA_PACKAGES/julia/bin/julia"; then
     echo "packages/julia/bin/julia exists!"
     while [[ "${choice,,}" != "y" && "${choice,,}" != "n" ]];
     do
-      read -p "Overwrite [y/n]? " choice
+      read -r -p "Overwrite [y/n]? " choice
       case "$choice" in
         n|N ) echo "Exit installation"; exit;;
       esac
@@ -27,6 +26,4 @@ fi
 #mkdir -p "$JULIA_PACKAGES/julia"
 #tar -xzf "/tmp/julia-linux-x86_64.tar.gz" -C "$JULIA_PACKAGES/julia" --strip 1
 
-source "$JULIA_HOME/bin-linux/activate-juliawin-environment.sh"
-
-julia "$JULIA_HOME/internals/juliawin_cli.jl"
+julia "$JULIA_HOME/internals/juliawin_cli.jl" --install-dialog
