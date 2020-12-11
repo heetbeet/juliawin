@@ -251,23 +251,31 @@ function install_vscode()
 
     vscodehome = joinpath(juliawinpackages, "vscode")
 
-    run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
+    if Sys.iswindows()
+        run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
+        # Extract in the background
 
-    # Extract in the background
-    rm(vscodehome, force=true, recursive=true)
-    t = @task run(`"$juliawinhome/internals/scripts/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$vscodehome"`)
-    schedule(t)
+        rm(vscodehome, force=true, recursive=true)
+        t = @task run(`"$juliawinhome/internals/scripts/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$vscodehome"`)
+        schedule(t)
 
-    # Jam code.exe in order that the installer cannot open the file upon completion
-    while(! istaskdone(t))
-        if isfile("$vscodehome/Code.exe")
-            try
-                mv("$vscodehome/Code.exe", "$vscodehome/Code_.exe", force=true)
-            catch end
+        # Jam code.exe in order that the installer cannot open the file upon completion
+        while(! istaskdone(t))
+            if isfile("$vscodehome/Code.exe")
+                try
+                    mv("$vscodehome/Code.exe", "$vscodehome/Code_.exe", force=true)
+                catch end
+            end
+            sleep(0)
         end
-        sleep(0)
+
+        mv("$vscodehome/Code_.exe", "$vscodehome/Code.exe", force=true)
+
+    else
+        run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.tar.gz" "https://code.visualstudio.com/docs/?dv=linux"`)
+        extract_file("$juliatemp/vscode.tar.gz", vscodehome)
     end
-    mv("$vscodehome/Code_.exe", "$vscodehome/Code.exe", force=true)
+
     mkpath("$vscodehome/data/user-data")
     mkpath("$vscodehome/data/extensions")
 

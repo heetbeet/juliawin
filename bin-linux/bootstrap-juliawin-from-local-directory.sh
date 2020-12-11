@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DIR="$(dirname "$(readlink -f "$0")")"
-JULIA_HOME="$(realpath "$DIR/../..")"
+JULIA_HOME="$(realpath "$DIR/..")"
 JULIA_PACKAGES="$JULIA_HOME/packages"
 
 
@@ -17,12 +17,16 @@ if test -f "$JULIA_PACKAGES/julia/bin/julia"; then
     done
 fi
 
-curl -g -L -f -o "/tmp/juliahomepage.html" "https://julialang.org/downloads/"
-julialink=$(cat "/tmp/juliahomepage.html" | tr '"' '\n' |  grep -o -P 'https.*bin/linux/x64/.*linux-x86_64.tar.gz' | head -n 1)
+#curl -g -L -f -o "/tmp/juliahomepage.html" "https://julialang.org/downloads/"
+#julialink=$(cat "/tmp/juliahomepage.html" | tr '"' '\n' |  grep -o -P 'https.*bin/linux/x64/.*linux-x86_64.tar.gz' | head -n 1)
+#
+#echo "Got Julia link as $julialink"
+#curl -g -L -f -o "/tmp/julia-linux-x86_64.tar.gz" "$julialink"
+#
+#rm -r -f "$JULIA_PACKAGES/julia"
+#mkdir -p "$JULIA_PACKAGES/julia"
+#tar -xzf "/tmp/julia-linux-x86_64.tar.gz" -C "$JULIA_PACKAGES/julia" --strip 1
 
-echo "Got Julia link as $julialink"
-curl -g -L -f -o "/tmp/julia-linux-x86_64.tar.gz" "$julialink"
+source "$JULIA_HOME/bin-linux/activate-juliawin-environment.sh"
 
-rm -r -f "$JULIA_PACKAGES/julia"
-mkdir -p "$JULIA_PACKAGES/julia"
-tar -xzf "/tmp/julia-linux-x86_64.tar.gz" -C "$JULIA_PACKAGES/julia" --strip 1
+julia "$JULIA_HOME/internals/juliawin_cli.jl"
