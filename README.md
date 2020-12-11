@@ -22,6 +22,8 @@ cmd /c "powershell -c "(new-object net.webclient).DownloadFile('https://raw.gith
 
 3. Or download this repo to your chosen Juliawin location and run `Juliawin Setup.exe`.
 
+4. Or, lastly, if your firewall/admin is crippling thin installer, you are always try one of the offline 7zip insallers here https://github.com/heetbeet/juliawin/releases
+
 ## Options
 
 During installation, you have the option to choose any of the following packages
