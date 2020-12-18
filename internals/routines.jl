@@ -199,7 +199,7 @@ function install_juno()
     activate_binary("apm")
     activate_binary("juno")
 
-    apmbin = if Sys.iswindows() "apm.cmd" else apmbin = "apm" end
+    apmbin = if Sys.iswindows() "$juliawinbin/apm.bat" else apmbin = "apm" end
 
     # https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
     # make apm available as .bat as well
