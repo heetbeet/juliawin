@@ -2,6 +2,6 @@
 setlocal
 
 call "%~dp0\activate-juliawin-environment.bat"
-set "PATH=%juliawin_package%\atom\resources\app\apm\bin;%PATH%"
+set "PATH=%juliawin_packages%\atom\resources\app\apm\bin;%PATH%"
 call "%juliawin_packages%\atom\resources\app\apm\bin\apm.cmd" %*
 exit /b %errorlevel%
