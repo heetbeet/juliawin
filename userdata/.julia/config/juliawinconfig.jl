@@ -2,8 +2,25 @@
 ENV["PYTHON"] = ""
 ENV["JULIA_PKG_SERVER"] = ""
 
+# Force installation of Revise and OhMyREPL
+for _ in true
+    function add_and_use(pkgsym)
+        try
+            @eval using $pkgsym
+            return true
+        catch e
+            Pkg.add(String(pkgsym))
+            @eval using $pkgsym
+        end
+    end
+
+    add_and_use(:Revise)
+    add_and_use(:OhMyREPL)
+end
+
 # Juliawin uses curl as the default downloader
 if Sys.iswindows()
+	
     # Add curl from packages to path
     for i=1 #to keep scope clear
         packagedir = abspath(String(@__DIR__)*raw"/../../../packages")
@@ -19,13 +36,12 @@ if Sys.iswindows()
 
         # try to overwrite download_powershell
         try
-	        Base.download_powershell(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
-	        download = Base.download
-		catch x
-		    if !isa(x, LoadError) && !isa(x, UndefVarError)
-		        throw(x)
-		    end
-		end
+            Base.download_powershell(url::AbstractString, filename::AbstractString) = Base.download_curl(Sys.which("curl"), url, filename)
+            download = Base.download
+        catch x
+            if !isa(x, LoadError) && !isa(x, UndefVarError)
+                throw(x)
+            end
+        end
     end
-
 end
