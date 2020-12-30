@@ -2,7 +2,7 @@
 ENV["PYTHON"] = ""
 ENV["JULIA_PKG_SERVER"] = ""
 
-# temporary scope
+# Force installation of Revise and OhMyREPL
 for _ in true
     function add_and_use(pkgsym)
         try
