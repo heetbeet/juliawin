@@ -2,6 +2,19 @@
 ENV["PYTHON"] = ""
 ENV["JULIA_PKG_SERVER"] = ""
 
+function installAndUse(pkgsym)
+     try
+        @eval using $pkgsym
+        return true
+    catch e
+        Pkg.add(String(pkgsym))
+        @eval using $pkgsym
+    end
+end
+
+installAndUse(:Revise)
+installAndUse(:OhMyREPL)
+
 # Juliawin uses curl as the default downloader
 if Sys.iswindows()
     # Add curl from packages to path
