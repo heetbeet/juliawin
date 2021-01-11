@@ -9,6 +9,7 @@ for _ in true
             @eval using $pkgsym
             return true
         catch e
+            @eval using Pkg
             Pkg.add(String(pkgsym))
             @eval using $pkgsym
         end
