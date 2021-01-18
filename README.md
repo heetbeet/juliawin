@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/heetbeet/juliawin/main/internals/assets/juliawin-logo.svg" width="350" />
+<p align="center"> <img src="https://raw.githubusercontent.com/heetbeet/juliawin/main/internals/assets/juliawin-logo.svg" width="350" /> </p>
 
 # Julia on Windows with batteries included
 Juliawin is a Julia installer for Windows: it includes Julia as well as tools like Juno, VSCode, Pluto, Jupyter and the scientific Python stack. The installer is a single .bat file with a collection of batch and Julia routines to dynamically fetch and install all content from the original sources.
