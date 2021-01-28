@@ -76,6 +76,33 @@ goto :EOF
 
 
 :: ***********************************************
+:: Expand path like c:\bla\fo* to c:\bla\foo
+:: Expansion only works for last item!
+:: ***********************************************
+:EXPAND-ASTERIX <return> <filepath>
+    ::basename with asterix expansion
+    set "__inputfilepath__=%~2"
+    call :NO-TRAILING-SLASH __inputfilepath__ "%__inputfilepath__%"
+
+    set "_basename_="
+    for /f "tokens=*" %%F in ('dir /b "%__inputfilepath__%" 2^> nul') do (
+        set "_basename_=%%F"
+        goto :__endofasterixexp__
+    )
+    :__endofasterixexp__
+
+    ::concatenate with dirname is basename found (else "")
+    if "%_basename_%" NEQ "" (
+        set "%~1=%~dp2%_basename_%"
+    ) ELSE (
+        set "%~1="
+    )
+
+    set _basename_=
+goto :EOF
+
+
+:: ***********************************************
 :: Return full path to a filepath
 :: ***********************************************
 :FULL-PATH <return> <filepath>

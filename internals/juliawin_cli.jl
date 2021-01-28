@@ -52,6 +52,24 @@ function ask_yn(message)
     end
 end
 
+function doflagset(app, dict)
+    key = "juliawin-install$(app)"
+
+    if key in keys(ENV)
+        if lowercase(ENV[key]) == "1"
+            return dict[app] = true
+        elseif lowercase(ENV[key]) == "0"
+            return dict[app] = false
+        end
+    end
+
+    if (ans = lowercase(ask_yn("Install $app [Y/N]? "))) == "y"
+        dict[app] = true
+    elseif ans == "n"
+        dict[app] = false
+    end
+end
+
 
 if parsed_args["install"] !== nothing
     println("This is not implemented yet")
@@ -61,41 +79,41 @@ elseif parsed_args["install-dialog"]
     println("Note: For a good posix shell experience in in Julia, you will need a MinGW installation. "*
             "If you already have Git installed, you already have a proper MinGW installation, and can skip installation. "*
             "If you are unsure, go ahead and mark MinGW for installation.")
+    println()
 
-    gitinstall = ask_yn("Install MinGW [Y/N]? ")
-    vscodeinstall = ask_yn("Install VSCode [Y/N]? ")
-    junoinstall = ask_yn("Install Juno [Y/N]? ")
-    plutoinstall = ask_yn("Install Pluto [Y/N]? ")
-    pycallinstall = ask_yn("Install PyCall [Y/N]? ")
-    jupyterinstall = ask_yn("Install Jupyter [Y/N]? ")
+
+    dict = Dict()
+    for app in ["MinGW", "VSCode", "Juno", "Pluto", "PyCall", "Jupyter" ]
+        doflagset(app, dict)
+    end
 
     if !isfile("$juliawinpackages/curl/bin/curl.exe")
         install_curl()
     end
 
-    if gitinstall == "y"
+    if dict["MinGW"]
         install_git()
     end
 
-    if vscodeinstall == "y"
+    if dict["VSCode"]
         install_vscode()
     end
 
-    if junoinstall == "y"
+    if dict["Juno"]
         install_atom()
         install_juno()
     end
 
-    if plutoinstall == "y"
+    if dict["Pluto"]
         install_pluto()
     end
 
-    if pycallinstall == "y"
+    if dict["PyCall"]
         @eval Pkg.add("PyCall")
         activate_binary("python")
     end
 
-    if jupyterinstall == "y"
+    if dict["Jupyter"]
        install_jupyter()
     end
 end

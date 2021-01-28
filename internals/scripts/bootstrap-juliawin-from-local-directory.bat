@@ -1,7 +1,6 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
 
-
 :: Access to external functions
 call "%~dp0\..\..\bin\activate-juliawin-environment.bat"
 
@@ -11,12 +10,35 @@ if "%ARG_h%%ARG_help%" NEQ "" (
 )
 if "%ARG_force%" equ "1" goto :forceoverwrite
 
+:questionsstart
+echo:
+
 :: Test if we should forcefully install julia
 if exist "%juliawin_packages%\julia\bin\julia.exe" (
     call :PROMPT-FORCEINSTALL forceinstall
+    echo:
 )
-if /i "%forceinstall%" EQU "S" goto :skipoverwrite
-if /i "%forceinstall%" NEQ "O" exit /b -1
+
+
+echo Note: For a posix shell experience in Julia, you will need a MinGW installation.
+echo If you have Git installed, you may skip MinGW installation. 
+echo If you are unsure, go ahead and mark MinGW for installation.
+echo:
+
+for %%x in (MinGW VSCode Juno Pluto PyCall Jupyter) do (
+    call :PROMPT-YES-NO-RESET q %%x
+    echo:
+    if /i "!q!" equ "y" set "juliawin-install%%x=1"
+    if /i "!q!" equ "n" set "juliawin-install%%x=0"
+    if /i "!q!" equ "r" goto :questionsstart
+)
+
+
+:: See if Julia should force overwrite
+if exist "%juliawin_packages%\julia\bin\julia.exe" (
+    if /i "%forceinstall%" EQU "S" goto :skipoverwrite
+    if /i "%forceinstall%" NEQ "O" exit /b -1
+)
 
 :forceoverwrite
     :: Install Julia
@@ -61,11 +83,26 @@ goto :eof
 :: Prompt forceinstall
 ::**************************
 :PROMPT-FORCEINSTALL <answer>
-    set "%~1="
+    set "forceinstall="
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!forceinstall!" neq "O"  if /i "!forceinstall!" neq "S" if /i "!forceinstall!" neq "C" (
-            set /P forceinstall="Julia installation in packages\julia already exist. Overwrite, skip or cancel [O/S/C]? "
+            set /P forceinstall="Julia installation in packages\julia already exist. Overwrite, skip or cancel [O/S/C]? "  || goto :EOF
         )
     )
     set "%~1=%forceinstall%"
+goto :eof
+
+
+::**************************
+:: Prompt package
+::**************************
+:PROMPT-YES-NO-RESET <answer> <app>
+    set "answer="
+    for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
+        if /i "!answer!" neq "Y"  if /i "!answer!" neq "N" if /i "!answer!" neq "R" (
+            echo Install %2...
+            set /P answer="Yes, No, Reset questions [Y/N/R]? " || goto :EOF
+        )
+    )
+    set "%~1=%answer%"
 goto :eof

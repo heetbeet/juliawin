@@ -17,6 +17,16 @@ call %func% NO-TRAILING-SLASH result "c:\hello\"
 call %func% TEST-OUTCOME "%result%" "c:\hello"
 
 
+
+call %func% EXPAND-ASTERIX result "%~dp0\functions.t*"
+call %func% FULL-PATH result2 "%~dp0\functions.test.bat"
+call %func% TEST-OUTCOME "%result%" "%result2%" "Expand via asterix in name"
+
+
+call %func% EXPAND-ASTERIX result "%~dp0\test\*"
+echo %result%
+
+
 call %func% EXEC result err "echo hello world"
 call %func% TEST-OUTCOME "%result%" "hello world" "Exec"
 call %func% TEST-OUTCOME "%err%" "0" "Exec"

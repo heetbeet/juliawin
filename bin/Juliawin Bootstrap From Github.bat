@@ -76,10 +76,14 @@ if /i "%4" equ "/dir" set "install-directory=%~5" & set "custom-directory=1"
 :: Download the master zip directly from github
 :: ***************************************
 :: This is the most general legacy powershell download command. It should be available on any powershell
-echo () Download juliawin from github to temp
+echo () Download Juliawin installer from GitHub.com into temp
 set "juliawinzip=%temp%\juliawin-%random%%random%.zip"
 call powershell -Command "(New-Object Net.WebClient).DownloadFile('https://github.com/heetbeet/juliawin/archive/main.zip', '%juliawinzip%')"
 
+if not exist "%juliawinzip%" (
+    echo Download from github.com/heetbeet/juliawin failed
+    exid /b -1
+)
 
 :: ***************************************
 :: Unzip the master zip into a temporary directory
@@ -115,7 +119,7 @@ echo:
 if "%force%" equ "0" if "%custom-directory%" equ "0" (
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!defaultinstall!" neq "Y" if /i "!defaultinstall!" neq "N"  if /i "!defaultinstall!" neq "D" (
-            set /P defaultinstall="Install to %install-directory% [Y/N/D]? "
+            set /P defaultinstall="Install to %install-directory% [Y/N/D]? "  || goto :EOF
         )
     )
 )
@@ -130,22 +134,20 @@ if /i "%defaultinstall%" EQU "N" exit /b -1
 >>"%vbs%" echo set fs=f.Items():set fi=fs.Item()
 >>"%vbs%" echo p=fi.Path:wscript.echo "set __returnval__=" ^& p
 
+set "__returnval__="
 if /i "%defaultinstall%" equ "D" (
-    call cscript //nologo "%vbs%" > "%bat%"
-    call "%bat%"
+    for %%a in (0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
+        if "!__returnval__!" equ "" (
+            if "%%a" equ "1" echo ^(^) Error selecting directory, please try again.
+            call cscript //nologo "%vbs%" > "%bat%"
+            call "%bat%"
+        )
+    )
+    set "install-directory=!__returnval__!"
 )
+
 del "%vbs%" /f /q > nul 2>&1
 del "%bat%" /f /q > nul 2>&1
-
-if /i "%defaultinstall%" equ "D" (
-    if "%__returnval__%" equ "" (
-        echo ^(^) Invalid or no directory provided, please restart installer.
-        pause
-        exit /b -1
-    ) else (
-        set "install-directory=%__returnval__%"
-    )
-)
 
 
 :: ***************************************
@@ -157,7 +159,7 @@ if "%force%" equ "0" (
     for /F %%i in ('dir /b /a "%install-directory%\*" 2^> nul') do (
         for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
             if /i "!overwrite!" neq "Y" if /i "!overwrite!" neq "N"  (
-                set /P overwrite="Destination is not empty. Overwrite [Y/N]? "
+                set /P overwrite="Destination is not empty. Overwrite [Y/N]? "  || goto :EOF
             )
         )
     )
