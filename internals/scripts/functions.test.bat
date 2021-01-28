@@ -13,13 +13,9 @@ call %func% ARG-PARSER /a a /b /c c1 c2
 call %func% TEST-OUTCOME "%ARG_A% %ARG_B% %ARG_C% %ARG_C_1% %ARG_C_2%" "a 1 c1 c1 c2" "Argument parsing"
 
 
-call %func% FIND-PARENT-WITH-FILE result "%~dp0" .git
-call %func% FULL-PATH result2 "%~dp0.."
-call %func% TEST-OUTCOME "%result%" "%result2%"
-
-
 call %func% NO-TRAILING-SLASH result "c:\hello\"
 call %func% TEST-OUTCOME "%result%" "c:\hello"
+
 
 
 call %func% EXPAND-ASTERIX result "%~dp0\functions.t*"
@@ -27,28 +23,13 @@ call %func% FULL-PATH result2 "%~dp0\functions.test.bat"
 call %func% TEST-OUTCOME "%result%" "%result2%" "Expand via asterix in name"
 
 
-call %func% GIT-PROJECT-DIR result
-call %func% FULL-PATH result2 "%~dp0.."
-call %func% TEST-OUTCOME "%result%" "%result2%" "Git base directory"
+call %func% EXPAND-ASTERIX result "%~dp0\test\*"
+echo %result%
 
 
 call %func% EXEC result err "echo hello world"
 call %func% TEST-OUTCOME "%result%" "hello world" "Exec"
 call %func% TEST-OUTCOME "%err%" "0" "Exec"
-
-
-call %func% TEST-GIT result
-call %func% TEST-OUTCOME "%result%" "1"  "Is this a git repository"
-
-
-call %func%% SHIFT-ARGS result 1 2 3
-call %func% TEST-OUTCOME "2 3" "%result%" "Shifting arguments"
-
-
-set "pathsave=%PATH%"
-call %func% ADD-ASTERIXABLE-TO-PATH "%~dp0..\bi*" "foo\bar"
-set "pathsave2=%PATH%"
-call %func% TEST-OUTCOME "%~dp0foo\bar;%pathsave%" "%pathsave2%"
 
 
 set "pathsave=%PATH%"
@@ -77,15 +58,16 @@ call %func% TEST-OUTCOME "%result%" "curl"
 call %func% TO-UPPER result hEllO
 call %func% TEST-OUTCOME "%result%" "HELLO"
 
-call %func% DOWNLOAD-FROM-GITHUB-DIRECTORY "https://github.com/heetbeet/juliawin/" "%TEMP%\blablibloop"
 
 ::call %func% EDIT-FILE-IN-NOTEPAD "%temp%\hello.txt"
 
 ::echo echo hello > "%temp%\echohello.bat"
 ::call %func% GET-SETTINGS-VIA-BAT-FILE "%temp%\echohello.bat"
 
-set bla="%temp%"
-call %func% FULL-PATH bla %bla%
-echo %bla%
+set "tmpextract=%temp%\temp-%random%%random%"
+call %func% EXTRACT-ZIP-WINDOWS "%~dp0\test.zip" "%tmpextract%"
+if not exist "%tmpextract%\test.txt" (
+	call %func% TEST-OUTCOME "" "Error in EXTRACT-ZIP-WINDOWS"
+)
 
 echo *** Complete tests ***

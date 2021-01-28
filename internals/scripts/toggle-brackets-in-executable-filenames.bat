@@ -14,7 +14,8 @@ if exist "%juliawin_home%\(julia.exe)" (
 move "%juliawin_home%\(Juliawin Setup.exe)" "%juliawin_home%\Juliawin Setup.exe" > nul 2>&1
 move "%juliawin_home%\bin\(Juliawin Setup.bat)" "%juliawin_home%\bin\Juliawin Setup.bat" > nul 2>&1
 move "%juliawin_home%\bin\(activate-juliawin-environment.bat)" "%juliawin_home%\bin\activate-juliawin-environment.bat" > nul 2>&1
-move "%juliawin_home%\(Juliawin Bootstrap From Github.bat)" "%juliawin_home%\Juliawin Bootstrap From Github.bat" > nul 2>&1
+move "%juliawin_home%\bin\(Juliawin Bootstrap From Github.bat)" "%juliawin_home%\bin\Juliawin Bootstrap From Github.bat" > nul 2>&1
+move "%juliawin_home%\bin\(Juliawin Bootstrap From Github.exe)" "%juliawin_home%\bin\Juliawin Bootstrap From Github.exe" > nul 2>&1
 
 goto :eof
 

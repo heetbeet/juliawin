@@ -251,23 +251,10 @@ function install_vscode()
 
     vscodehome = joinpath(juliawinpackages, "vscode")
 
-    run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
+    #run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
+    vscode_zip = download_asset("https://update.code.visualstudio.com/latest/win32-x64-archive/stable")
+    extract_file(vscode_zip, vscodehome)
 
-    # Extract in the background
-    rm(vscodehome, force=true, recursive=true)
-    t = @task run(`"$juliawinhome/internals/scripts/functions.bat" EXTRACT-INNO "$juliatemp/vscode.exe" "$vscodehome"`)
-    schedule(t)
-
-    # Jam code.exe in order that the installer cannot open the file upon completion
-    while(! istaskdone(t))
-        if isfile("$vscodehome/Code.exe")
-            try
-                mv("$vscodehome/Code.exe", "$vscodehome/Code_.exe", force=true)
-            catch end
-        end
-        sleep(0)
-    end
-    mv("$vscodehome/Code_.exe", "$vscodehome/Code.exe", force=true)
     mkpath("$vscodehome/data/user-data")
     mkpath("$vscodehome/data/extensions")
 

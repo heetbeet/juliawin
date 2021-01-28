@@ -63,36 +63,6 @@ goto :EOF
 goto :EOF
 
 
-::*********************************************************
-:: Find a file like "Applicaton.yaml" somewhere in an upper directory
-:: Cd up up up until the file is found
-::*********************************************************
-:FIND-PARENT-WITH-FILE <returnvar> <startdir> <filename>
-    pushd "%~2"
-        :__filesearchloop__
-            set "__thisdir__=%cd%"
-            if "%__thisdir__%" neq "%__thisdir_prev__%" goto :__continuefilesearch__
-                echo Could not find Application.yaml
-                set "%1=NUL"
-                goto :__filesearchcomplete__
-            :__continuefilesearch__
-
-            if exist "%3" (
-                set "%1=%cd%"
-                goto :__filesearchcomplete__
-            )
-            cd ..
-            set "__thisdir_prev__=%thisdir%"
-            goto :__filesearchloop__
-
-    :__filesearchcomplete__
-    popd
-
-    set __thisdir__=
-    set __thisdir_prev__=
-goto :EOF
-
-
 :: ***********************************************
 :: Remove trailing slash if exists
 :: ***********************************************
@@ -232,6 +202,31 @@ goto :EOF
 goto :EOF
 
 
+:: ***************************************
+:: Unzip the master zip into a temporary directory
+:: ***************************************
+:: https://stackoverflow.com/questions/21704041/creating-batch-script-to-unzip-a-file-without-additional-zip-tools
+:EXTRACT-ZIP-WINDOWS <srce> <dest>
+    if not exist "%~1" (
+        echo Error file doesn't exist: "%~1"
+        exit /b -1
+    )
+
+    :: VBS is not happy with two slashes and stuff
+    call :FULL-PATH src "%~1"
+    call :DELETE-DIRECTORY "%~2"
+    mkdir "%~2" 2>NUL
+
+    set "vbs=%temp%\_%random%%random%.vbs"
+    > "%vbs%"  echo set objShell = CreateObject("Shell.Application")
+    >>"%vbs%"  echo set FilesInZip=objShell.NameSpace("%src%").items
+    >>"%vbs%"  echo objShell.NameSpace("%~2").CopyHere(FilesInZip)
+
+    cscript //nologo "%vbs%"
+    :: del "%vbs%" /f /q > nul 2>&1
+goto :EOF
+
+
 :: ***********************************************
 :: Extract MSI installer with portable settings and
 :: redirecting userprofile junk
@@ -260,50 +255,6 @@ goto :EOF
 
 
 :: ***********************************************
-:: Extract Python installer to final location
-:: dark.exe is required for the extraction
-:: ***********************************************
-:EXTRACT-PYTHON <darkexe> <srce> <dest>
-    ::Don't affect surrounding scope
-    setlocal
-
-    set "__pytemp__=%TEMP%\pythontempextract"
-
-    ::del /f /q /s "%__pytemp__%" >nul 2>&1
-    call :DELETE-DIRECTORY "%__pytemp__%"
-
-    call :DELETE-DIRECTORY "%~3" >nul 2>&1
-    mkdir "%~3" 2>NUL
-
-    "%~1" "%~2" -x "%__pytemp__%"
-
-    ::Loop through msi files and extract the neccessary ones
-    FOR %%I in ("%__pytemp__%\AttachedContainer\*.msi") DO call :__msiextractpython__ "%%I" "%~3"
-    goto :__guardmsiextractpython__
-        :__msiextractpython__ <srce> <dest>
-            setlocal
-            ::filer out unneeded msi installs
-            if /i "%~n1" EQU "test" goto :EOF
-            if /i "%~n1" EQU "doc" goto :EOF
-            if /i "%~n1" EQU "dev" goto :EOF
-            if /i "%~n1" EQU "launcher" goto :EOF
-            if /i "%~n1" EQU "test" goto :EOF
-            if /i "%~n1" EQU "ucrt" goto :EOF
-            if /i "%~n1" EQU "path" goto :EOF
-            if /i "%~n1" EQU "pip" goto :EOF
-
-            msiexec /a "%~1" /qb TARGETDIR="%~2"
-        goto :EOF
-    :__guardmsiextractpython__
-
-    FOR %%I in ("%~2\*.msi") DO del /q /s "%%I"
-    call :DELETE-DIRECTORY "%__pytemp__%"
-
-    set __pytemp__=
-goto :EOF
-
-
-:: ***********************************************
 :: Windows del command is too limited
 :: ***********************************************
 :DELETE-DIRECTORY <dirname>
@@ -324,56 +275,6 @@ goto :EOF
     )
     :_done_first_line_
     set "%2=%errorlevel%"
-goto :EOF
-
-
-::*********************************************************
-:: Test git
-::*********************************************************
-:TEST-GIT <return>
-    call git --version >nul 2>&1
-    if "%errorlevel%" neq "0" (
-        echo "Git is not installed or added to your path!"
-        echo "Get git from https://git-scm.com/downloads"
-        set "%1=0"
-        goto :EOF
-    )
-
-    set "%1=1"
-goto :EOF
-
-
-::*********************************************************
-:: Test the project's git directory
-::*********************************************************
-:GIT-PROJECT-DIR <return> <startpath>
-    set %1=
-
-    call :TEST-GIT __gitflag__
-    if __gitflag__ equ 0 (
-        goto :EOF
-    )
-
-    :: ****************************
-    :: Get the base git directory
-    pushd "%~2"
-        ::git toplevel
-        call :EXEC __gitdir__ __err__ "git rev-parse --show-toplevel"
-
-        ::but what if it is deploy-scripts submodule with basename deploy-scripts
-        for /F %%I in ("%__gitdir__%") do  if "%%~nI" neq "deploy-scripts" (goto :__nogitnest__)
-        pushd "%__gitdir__%\.."
-            call :EXEC __gitdir__ __err__ "git rev-parse --show-toplevel"
-        popd
-        :__nogitnest__
-
-        :: turn into correct slashes
-        call :FULL-PATH __gitdir__ "%__gitdir__%"
-    popd
-
-    if __err__ neq 1 (
-        set "%1=%__gitdir__%"
-    )
 goto :EOF
 
 
@@ -439,22 +340,6 @@ goto :EOF
 
 
 :: ***********************************************
-:: Expand a asterix path to a full path
-:: ***********************************************
-:ADD-ASTERIXABLE-TO-PATH <asterixable path> <optional\extra\path\>
-    :: first part may be extended with an asterix
-    call :EXPAND-ASTERIX _path_ "%~1"
-
-    if "%_path_%" EQU "" goto :EOF
-
-    :: second part may be empty
-    if "%~2" NEQ "" set "_path_=%_path_%\%~2"
-
-    set "PATH=%_path_%;%PATH%"
-goto :EOF
-
-
-:: ***********************************************
 :: Add a path to windows path
 :: ***********************************************
 :ADD-TO-PATH <path>
@@ -475,26 +360,6 @@ goto :EOF
     echo Got     : %2
     echo:
 
-goto :EOF
-
-
-::*********************************************************
-:: Shift arguments to the right
-::*********************************************************
-:SHIFT-ARGS <return> <argstoshift...>
-    set __returnname__=%1
-    shift
-    shift
-    set __args__=%1
-    :__parse__
-        shift
-        set __first__=%1
-        if not defined __first__ goto :__endparse__
-        set __args__=%__args__% %__first__%
-    goto :__parse__
-    :__endparse__
-
-    set %__returnname__%=%__args__%
 goto :EOF
 
 
@@ -569,20 +434,6 @@ goto :EOF
 
 
 :: ***********************************************
-:: Ensure a temporary CURL is available and in PATH
-:: ***********************************************
-:BOOTSTRAP-CURL <directory>
-    mkdir "%~1" 2>NUL
-    echo ^(^) Bootstrap a temporary curl
-    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl-ca-bundle.crt" "%~1\curl-ca-bundle.crt"
-    call :DOWNLOAD-FILE "https://raw.githubusercontent.com/heetbeet/juliawin/master/tools/curl.exe" "%~1\curl.exe"
-
-    call :ADD-TO-PATH "%~1"
-
-goto :EOF
-
-
-:: ***********************************************
 :: Browse for a folder on your system
 :: ***********************************************
 :BROWSE-FOR-FOLDER <return>
@@ -627,97 +478,17 @@ GOTO :EOF
 :: Print the Julia logo
 :: ***********************************************
 :SHOW-JULIA-ASCII
-    echo                _
-    echo    _       _ _(_)_     ^|  Documentation: https://docs.julialang.org
-    echo   (_)     ^| (_) (_)    ^|
-    echo    _ _   _^| ^|_  __ _   ^|  Run with "/h" for help
-    echo   ^| ^| ^| ^| ^| ^| ^|/ _` ^|  ^|
-    echo   ^| ^| ^|_^| ^| ^| ^| (_^| ^|  ^|  Unofficial installer for Juliawin
-    echo  _/ ^|\__'_^|_^|_^|\__'_^|  ^|
-    echo ^|__/                   ^|
+
+    echo                 _
+    echo     _       _ _(_)_           _        ^| Juliawin commandline installer
+    echo    ^| ^|     ^| (_) (_)         (_)       ^|
+    echo    ^| ^|_   _^| ^|_  __ _ __   __ _ _ __   ^| GitHub.com/heetbeet/juliawin
+    echo    ^| ^| ^| ^| ^| ^| ^|/ _` ^|'/ _ \'^| ^| '_ \  ^|
+    echo  __/ ^| ^|_^| ^| ^| ^| (_^| ^| \/ \/ ^| ^| ^| ^| ^| ^| Run with "/h" for help
+    echo ^|___/ \__'_^|_^|_^|\__'_^|\__/\_/^|_^|_^| ^|_^| ^|
+    echo:
 
 GOTO :EOF
-
-
-:: ***********************************************
-:: Print the Julia logo
-:: ***********************************************
-:DOWNLOAD-FROM-GITHUB-DIRECTORY <githublink> <destdir>
-    echo () Downloading %~1 to %~2
-    mkdir "%~2" 2>NUL
-
-    set "_htmlfile_=%temp%\githubrawhtml.html"
-    set "_linksfile_=%temp%\githubfiles.txt"
-
-    :: Download the download-page html
-    call :DOWNLOAD-FILE "%~1" "%_htmlfile_%" >nul 2>&1
-
-    if "%errorlevel%" NEQ "0" goto EOF-DEAD
-
-    :: Split file on '"' quotes so that valid urls will land on a seperate line
-    powershell -Command "(gc '%_htmlfile_%') -replace '""', [System.Environment]::Newline  | Out-File '%_htmlfile_%--split' -encoding utf8"
-
-    ::Find the lines of all the valid Regex download links
-    findstr /i /r /c:"/.*/blob/.*/.*" "%_htmlfile_%--split" > "%_linksfile_%"
-
-    ::https://raw.githubusercontent.com/heetbeet/juliawin/blob/master/README.md
-    ::https://raw.githubusercontent.com/heetbeet/juliawin/master/julia-win-installer.bat
-    for /F "usebackq tokens=*" %%A in ("%_linksfile_%") do call :__githubdownload__ "%%A" "%~2"
-    goto :__guardgithubdownload__
-        :__githubdownload__ <githublink> <destdir>
-            call :GET-URL-FILENAME _fname_ "%~1"
-            set "_filelink_=https://raw.githubusercontent.com%~1"
-            set "_filelink_=%_filelink_:/blob/=/%"
-            call :DOWNLOAD-FILE "%_filelink_%" "%~2\%_fname_%" >nul 2>&1
-        goto :EOF
-    :__guardgithubdownload__
-
-goto :EOF
-
-
-:: ***********************************************
-:: Get settings via a bat file
-:: ***********************************************
-:GET-SETTINGS-VIA-BAT-FILE <batfile>
-    set "batname=%~n1"
-    set "tempfile=%temp%\%batname%-%random%%random%.bat%"
-
-    echo f | xcopy "%~1" "%tempfile%" /y > nul 2>&1
-
-    call :EDIT-FILE-IN-NOTEPAD "%tempfile%"
-    call "%tempfile%"
-    del "%tempfile%" /s /f /q > nul 2>&1
-
-goto :EOF
-
-:: ***********************************************
-:: Open notepad to edit a file
-:: ***********************************************
-:EDIT-FILE-IN-NOTEPAD <filepath>
-    if not exist "%~1" (
-        echo: > "%~1"
-    )
-
-    call notepad.exe "%~1"
-
-goto :EOF
-
-
-:: ***********************************************
-:: Get the focus of a window via it's PID
-:: ***********************************************
-:GET-FOCUS-OF-PID <PID>
-    set "randnum=%RANDOM%%RANDOM%RANDOM"
-    echo var sh=new ActiveXObject("WScript.Shell");              >   "%temp%\focusmaker%randnum%.js"
-    echo if (sh.AppActivate(WScript.Arguments.Item(1)) == 0) {   >>  "%temp%\focusmaker%randnum%.js"
-    echo     sh.SendKeys("%% r");                                >>  "%temp%\focusmaker%randnum%.js"
-    echo }                                                       >>  "%temp%\focusmaker%randnum%.js"
-
-    cscript //E:JScript //nologo "%temp%\focusmaker%randnum%.js" "focusmaker%randnum%.js" "%~1"
-    del "%temp%\focusmaker%randnum%.js" /s /f /q > nul 2>&1
-
-goto :EOF
-
 
 
 :: ***********************************************
