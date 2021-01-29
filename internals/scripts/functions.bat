@@ -549,12 +549,14 @@ goto :EOF
 goto :eof
 
 
+
 :: ***************************************************
-:: Some libraries compile and then keeps on to incorrect file locations
+:: Some libraries compile and then keeps incorrect file locations
+:: Here we delete and recompile those packages
 :: The assumption here is that all the Juliawin paths have already been set up!
 :: ***************************************************
 :DELETE-COMPILED-PACKAGES-IF-RELOCATED
-    setlocal
+    setlocal ENABLEDELAYEDEXPANSION
     set "txt-save=%juliawin_userdata%\last-seen-path.txt"
 
     set "last-seen-juliawin_home="
@@ -562,21 +564,38 @@ goto :eof
         set /p last-seen-juliawin_home=<"%txt-save%"
     )
 
+    set "IJulia-errlevel=0"
+    set "Conda-errlevel=0"
+
     if "%juliawin_home%" neq "%last-seen-juliawin_home%" (
+
         call :DELETE-DIRECTORY "%juliawin_userdata%\.julia\compiled"  > nul 2>&1
-        
         call :DELETE-DIRECTORY "%juliawin_userdata%\.julia\conda"  > nul 2>&1
-        
         call del "%juliawin_userdata%\.julia\prefs\IJulia" /f /q > nul 2>&1
+
+        call %~dp0\..\splashscreen\Juliawin-splash.hta
 
         REM Rebuild PyCall
         if exist "%juliawin_userdata%\.julia\packages\IJulia" (
+            REM echo Detected Juliawin location changed... recompiling IJulia
             call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"IJulia\")"
+            set "IJulia-errlevel=!errorlevel!"
+
         ) else if exist "%juliawin_userdata%\.julia\packages\Conda" (
+            REM echo Detected Juliawin location changed... recompiling Conda
             call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"Conda\");"
+            set "Conda-errlevel=!errorlevel!"
         )
     )
-    echo %juliawin_home%>"%txt-save%"
+
+
+    :: If no error doing IJulia compilation or Conda compilation, tehn update saved path
+    if "%IJulia-errlevel%%Conda-errlevel%" equ "00" ( 
+        echo %juliawin_home%>"%txt-save%"
+    ) else (
+        echo Error recompiling!
+    )
+
 
 goto :EOF
 
