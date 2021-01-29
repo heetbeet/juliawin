@@ -211,6 +211,7 @@ function install_juno()
     run(`$apmbin install indent-detective`)
     run(`$apmbin install hyperclick`)
     run(`$apmbin install tool-bar`)
+    run(`$apmbin install file-watcher`)
 
     Pkg.add("Atom")
     Pkg.add("Juno")
