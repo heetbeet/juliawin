@@ -573,7 +573,7 @@ goto :eof
         call :DELETE-DIRECTORY "%juliawin_userdata%\.julia\conda"  > nul 2>&1
         call del "%juliawin_userdata%\.julia\prefs\IJulia" /f /q > nul 2>&1
 
-        call %~dp0\..\splashscreen\Juliawin-splash.hta
+        start "" %~dp0\..\splashscreen\Juliawin-splash.hta
 
         REM Rebuild PyCall
         if exist "%juliawin_userdata%\.julia\packages\IJulia" (
