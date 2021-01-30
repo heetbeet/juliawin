@@ -549,7 +549,6 @@ goto :EOF
 goto :eof
 
 
-
 :: ***************************************************
 :: Some libraries compile and then keeps incorrect file locations
 :: Here we delete and recompile those packages
@@ -564,38 +563,35 @@ goto :eof
         set /p last-seen-juliawin_home=<"%txt-save%"
     )
 
-    set "IJulia-errlevel=0"
-    set "Conda-errlevel=0"
-
+    set "build-errlevel=0"
     if "%juliawin_home%" neq "%last-seen-juliawin_home%" (
 
         call :DELETE-DIRECTORY "%juliawin_userdata%\.julia\compiled"  > nul 2>&1
         call :DELETE-DIRECTORY "%juliawin_userdata%\.julia\conda"  > nul 2>&1
         call del "%juliawin_userdata%\.julia\prefs\IJulia" /f /q > nul 2>&1
 
-        start "" %~dp0\..\splashscreen\Juliawin-splash.hta
-
-        REM Rebuild PyCall
         if exist "%juliawin_userdata%\.julia\packages\IJulia" (
-            REM echo Detected Juliawin location changed... recompiling IJulia
+            REM IJulia builds both Conda and IJulia
+
+            start "" %~dp0\..\splashscreen\Juliawin-splash.hta
             call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"IJulia\")"
-            set "IJulia-errlevel=!errorlevel!"
+            set "build-errlevel=!errorlevel!"
 
         ) else if exist "%juliawin_userdata%\.julia\packages\Conda" (
-            REM echo Detected Juliawin location changed... recompiling Conda
+            REM Building Conda only
+
+            start "" %~dp0\..\splashscreen\Juliawin-splash.hta
             call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"Conda\");"
-            set "Conda-errlevel=!errorlevel!"
+            set "build-errlevel=!errorlevel!"
         )
     )
 
-
-    :: If no error doing IJulia compilation or Conda compilation, tehn update saved path
-    if "%IJulia-errlevel%%Conda-errlevel%" equ "00" ( 
+    :: If no error doing IJulia+Conda or Conda compilation, only then update saved path
+    if "%build-errlevel%" equ "0" ( 
         echo %juliawin_home%>"%txt-save%"
     ) else (
         echo Error recompiling!
     )
-
 
 goto :EOF
 
