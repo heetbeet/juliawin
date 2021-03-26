@@ -1,7 +1,7 @@
 @goto :batch-script > /dev/null 2>&1 # > nul
 
 # ****************************************************************************
-# Usage: execute-with-bash-as-preference program arg1 arg2 arg3...
+# Usage: execute-with-juliawin-sh program arg1 arg2 arg3...
 #
 # This is a Polyglot script that is interperated differently by bash and batch
 # We use this to first set the JuliaWin environment in batch and then search
@@ -24,13 +24,12 @@ exit $?
 @echo off
 setlocal
 
-call "%~dp0\functions.bat" GET-GIT-BASH-PATH git-bash-path
+call "%~dp0\activate-juliawin-sh-path.bat"
 
-
-if "%git-bash-path%" equ "" goto :cannot-run-bash
+if "%juliawin_sh%" equ "" goto :cannot-run-bash
 
 	:: Running under bash
-	call "%git-bash-path%" "%~dp0%~n0.bat" %*
+	call "%juliawin_sh%" "%~dp0%~n0.bat" %*
 	exit /b %errorlevel%
 
 

@@ -1,3 +1,6 @@
-@call "%~dp0\activate-juliawin-environment.bat"
-@call "%~dp0\..\internals\scripts\execute-with-bash-as-preference.bat" "%~dp0\..\packages\julia\bin\julia.exe" %*
-@exit /b %errorlevel%
+@echo off
+setlocal
+
+call "%~dp0\activate-juliawin-environment.bat"
+"%~dp0\execute-with-juliawin-sh.bat" "%~dp0\..\packages\julia\bin\julia.exe" %*
+exit /b %errorlevel%
