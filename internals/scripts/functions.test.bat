@@ -24,7 +24,7 @@ call %func% TEST-OUTCOME "%result%" "%result2%" "Expand via asterix in name"
 
 
 call %func% EXPAND-ASTERIX result "%~dp0\test\*"
-echo %result%
+call %func% TEST-OUTCOME "%result%" "" "Expand via asterix in name"
 
 
 call %func% EXEC result err "echo hello world"
