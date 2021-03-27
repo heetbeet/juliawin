@@ -1,5 +1,5 @@
 :: This procedure wil try to relocate Juliawin if the directory path has changed
-:: Note! This batch file is dependant on activate-juliawin-environment.bat already
+:: Note! This batch file is dependant on activate-juliawin-environment.bat already been run
 :: and its variables already added to the environmental variables list
 
 @echo off
@@ -15,8 +15,8 @@ if exist "%txt-save%" (
 set "build-errlevel=0"
 if "%juliawin_home%" neq "%last-seen-juliawin_home%" (
 
-    call :DELETE-DIRECTORY "%juliawin_userdata%\.julia\compiled"  > nul 2>&1
-    call :DELETE-DIRECTORY "%juliawin_userdata%\.julia\conda"  > nul 2>&1
+    call %functions% DELETE-DIRECTORY "%juliawin_userdata%\.julia\compiled"  > nul 2>&1
+    call %functions% DELETE-DIRECTORY "%juliawin_userdata%\.julia\conda"  > nul 2>&1
     call del "%juliawin_userdata%\.julia\prefs\IJulia" /f /q > nul 2>&1
 
     if exist "%juliawin_userdata%\.julia\packages\IJulia" (

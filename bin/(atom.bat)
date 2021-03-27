@@ -1,18 +1,10 @@
 @echo off
 setlocal
 
-:: for some reason juno hates being next to julia.bat
-:: this is clearly a bug that needs to be addressed with atom
+:: for some reason juno hates seeing julia in the current path
+:: chdir to somewhere where its not
 if exist julia.bat ( cd "%userprofile%" )
 if exist julia.exe ( cd "%userprofile%" )
 
-call "%~dp0\activate-juliawin-environment.bat"
-
-if "%juliawin_sh%" equ "" (
-	echo Warning, no Git MinGW environment could be established from the following locations:
-	echo `where sh`, `where git`, %%PROGRAMFILES%%\Git\bin\sh.exe and %%ProgramFiles(x86)%%\Git\bin\sh.exe
-	echo You need to have Git installed from git-scm.com for Julia to access the posix shell.
-)
-
-:: Run atom under sh
 "%~dp0\execute-with-juliawin-sh.bat" "%juliawin_packages%\atom\atom.exe" %*
+exit /b %errorlevel%

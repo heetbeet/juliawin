@@ -1,6 +1,11 @@
 @echo off
-set functions="%~dp0..\internals\scripts\functions.bat"
 
+:: Don't repeatedly run this if everything is already set
+if "%juliawin_activated%" equ "1" (
+    goto :eof
+)
+
+set functions="%~dp0..\internals\scripts\functions.bat"
 
 :: Set convenient variables
 call %functions% FULL-PATH juliawin_home "%~dp0.."
@@ -27,13 +32,6 @@ call "%~dp0\activate-juliawin-portability.bat"
 :: set "PYTHON="
 
 
-:: Return early if Windows Path environment is already set
-call %functions% TEST-JULIAWIN-PATHS testflag
-if "%testflag%" equ "1" (
-    goto :EOF
-)
-
-
 :: Add all paths to Windows environment
 call %functions% ADD-TO-PATH "%juliawin_packages%\julia\libexec"
 call %functions% ADD-TO-PATH "%juliawin_packages%\julia\bin"
@@ -43,3 +41,7 @@ call %functions% ADD-TO-PATH "%juliawin_packages%\vscode"
 call %functions% ADD-TO-PATH "%juliawin_packages%\atom"
 call %functions% ADD-TO-PATH "%juliawin_packages%\atom\resources\cli"
 call %functions% ADD-TO-PATH "%juliawin_packages%\git\cmd"
+
+
+:: Set flag to indicate everything is already activated
+set "juliawin_activated=1"

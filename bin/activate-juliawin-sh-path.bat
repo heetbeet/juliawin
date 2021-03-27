@@ -1,6 +1,9 @@
+:: This procedure wil locate the `sh.exe` that comes bundles with git and store it as %juliwin_sh%
 @echo off
 
 call :GET-PATH-TO-GIT-SH juliawin_sh
+goto :eof
+
 
 :: ***************************************************
 :: Search the regular Git places for a path to sh.exe
@@ -9,8 +12,8 @@ call :GET-PATH-TO-GIT-SH juliawin_sh
     set "%~1="
 
     :: Is sh in expected juliawin directory?
-    if exist "%~dp0..\..\packages\git\bin\sh.exe" (
-        set "%~1=%~dp0..\..\packages\git\bin\sh.exe"
+    if exist "%~dp0..\packages\git\bin\sh.exe" (
+        set "%~1=%~dp0..\packages\git\bin\sh.exe"
         goto :eof
     )
 
