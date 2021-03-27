@@ -13,8 +13,23 @@ if exist "%txt-save%" (
 )
 
 set "build-errlevel=0"
+
+set "jlp_fwd_slash=%juliawin_packages%"
+set "jlp_fwd_slash=%jlp_fwd_slash:\=/%"
+
 if "%juliawin_home%" neq "%last-seen-juliawin_home%" (
 
+    REM Reset QT paths
+    echo [Paths]>                                             "%juliawin_packages%\conda\qt.conf"
+    echo Prefix = %jlp_fwd_slash%/conda/Library>>             "%juliawin_packages%\conda\qt.conf"
+    echo Binaries = %jlp_fwd_slash%/conda/Library/bin>>       "%juliawin_packages%\conda\qt.conf"
+    echo Libraries = %jlp_fwd_slash%/conda/Library/lib>>      "%juliawin_packages%\conda\qt.conf"
+    echo Headers = %jlp_fwd_slash%/conda/Library/include/qt>> "%juliawin_packages%\conda\qt.conf"
+    echo TargetSpec = win32-msvc>>                            "%juliawin_packages%\conda\qt.conf"
+    echo HostSpec = win32-msvc>>                              "%juliawin_packages%\conda\qt.conf"
+
+
+    REM Delete compiled packages
     call %functions% DELETE-DIRECTORY "%juliawin_userdata%\.julia\compiled"  > nul 2>&1
     call %functions% DELETE-DIRECTORY "%juliawin_userdata%\.julia\conda"  > nul 2>&1
     call del "%juliawin_userdata%\.julia\prefs\IJulia" /f /q > nul 2>&1
