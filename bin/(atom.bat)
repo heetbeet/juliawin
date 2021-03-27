@@ -6,5 +6,6 @@ setlocal
 if exist julia.bat ( cd "%userprofile%" )
 if exist julia.exe ( cd "%userprofile%" )
 
+call "%~dp0\activate-juliawin-environment.bat"
 "%~dp0\execute-with-juliawin-sh.bat" "%juliawin_packages%\atom\atom.exe" %*
 exit /b %errorlevel%

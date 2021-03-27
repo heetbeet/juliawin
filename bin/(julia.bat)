@@ -1,5 +1,6 @@
 @echo off
 setlocal
 
-"%~dp0\execute-with-juliawin-sh.bat" "%~dp0\..\packages\julia\bin\julia.exe" %*
+call "%~dp0\activate-juliawin-environment.bat"
+"%~dp0\execute-with-juliawin-sh.bat" "%juliawin_packages%\julia\bin\julia.exe" %*
 exit /b %errorlevel%
