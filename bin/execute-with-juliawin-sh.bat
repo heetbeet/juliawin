@@ -41,8 +41,8 @@ if "%juliawin_sh%" equ "" goto :cannot-find-bash
 :: Else run under windows cmd as fallback
 :cannot-find-bash
 
-	echo Git Bash not in `packages\git`, `%%programfiles%%\git`, or `git.exe`!
-	echo You can install Git from git-scm.com for Julia posix access.
+	echo Git Bash not in `packages\git`, `%%programfiles%%\git`, or `git.exe`
+	echo You can install Git from git-scm.com for Julia posix access
 
 	call %*
 	exit /b %errorlevel%
