@@ -41,10 +41,8 @@ if "%juliawin_sh%" equ "" goto :cannot-find-bash
 :: Else run under windows cmd as fallback
 :cannot-find-bash
 
-	echo Warning, no Git MinGW environment could be established from the
-	echo following locations: `where sh`, `where git`,
-	echo %%PROGRAMFILES%%\Git\bin\sh.exe and %%ProgramFiles(x86)%%\Git\bin\sh.exe
-	echo You need Git installed from git-scm.com for posix shell acccess.
+	echo Git Bash not in `packages\git`, `%%programfiles%%\git`, or `git.exe`!
+	echo You can install Git from git-scm.com for Julia posix access.
 
 	call %*
 	exit /b %errorlevel%
