@@ -86,7 +86,7 @@ goto :eof
     set "forceinstall="
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!forceinstall!" neq "O"  if /i "!forceinstall!" neq "S" if /i "!forceinstall!" neq "C" (
-            set /P forceinstall="Julia installation in packages\julia already exist. Overwrite, skip or cancel [O/S/C]? "  || goto :EOF
+            set /P forceinstall="Julia installation in packages\julia already exist. Overwrite, skip or cancel [O/S/C]? " || set forceinstall=xxxx
         )
     )
     set "%~1=%forceinstall%"
@@ -101,7 +101,7 @@ goto :eof
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!answer!" neq "Y"  if /i "!answer!" neq "N" if /i "!answer!" neq "R" (
             echo Install %2...
-            set /P answer="Yes, No, Reset questions [Y/N/R]? " || goto :EOF
+            set /P answer="Yes, No, Reset questions [Y/N/R]? " || set answer=xxxx
         )
     )
     set "%~1=%answer%"
