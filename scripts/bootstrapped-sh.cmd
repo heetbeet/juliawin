@@ -1,6 +1,6 @@
 :: **********************************************************
 :: Forcefully download Git Bash to vendor/git and run the command 
-:: under this newly aquired sh.exe environment
+:: under the newly aquired sh.exe
 :: **********************************************************
 
 @echo off
@@ -34,7 +34,15 @@ set "hompageurl=https://github.com/git-for-windows/git/releases"
 set "urlregex=/download/.*PortableGit.*64-bit.7z.exe"
 
 set "htmlfile=%temp%\githtmlfile%random%%random%.html"
-call powershell -Command "(New-Object Net.WebClient).DownloadFile('%hompageurl%', '%htmlfile%')"
+for /L %%a in (1,1,1,1,1,1,1,1,1,1) do (
+    if not exist "%htmlfile%" (
+        call powershell -Command "(New-Object Net.WebClient).DownloadFile('%hompageurl%', '%htmlfile%')"
+    )
+    if not exist "%htmlfile%" (
+        REM wait one seconds
+        ping 127.0.0.1 -n 2 > nul
+    )
+)
 call powershell -Command "(gc '%htmlfile%') -replace '""', [System.Environment]::Newline  | Out-File '%htmlfile%--split' -encoding utf8"
 
 set "downloadurl="
