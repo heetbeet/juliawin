@@ -31,7 +31,7 @@ call "%~dp0\activate-juliawin-portability.bat"
 :: set "JULIA_PKG_SERVER="
 :: set "PYTHON="
 
-set "PATH=%PATH%;%juliawin_packages%\julia\libexec;%juliawin_packages%\julia\bin;%juliawin_packages%\curl\bin;%juliawin_packages%\vscode;%juliawin_packages%\atom;%juliawin_packages%\atom\resources\cli"
+set "PATH=%juliawin_packages%\julia\libexec;%juliawin_packages%\julia\bin;%juliawin_packages%\curl\bin;%juliawin_packages%\vscode;%juliawin_packages%\atom;%juliawin_packages%\atom\resources\cli;%PATH%"
 
 :: Set flag to indicate everything is already activated
 set "juliawin_activated=1"
