@@ -4,7 +4,7 @@
 # This script ensures that Julia is downloaded from Julialang.org
 # ****************************************************************************
 
-DIR="$(dirname "$(readlink -f "$0")")"
+DIR="$(dirname "$0")"
 . "$DIR/activate-juliawin-environment.sh"
 
 juliapath="$juliawin_vendor/julia"
