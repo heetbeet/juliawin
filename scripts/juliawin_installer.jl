@@ -43,7 +43,7 @@ function ask_yn(message)
 end
 
 function doflagset(app, dict)
-    key = "juliawin-install$(app)"
+    key = "juliawin_install_$(app)"
 
     if key in keys(ENV)
         if lowercase(ENV[key]) == "1"
@@ -66,24 +66,11 @@ if parsed_args["install"] !== nothing
 
 elseif parsed_args["install-dialog"]
 
-    println("Note: For a good posix shell experience in in Julia, you will need a MinGW installation. "*
-            "If you already have Git installed, you already have a proper MinGW installation, and can skip installation. "*
-            "If you are unsure, go ahead and mark MinGW for installation.")
-    println()
-
-
     dict = Dict()
-    for app in ["MinGW", "VSCode", "Juno", "Pluto", "PyCall", "Jupyter" ]
+    for app in ["VSCode", "Juno", "Pluto", "PyCall", "Jupyter" ]
         doflagset(app, dict)
     end
 
-    if !isfile("$juliawinpackages/curl/bin/curl.exe")
-        install_curl()
-    end
-
-    if dict["MinGW"]
-        install_git()
-    end
 
     if dict["VSCode"]
         install_vscode()

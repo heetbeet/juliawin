@@ -1,0 +1,5 @@
+#!/bin/bash
+. "$(dirname $(readlink -f "$0"))"/activate-juliawin-environment.sh
+
+"$juliawin_julia" "$@"
+exit $?

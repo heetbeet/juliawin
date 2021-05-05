@@ -1,0 +1,20 @@
+#!/bin/bash
+DIR="$(dirname $(readlink -f "$0"))"
+. "$DIR/activate-juliawin-environment.sh"
+
+# Activate Conda if installed
+if [ -f "$juliawin_vendor/conda/Scripts/activate.bat" ]; then
+    if [ $# -eq 0 ]; then
+        cmd /c ""$juliawin_vendor/conda/Scripts/activate.bat" & bash"
+    else
+        cmd /c ""$juliawin_vendor/conda/Scripts/activate.bat" & bash "$DIR/../scripts/execute-commanline-args.sh" "$@""
+    fi
+else 
+    [ -f "$juliawin_vendor/conda/Scripts/activate" ] && . "$juliawin_vendor/conda/Scripts/activate"
+    
+    if [ $# -eq 0 ]; then
+        bash
+    else
+        "$DIR/../scripts/execute-commanline-args.sh" "$@"
+    fi
+fi
