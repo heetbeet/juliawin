@@ -1,15 +1,15 @@
 using Pkg
 
-# We assume this file is located under packages\Juliawin
+# We assume this file is located under scripts
 juliawinhome = abspath(joinpath(@__DIR__, ".."))
 juliawinbin = joinpath(juliawinhome, "bin")
-juliawinpackages = joinpath(juliawinhome, "packages")
+juliawinvendor = joinpath(juliawinhome, "vendor")
 juliawinuserdata = joinpath(juliawinhome, "userdata")
 juliatemp = joinpath(tempdir(), "juliawin")
 
 mkpath(juliawinhome)
 mkpath(juliawinbin)
-mkpath(juliawinpackages)
+mkpath(juliawinvendor)
 mkpath(juliawinuserdata)
 mkpath(juliatemp)
 
@@ -134,47 +134,6 @@ function extract_file(archive, destdir, fixdepth=true)
 end
 
 
-#*******************************************
-# Windows bat files cannot handle unix line endings
-#*******************************************
-function writecrlf(f, txt)
-    write(f, replace(txt, "\r\n"=>"\n"), "\n"=>"\r\n")
-end
-
-
-#*******************************************
-# Add startup script to Julia to force Julia to use proper curl library
-#*******************************************
-function add_startup_script()
-    scripthome = joinpath(juliawinhome, "userdata", ".julia", "config")
-    scriptpath = joinpath(scripthome, "startup.jl")
-
-    header = """include(joinpath(@__DIR__, "juliawinconfig.jl"))
-    """
-
-    txt = if isfile(scriptpath) read(scriptpath, String) else "" end
-    if !contains(txt, strip(header))
-        txt = header * txt
-    end
-
-    open(scriptpath, "w") do f
-        write(f, txt)
-    end
-end
-
-
-function install_curl()
-    curl_zip = download_from_homepage(
-        "https://curl.haxx.se/windows/",
-        r"dl.*win64.*zip";
-        prefix="https://curl.haxx.se/windows/"
-    )
-
-    extract_file(curl_zip, joinpath(juliawinpackages, "curl"))
-    activate_binary("curl")
-end
-
-
 function install_atom()
     dlreg = if Sys.iswindows()
          r"/atom/atom/.*x64.*zip"
@@ -188,7 +147,7 @@ function install_atom()
                         notmatch=r"-beta",
                         prefix="https://github.com/")
 
-    extract_file(atom_zip, joinpath(juliawinpackages, "atom"))
+    extract_file(atom_zip, joinpath(juliawinvendor, "atom"))
     activate_binary("atom")
     activate_binary("apm")
 end
@@ -250,9 +209,8 @@ function install_vscode()
     activate_binary("code-cli")
     activate_binary("julia-vscode")
 
-    vscodehome = joinpath(juliawinpackages, "vscode")
+    vscodehome = joinpath(juliawinvendor, "vscode")
 
-    #run(`"$juliawinbin/curl.bat" -L -o"$juliatemp/vscode.exe" "https://aka.ms/win32-x64-user-stable"`)
     vscode_zip = download_asset("https://update.code.visualstudio.com/latest/win32-x64-archive/stable")
     extract_file(vscode_zip, vscodehome)
 
@@ -264,12 +222,17 @@ function install_vscode()
 end
 
 
-function install_git()
+function install_tcc()
+    if !(Sys.iswindows())
+         error("unimplemented")
+    end
 
-    # https://github.com/git-for-windows/git/releases/download/v2.29.2.windows.2/PortableGit-2.29.2.2-64-bit.7z.exe
-    git_zip = download_from_homepage("https://github.com/git-for-windows/git/releases/",
-                        r"/download/.*PortableGit.*64-bit.7z.exe";
-                        prefix="https://github.com/")
-    extract_file(git_zip, joinpath(juliawinpackages, "git"))
+    #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
+    tcc_zip = download_from_homepage("http://download.savannah.gnu.org/releases/tinycc/",
+                        r"tcc-0.9.27-win64-bin.zip";
+                        prefix="http://download.savannah.gnu.org/releases/tinycc/")
 
+    extract_file(tcc_zip, joinpath(juliawinvendor, "tcc"))
+    #activate_binary("atom")
+    #activate_binary("apm")
 end

@@ -1,11 +1,10 @@
 #!/bin/bash
-if [[ "$juliawin_activated" != "1" ]]; then
+if [ "$juliawin_activated" != "1" ]; then
   
   DIR="$(dirname "$0")"
 
-
   # Set convenient variables
-  export juliawin_home="$(realpath $DIR/..)"
+  export juliawin_home="$(realpath "$DIR/..")"
   export juliawin_bin="$juliawin_home/bin"
   export juliawin_vendor="$juliawin_home/vendor"
   export juliawin_splash="$juliawin_home/internals/splashscreen/Juliawin-splash.hta"
@@ -26,15 +25,20 @@ if [[ "$juliawin_activated" != "1" ]]; then
 
 
   # Prepend all the paths to PATH
-  addtopath="$juliawin_vendor/julia/libexec:$juliawin_vendor/julia/bin:$juliawin_vendor/vscode:$juliawin_vendor/atom:$juliawin_vendor/atom/resources/cli"
-  if [[ ! "$PATH" == *"$addtopath"* ]]; then
+  normpath="$juliawin_vendor"
+  [ "$juliawin_iswindows" == "1" ] && normpath="$(cygpath "$normpath")"
+  addtopath="$normpath/julia/libexec:$normpath/julia/bin:$normpath/vscode:$normpath/atom:$normpath/atom/resources/cli"
+  if [ ! "$PATH" == *"$addtopath"* ]; then
     export PATH="$addtopath:$PATH";
   fi
 
 
   # Only ensure portability once (since it's expensive)
+  last_seen_path="."
   [ -f "$juliawin_last_seen_path" ] && last_seen_path="$(cat "$juliawin_last_seen_path")"
-  if [[ "$juliawin_home" != "$last_seen_path" ]]; then
+  if [ "$(realpath $juliawin_home)" == "$(realpath $last_seen_path)" ]; then
+
+    echo recompiling
     
     # Find and replace conda path in qt.conf
     qtconf="$juliawin_vendor/conda/qt.conf"
