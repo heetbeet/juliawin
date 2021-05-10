@@ -1,0 +1,8 @@
+#!/bin/bash
+#=
+"$(dirname $(readlink -f "$0"))"/julia "$(readlink -f "$0")" "$@"
+exit $?
+# =#
+
+using IJulia
+notebook()

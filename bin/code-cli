@@ -1,0 +1,13 @@
+#!/bin/bash
+DIR="$(dirname $(readlink -f "$0"))"
+pushd "$DIR"/../scripts > /dev/null
+    . activate-juliawin-environment.sh
+popd > /dev/null
+
+
+if [[ -f "$juliawin_vendor\vscodium\bin\codium.cmd" || -f "$juliawin_vendor\vscodium\bin\codium" ]]; then
+    "$juliawin_vendor\vscodium\bin\codium" --user-data-dir "$juliawin_userdata\.vscode\data\user-data" --extensions-dir "$juliawin_userdata\.vscode\extensions" "$@"
+else
+    "$juliawin_vendor\vscode\bin\code" --user-data-dir "$juliawin_userdata\.vscode\data\user-data" --extensions-dir "$juliawin_userdata\.vscode\extensions" "$@"
+fi
+exit $?

@@ -4,5 +4,10 @@ pushd "$DIR"/../scripts > /dev/null
     . activate-juliawin-environment.sh
 popd > /dev/null
 
-"$juliawin_julia" "$@"
+
+#for some reason juno hates seeing julia in the current path
+[[ -f julia || -f julia.exe ]] && cd ~
+
+"$juliawin_vendor\atom\atom" "$@"
+
 exit $?

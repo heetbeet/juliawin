@@ -211,15 +211,55 @@ function install_vscode()
 
     vscodehome = joinpath(juliawinvendor, "vscode")
 
-    vscode_zip = download_asset("https://update.code.visualstudio.com/latest/win32-x64-archive/stable")
-    extract_file(vscode_zip, vscodehome)
+    #vscode_zip = download_asset("https://update.code.visualstudio.com/latest/win32-x64-archive/stable")
 
-    mkpath("$vscodehome/data/user-data")
-    mkpath("$vscodehome/data/extensions")
+    path = download_asset("https://aka.ms/win32-x64-user-stable")
 
-    run(`"$juliawinhome/bin/code-cli.bat" --install-extension julialang.language-julia`)
+    run(`$(joinpath(@__DIR__, "bootstrapped-innounp.cmd")) -x $(path) -y -d$(vscodehome)`)
+
+    for i in readdir(vscodehome)
+        if isdir(joinpath(vscodehome, i)) && startswith(i, "{")
+            for j in readdir(joinpath(vscodehome, i))
+                mv(joinpath(vscodehome, i, j), joinpath(vscodehome, j); force=true)
+            end
+
+            rm(joinpath(vscodehome, i); force=true)
+        end
+    end
+
+    mkpath("$juliawinuserdata/.vscode/data/user-data")
+    mkpath("$juliawinuserdata/.vscode/data/extensions")
+
+    run(`sh "$(joinpath(juliawinhome, "bin", "code-cli"))" --install-extension julialang.language-julia`)
 
 end
+
+
+function install_vscodium()
+    vscodehome = joinpath(juliawinvendor, "vscodium")
+    path = download_from_homepage("https://github.com/VSCodium/vscodium/releases",
+                                   r"/VSCodium/vscodium/releases/download/.*/VSCodiumUserSetup-x64-.*.exe";
+                                   prefix="https://github.com")
+
+    run(`$(joinpath(@__DIR__, "bootstrapped-innounp.cmd")) -x $(path) -y -d$(vscodehome)`)
+
+    for i in readdir(vscodehome)
+        if isdir(joinpath(vscodehome, i)) && startswith(i, "{")
+            for j in readdir(joinpath(vscodehome, i))
+                mv(joinpath(vscodehome, i, j), joinpath(vscodehome, j); force=true)
+            end
+
+            rm(joinpath(vscodehome, i); force=true)
+        end
+    end
+
+    mkpath("$juliawinuserdata/.vscode/data/user-data")
+    mkpath("$juliawinuserdata/.vscode/data/extensions")
+
+    run(`sh $(joinpath(juliawinhome, "bin", "code-cli")) --install-extension julialang.language-julia`)
+
+end
+
 
 
 function install_tcc()
@@ -227,12 +267,69 @@ function install_tcc()
          error("unimplemented")
     end
 
-    #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
     tcc_zip = download_from_homepage("http://download.savannah.gnu.org/releases/tinycc/",
                         r"tcc-0.9.27-win64-bin.zip";
                         prefix="http://download.savannah.gnu.org/releases/tinycc/")
 
     extract_file(tcc_zip, joinpath(juliawinvendor, "tcc"))
-    #activate_binary("atom")
-    #activate_binary("apm")
+end
+
+
+function install_rcedit()
+    if !(Sys.iswindows())
+         error("unimplemented")
+    end
+
+    rcedit_exe = download_from_homepage("https://github.com/electron/rcedit/releases",
+                                        r"/electron/rcedit/releases/download/.*/rcedit-x64.exe";
+                                        prefix="https://github.com")
+
+    rcedit_path = mkpath(joinpath(juliawinvendor, "rcedit"))
+
+    cp(rcedit_exe, joinpath(rcedit_path, "rcedit.exe"); force=true)
+end
+
+
+function install_inno()
+    if !(Sys.iswindows())
+         error("unimplemented")
+    end
+
+    path = download_from_homepage("https://github.com/portapps/innosetup-portable/releases",
+                                  r"/portapps/innosetup-portable/releases/download/.*/innosetup-portable-win32.*.7z";
+                                  prefix="https://github.com")
+
+    extract_file(path, joinpath(juliawinvendor, "innosetup"))
+end
+
+
+
+function install_nsis()
+    if !(Sys.iswindows())
+         error("unimplemented")
+    end
+
+    #"/downloading/?a=NSISPortable&amp;n=NSIS Portable&amp;s=s&amp;p=&amp;d=pa&amp;f=NSISPortable_3.06.1_English.paf.exe"
+
+    url = get_dl_url("https://portableapps.com/apps/development/nsis_portable",
+                      r"/downloading/.*=NSISPortable_.*.paf.exe";
+                      prefix="https://portableapps.com")
+
+    url = replace(url, " "=>"%20")
+
+    path = download_from_homepage(url,
+                                  r"/redirect/.*NSISPortable.*NSISPortable_.*_English.paf.exe";
+                                  prefix="https://portableapps.com")
+
+    extract_file(path, joinpath(juliawinvendor, "nsis"))
+end
+
+
+function install_innounp()
+    if !(Sys.iswindows())
+         error("unimplemented")
+    end
+
+    dlzip = download_asset("https://sourceforge.net/projects/innounp/files/latest/download")
+    extract_file(dlzip, joinpath(juliawinvendor, "innounp"))
 end

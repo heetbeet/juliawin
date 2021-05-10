@@ -1,0 +1,3 @@
+#!/bin/bash
+"$(dirname $(readlink -f "$0"))"/code-cli "$@"
+exit $?

@@ -1,7 +1,9 @@
 packages/*
+vendor/*
 userdata/.atom
 userdata/.julia
 /.idea/
 /toggle-brackets-in-executable-filenames.lnk
 userdata/.vscode/extensions/
 last-seen-path.txt
+artifacts/launchers/*

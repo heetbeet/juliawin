@@ -5,7 +5,7 @@
 # ****************************************************************************
 
 DIR="$(dirname "$0")"
-. "$DIR/activate-juliawin-environment.sh"
+cd "$DIR"/../scripts; . activate-juliawin-environment.sh; cd "$DIR"
 
 juliapath="$juliawin_vendor/julia"
 juliatmp="$juliawin_vendor/juliainstall.zip"
@@ -34,7 +34,7 @@ for i in `seq 1 10`; do
         curl -g -L -f -o "$htmlfile" "$hompageurl"; 
     fi 
 done
-downloadurl="$(cat "$htmlfile" | tr '"' '\n' | LC_ALL=en_US.utf8 grep -oP "$urlregex")"
+downloadurl="$(cat "$htmlfile" | tr '"' '\n' | LCbash _ALL=en_US.utf8 grep -oP "$urlregex")"
 rm -f "$htmlfile"
 
 echo "() Download link: $downloadurl"

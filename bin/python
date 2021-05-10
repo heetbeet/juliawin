@@ -9,10 +9,10 @@ if [ -f "$juliawin_vendor"/conda/Scripts/activate ]; then
     . "$juliawin_vendor"/conda/Scripts/activate
 fi
 
-if [ $# -eq 0 ]; then
-    bash
-    exit $?
+
+if [ -f "$juliawin_vendor"/conda/python.exe ]; then 
+    "$juliawin_vendor"/conda/python.exe "$@"
 else
-    "$juliawin_home"/scripts/execute-commanline-args.sh "$@"
-    exit $?
+    "$juliawin_vendor"/conda/python "$@"
 fi
+exit $?
