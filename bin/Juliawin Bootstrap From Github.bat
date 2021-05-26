@@ -82,7 +82,7 @@ call powershell -Command "(New-Object Net.WebClient).DownloadFile('https://githu
 
 if not exist "%juliawinzip%" (
     echo Download from github.com/heetbeet/juliawin failed
-    exid /b -1
+    exit /b -1
 )
 
 :: ***************************************
