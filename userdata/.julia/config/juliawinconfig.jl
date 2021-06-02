@@ -1,6 +1,5 @@
 # Force libgit2 to download packages in stead of downloading tarballs
 ENV["PYTHON"] = ""
-ENV["JULIA_PKG_SERVER"] = ""
 
 
 # Force installation of packages
