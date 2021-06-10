@@ -1,7 +1,7 @@
 <p align="center"> <img src="https://raw.githubusercontent.com/heetbeet/juliawin/main/internals/assets/juliawin-logo.svg" width="350" /> </p>
 
-# Julia on Windows with batteries included
-Juliawin is a Julia installer for Windows: it includes Julia as well as tools like Juno, VSCode, Pluto, Jupyter and the scientific Python stack.
+# A portable Julia distribution with batteries included
+Juliawin includes Julia as well as tools like VSCode, Juno , Pluto, Jupyter and the scientific Python stack bundled with PyCall.
 
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 
@@ -13,18 +13,17 @@ Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
   <img src="https://julialang.org/assets/infra/pluto_jl.svg" height="100" />
 </p>
 
-## Instalation
+## Instalation methods
 
-1. You can <kbd>Ctrl+C</kbd> and <kbd>Ctrl+V</kbd> the following command in Command Prompt or <kbd>Ctrl+R</kbd>:
+<a href="https://github.com/heetbeet/juliawin/releases"><img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" height="35" /> Full releases</a>
+
+<a href="https://github.com/heetbeet/juliawin/raw/main/bin/Juliawin%20Bootstrap%20From%20Github.exe"><img src="https://i.redd.it/t4f6ysfremu11.png" height="35" /> Thin installer</a>
+
+<img src="https://miro.medium.com/max/896/1*Fq0GuTM3LZ7S6I_mW1hD9A.png" height="30" />  Commandline:
+
 ```
 cmd /c "powershell -c "(new-object net.webclient).DownloadFile('https://raw.githubusercontent.com/heetbeet/juliawin/main/bin/Juliawin Bootstrap From Github.bat','%tmp%\_.bat')" & "%tmp%\_.bat""
 ```
-
-2. Or you can <a href="https://github.com/heetbeet/juliawin/raw/main/bin/Juliawin%20Bootstrap%20From%20Github.exe"><img src="https://i.redd.it/t4f6ysfremu11.png" height="35" />click here</a> for a thin installer,
-
-3. Or download this repo to your chosen Juliawin location and run `Juliawin Setup.exe`,
-
-4. Or if your firewall/admin causing issues try the offline 7zip insallers https://github.com/heetbeet/juliawin/releases
 
 ## Options
 
