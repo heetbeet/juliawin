@@ -223,7 +223,7 @@ function install_pluto()
     Pkg.add("Pluto")
     Pkg.add("HTTP")
     activate_binary("pluto")
-    activate_binary("julia-or-pluto")
+    activate_binary("open-with-julia-or-pluto")
 end
 
 
