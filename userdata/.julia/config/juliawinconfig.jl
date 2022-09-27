@@ -5,6 +5,7 @@ ENV["PYTHON"] = ""
 # Force installation of packages
 for _ in true
     function lazy_add(pkgsym)
+        # TODO: false positives from `]activate ...` and `]add PackageName`
         if !(isdir(joinpath(@__DIR__, "..", "packages", String(pkgsym))))
             @eval using Pkg
             Pkg.add(String(pkgsym))
@@ -13,6 +14,8 @@ for _ in true
 
     lazy_add(:Revise)
     lazy_add(:OhMyREPL)
+    lazy_add(:HTTP) # Used by Pluto.exe
+    lazy_add(:Sockets) # Used by Pluto.exe
 end
 
 

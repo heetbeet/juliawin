@@ -1,5 +1,4 @@
 packages/*
-userdata/.atom
 userdata/.julia
 /.idea/
 /toggle-brackets-in-executable-filenames.lnk

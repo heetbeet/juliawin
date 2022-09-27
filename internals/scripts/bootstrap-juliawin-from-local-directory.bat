@@ -25,7 +25,7 @@ echo If you have Git installed, you may skip MinGW installation.
 echo If you are unsure, go ahead and mark MinGW for installation.
 echo:
 
-for %%x in (MinGW VSCode Juno Pluto PyCall Jupyter) do (
+for %%x in (MinGW VSCode Pluto PyCall Jupyter) do (
     call :PROMPT-YES-NO-RESET q %%x
     echo:
     if /i "!q!" equ "y" set "juliawin-install%%x=1"

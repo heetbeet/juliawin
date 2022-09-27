@@ -175,50 +175,6 @@ function install_curl()
 end
 
 
-function install_atom()
-    dlreg = if Sys.iswindows()
-         r"/atom/atom/.*x64.*zip"
-    else #linux
-         r"/atom/atom/.*amd64.*tar.gz"
-    end
-
-    #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
-    atom_zip = download_from_homepage("https://github.com/atom/atom/releases",
-                        dlreg;
-                        notmatch=r"-beta",
-                        prefix="https://github.com/")
-
-    extract_file(atom_zip, joinpath(juliawinpackages, "atom"))
-    activate_binary("atom")
-    activate_binary("apm")
-end
-
-
-function install_juno()
-    activate_binary("atom")
-    activate_binary("apm")
-    activate_binary("juno")
-
-    apmbin = if Sys.iswindows() "$juliawinbin/apm.bat" else apmbin = "apm" end
-
-    # https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
-    # make apm available as .bat as well
-    run(`$apmbin install language-julia`)
-    run(`$apmbin install julia-client`)
-    run(`$apmbin install ink`)
-    run(`$apmbin install uber-juno`)
-    run(`$apmbin install latex-completions`)
-    run(`$apmbin install indent-detective`)
-    run(`$apmbin install hyperclick`)
-    run(`$apmbin install tool-bar`)
-    run(`$apmbin install file-watcher`)
-
-    Pkg.add("Atom")
-    Pkg.add("Juno")
-
-end
-
-
 function install_pluto()
     Pkg.add("Pluto")
     Pkg.add("HTTP")

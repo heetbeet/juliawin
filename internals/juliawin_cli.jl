@@ -76,7 +76,7 @@ elseif parsed_args["install-dialog"]
 
 
     dict = Dict()
-    for app in ["MinGW", "VSCode", "Juno", "Pluto", "PyCall", "Jupyter" ]
+    for app in ["MinGW", "VSCode", "Pluto", "PyCall", "Jupyter" ]
         doflagset(app, dict)
     end
 
@@ -90,11 +90,6 @@ elseif parsed_args["install-dialog"]
 
     if dict["VSCode"]
         install_vscode()
-    end
-
-    if dict["Juno"]
-        install_atom()
-        install_juno()
     end
 
     if dict["Pluto"]
