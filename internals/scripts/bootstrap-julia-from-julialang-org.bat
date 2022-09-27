@@ -42,7 +42,8 @@ call :TRY-DOWNLOAD-TEN-TIMES "%juliaurl%" "%juliazip%"
 
 :: Extract
 echo () Extracting %juliazip% into "%ARG_dest%"
-call %functions% EXTRACT-ZIP-WINDOWS "%juliazip%" "%ARG_dest%"
+call %functions% EXTRACT-ZIP-WINDOWS  "%ARG_dest%"
+call "%~dp0..\..\packages\7z\bin\7z.exe" x -y "-o%ARG_dest%" "%juliazip%"
 
 :: Fix path
 call %functions% EXPAND-ASTERIX nested "%ARG_dest%\julia*"

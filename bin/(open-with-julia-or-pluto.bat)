@@ -1,5 +1,4 @@
 @echo off
-setlocal
 
 :: Read first line of file and sanitize it for testing
 set plutoheader=xxx
@@ -11,7 +10,7 @@ set plutoheader=%plutoheader:"=%
 
 :: Dispatch to the correct program
 if "%plutoheader%" equ "### A Pluto.jl notebook ###" (
-    goto #_undefined_# 2>NUL || title %COMSPEC% & call "%~dp0\pluto.bat" %*
+    goto #_undefined_# 2>NUL || title %~n0 & call "%~dp0\pluto.bat" %*
 ) else (
-    goto #_undefined_# 2>NUL || title %COMSPEC% & call "%~dp0\julia.bat" %*
+    goto #_undefined_# 2>NUL || title %~n0 & call "%~dp0\julia.bat" %*
 )

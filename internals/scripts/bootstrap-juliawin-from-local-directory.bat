@@ -18,6 +18,8 @@ if exist "%juliawin_packages%\julia\bin\julia.exe" (
     call :PROMPT-FORCEINSTALL forceinstall
     echo:
 )
+if /i "%forceinstall%" equ "C" exit /b -1
+if /i "%forceinstall%" equ "" exit /b -1
 
 
 echo Note: For a posix shell experience in Julia, you will need a MinGW installation.
@@ -31,6 +33,7 @@ for %%x in (MinGW VSCode Pluto PyCall Jupyter) do (
     if /i "!q!" equ "y" set "juliawin-install%%x=1"
     if /i "!q!" equ "n" set "juliawin-install%%x=0"
     if /i "!q!" equ "r" goto :questionsstart
+    if /i "!q!" equ "" exit /b -1
 )
 
 
@@ -86,7 +89,7 @@ goto :eof
     set "forceinstall="
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!forceinstall!" neq "O"  if /i "!forceinstall!" neq "S" if /i "!forceinstall!" neq "C" (
-            set /P forceinstall="Julia installation in packages\julia already exist. Overwrite, skip or cancel [O/S/C]? " || set forceinstall=xxxx
+            set /P forceinstall="Julia installation in packages\julia already exist. Overwrite, skip or cancel [O/S/C]? " || exit /b -1
         )
     )
     set "%~1=%forceinstall%"
@@ -101,7 +104,7 @@ goto :eof
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!answer!" neq "Y"  if /i "!answer!" neq "N" if /i "!answer!" neq "R" (
             echo Install %2...
-            set /P answer="Yes, No, Reset questions [Y/N/R]? " || set answer=xxxx
+            set /P answer="Yes, No, Reset questions [Y/N/R]? " || exit /b -1
         )
     )
     set "%~1=%answer%"

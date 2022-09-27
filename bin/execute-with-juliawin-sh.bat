@@ -21,9 +21,8 @@ exit $?
 :: ****************************************************************************
 :batch-script
 @echo off
-setlocal
 
-goto #_undefined_# 2>NUL || call "%~dp0\activate-juliawin-environment.bat"
+call "%~dp0\activate-juliawin-environment.bat"
 
 :: If we are already in posix environment, just run directly
 if "%MSYSTEM%" equ "" goto :not-already-in-mingw

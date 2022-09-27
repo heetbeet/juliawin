@@ -15,7 +15,6 @@ for _ in true
     lazy_add(:Revise)
     lazy_add(:OhMyREPL)
     lazy_add(:HTTP) # Used by Pluto.exe
-    lazy_add(:Sockets) # Used by Pluto.exe
 end
 
 
@@ -33,5 +32,5 @@ Base.atreplinit() do _
     end
 
     add_and_use(:Revise)
-    add_and_use(:OhMyREPL)
+    #add_and_use(:OhMyREPL)
 end

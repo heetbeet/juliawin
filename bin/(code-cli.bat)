@@ -1,5 +1,4 @@
 @echo off
-setlocal
 
-goto #_undefined_# 2>NUL || title %COMSPEC% & call "%~dp0\activate-juliawin-environment.bat"
-goto #_undefined_# 2>NUL || title %COMSPEC% & call "%~dp0\execute-with-juliawin-sh.bat" "%juliawin_packages%\vscode\bin\code.cmd" --user-data-dir "%juliawin_userdata%\.vscode\data\user-data" --extensions-dir "%juliawin_userdata%\.vscode\extensions" %*
+call "%~dp0\activate-juliawin-environment.bat"
+goto #_undefined_# 2>NUL || title %~n0 & call "%~dp0\execute-with-juliawin-sh.bat" "%juliawin_packages%\vscode\bin\code.cmd" --user-data-dir "%juliawin_userdata%\.vscode\data\user-data" --extensions-dir "%juliawin_userdata%\.vscode\extensions" %*

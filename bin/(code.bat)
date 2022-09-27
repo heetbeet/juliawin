@@ -1,3 +1,3 @@
 @echo off
 
-goto #_undefined_# 2>NUL || title %COMSPEC% & call "%~dp0code-cli.bat" %*
+goto #_undefined_# 2>NUL || title %~n0 & call "%~dp0code-cli.bat" %*
