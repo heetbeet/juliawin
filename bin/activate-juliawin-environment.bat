@@ -28,5 +28,8 @@ call "%~dp0\activate-juliawin-portability.bat"
 
 set "PATH=%juliawin_packages%\julia\libexec;%juliawin_packages%\julia\bin;%juliawin_packages%\curl\bin;%juliawin_packages%\vscode;%juliawin_packages%\atom\resources\cli;%PATH%"
 
+if exist "%juliawin_userdata%\startup.bat" call "%juliawin_userdata%\startup.bat"
+if exist "%juliawin_userdata%\startup.cmd" call "%juliawin_userdata%\startup.cmd"
+
 :: Set flag to indicate everything is already activated
 set "juliawin_activated=1"
