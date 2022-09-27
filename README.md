@@ -1,7 +1,7 @@
 <p align="center"> <img src="https://raw.githubusercontent.com/heetbeet/juliawin/main/internals/assets/juliawin-logo.svg" width="350" /> </p>
 
 # A portable Julia distribution with batteries included
-Juliawin includes Julia as well as tools like VSCode, Pluto, Jupyter and the scientific Python stack bundled with PyCall.
+Juliawin includes Julia as well as tools like Juliaup, VSCode, Pluto, Jupyter and the scientific Python stack bundled with PyCall.
 
 Juliawin sets out to be similar to https://winpython.github.io/ in outcome.
 

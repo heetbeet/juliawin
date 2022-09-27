@@ -4,26 +4,16 @@ SETLOCAL EnableDelayedExpansion
 :: Access to external functions
 call "%~dp0\..\..\bin\activate-juliawin-environment.bat"
 
-call %functions% ARG-PARSER %*
-if "%ARG_h%%ARG_help%" NEQ "" (
-    goto :PRINT-HELP
-)
-if "%ARG_force%" equ "1" goto :forceoverwrite
+if /i "%~1" EQU "--help"  goto :PRINT-HELP
+if /i "%~1" EQU "-h"  goto :PRINT-HELP
+if /i "%~1" EQU "/help"  goto :PRINT-HELP
+if /i "%~1" EQU "/h"  goto :PRINT-HELP
 
 :questionsstart
 echo:
 
-:: Test if we should forcefully install julia
-if exist "%juliawin_packages%\julia\bin\julia.exe" (
-    call :PROMPT-FORCEINSTALL forceinstall
-    echo:
-)
-if /i "%forceinstall%" equ "C" exit /b -1
-if /i "%forceinstall%" equ "" exit /b -1
-
-
 echo Note: For a posix shell experience in Julia, you will need a MinGW installation.
-echo If you have Git installed, you may skip MinGW installation. 
+echo If you have Git installed, you may skip MinGW installation.
 echo If you are unsure, go ahead and mark MinGW for installation.
 echo:
 
@@ -36,25 +26,6 @@ for %%x in (MinGW VSCode Pluto PyCall Jupyter) do (
     if /i "!q!" equ "" exit /b -1
 )
 
-
-:: See if Julia should force overwrite
-if exist "%juliawin_packages%\julia\bin\julia.exe" (
-    if /i "%forceinstall%" EQU "S" goto :skipoverwrite
-    if /i "%forceinstall%" NEQ "O" exit /b -1
-)
-
-:forceoverwrite
-    :: Install Julia
-    call %functions% DELETE-DIRECTORY "%juliawin_packages%\julia" 2 > nul
-    set "args="
-    if "%ARG_use-nightly-build%" equ "1" (
-        set "args=/use-nightly-build"
-    )
-    if "%ARG_use-beta-build%" equ "1" (
-        set "args=/use-beta-build"
-    )
-    call "%~dp0\bootstrap-julia-from-julialang-org.bat" /dest "%juliawin_packages%\julia" %args%
-:skipoverwrite
 
 :: Run juliawin installation script
 call "%juliawin_packages%\julia\bin\julia.exe" "%juliawin_home%\internals\juliawin_cli.jl" --install-dialog
@@ -76,23 +47,6 @@ goto :eof
     echo   %~n0 [options]
     echo Options:
     echo   /h, /help           Print these options
-    echo   /force              Overwrite current "/packages/julia" installation without prompt
-    echo   /use-nightly-build  For developer previews and not intended for normal use
-    echo   /use-beta-build     Latest beta, possibly unstable
-goto :eof
-
-
-::**************************
-:: Prompt forceinstall
-::**************************
-:PROMPT-FORCEINSTALL <answer>
-    set "forceinstall="
-    for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
-        if /i "!forceinstall!" neq "O"  if /i "!forceinstall!" neq "S" if /i "!forceinstall!" neq "C" (
-            set /P forceinstall="Julia installation in packages\julia already exist. Overwrite, skip or cancel [O/S/C]? " || exit /b -1
-        )
-    )
-    set "%~1=%forceinstall%"
 goto :eof
 
 
