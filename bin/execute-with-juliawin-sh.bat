@@ -21,21 +21,20 @@ exit $?
 :: ****************************************************************************
 :batch-script
 @echo off
-setlocal
 
 call "%~dp0\activate-juliawin-environment.bat"
 
 :: If we are already in posix environment, just run directly
 if "%MSYSTEM%" equ "" goto :not-already-in-mingw
 
-    call %*
+    goto #_undefined_# 2>NUL || call  %*
     exit /b %errorlevel%
 
 :: If we have access to sh.exe, invoke program under bash
 :not-already-in-mingw
 if "%juliawin_sh%" equ "" goto :cannot-find-bash
 
-	call "%juliawin_sh%" "%~dp0%~n0.bat" %*
+	goto #_undefined_# 2>NUL || call "%juliawin_sh%" "%~dp0%~n0.bat" %*
 	exit /b %errorlevel%
 
 :: Else run under windows cmd as fallback
@@ -44,5 +43,5 @@ if "%juliawin_sh%" equ "" goto :cannot-find-bash
 	echo Git Bash not in `packages\git`, `%%programfiles%%\git`, or `git.exe`
 	echo You can install Git from git-scm.com for Julia posix access
 
-	call %*
+	goto #_undefined_# 2>NUL || call  %*
 	exit /b %errorlevel%

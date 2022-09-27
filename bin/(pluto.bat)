@@ -1,8 +1,19 @@
-@eval 1# 2>nul & @call "%~dp0julia.bat" "%~dp0%~n0.bat" %* & @goto:eof
+@eval 1# 2>nul & @goto #_undefined_# 2>NUL || title %~n0 & @call "%~dp0julia.bat" "%~dp0%~n0.bat" %* & @goto:eof
+
+for pkgsym in [:HTTP, :Pluto]
+    try
+        @eval using $pkgsym
+    catch e
+        @eval using Pkg
+        Pkg.add(String(pkgsym))
+        @eval using $pkgsym
+    end
+end
+using Sockets
+
 
 pluto_secret_file = joinpath((@__DIR__), "..", "userdata", ".julia", "plutosecret.txt")
-using Sockets
-using HTTP
+
 
 get_open_pluto() = begin
     

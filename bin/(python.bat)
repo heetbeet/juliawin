@@ -1,8 +1,6 @@
 @echo off
-setlocal
 
 call "%~dp0\activate-juliawin-environment.bat"
 call "%juliawin_packages%\conda\Scripts\activate.bat"
 
-"%juliawin_packages%\conda\python.exe" %*
-exit /b %errorlevel%
+goto #_undefined_# 2>NUL || title %~n0 & call "%juliawin_packages%\conda\python.exe" %*

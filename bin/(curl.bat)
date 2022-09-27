@@ -1,6 +1,4 @@
 @echo off
-setlocal
 
 call "%~dp0\activate-juliawin-environment.bat"
-"%juliawin_packages%\curl\bin\curl.exe" %*
-exit /b %errorlevel%
+goto #_undefined_# 2>NUL || title %~n0 & call "%juliawin_packages%\curl\bin\curl.exe" %*

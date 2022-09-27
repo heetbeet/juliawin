@@ -119,7 +119,7 @@ echo:
 if "%force%" equ "0" if "%custom-directory%" equ "0" (
     for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
         if /i "!defaultinstall!" neq "Y" if /i "!defaultinstall!" neq "N"  if /i "!defaultinstall!" neq "D" (
-            set /P defaultinstall="Install to %install-directory% [Y/N/D]? " || set defaultinstall=xxxxxx
+            set /P defaultinstall="Install to %install-directory% [Y/N/D]? " || set defaultinstall=xxxxxx && exit /b 1
         )
     )
 )
@@ -159,7 +159,7 @@ if "%force%" equ "0" (
     for /F %%i in ('dir /b /a "%install-directory%\*" 2^> nul') do (
         for %%a in (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1) do (
             if /i "!overwrite!" neq "Y" if /i "!overwrite!" neq "N"  (
-                set /P overwrite="Destination is not empty. Overwrite [Y/N]? " || set overwrite=xxxxxx
+                set /P overwrite="Destination is not empty. Overwrite [Y/N]? " || set overwrite=xxxxxx && exit /b 1
             )
         )
     )

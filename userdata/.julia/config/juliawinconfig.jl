@@ -5,6 +5,7 @@ ENV["PYTHON"] = ""
 # Force installation of packages
 for _ in true
     function lazy_add(pkgsym)
+        # TODO: false positives from `]activate ...` and `]add PackageName`
         if !(isdir(joinpath(@__DIR__, "..", "packages", String(pkgsym))))
             @eval using Pkg
             Pkg.add(String(pkgsym))
@@ -30,5 +31,5 @@ Base.atreplinit() do _
     end
 
     add_and_use(:Revise)
-    add_and_use(:OhMyREPL)
+    #add_and_use(:OhMyREPL)
 end

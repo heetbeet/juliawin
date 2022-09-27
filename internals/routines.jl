@@ -111,7 +111,7 @@ function extract_file(archive, destdir, fixdepth=true)
     mkpath(destdir)
 
     if Sys.iswindows()
-        run(`7z x -y "-o$destdir" "$archive"`)
+        run(`7z.bat x -y "-o$destdir" "$archive"`)
     else
         if endswith(lowercase(archive), ".tar.gz")
                 run(`tar -xzf "$archive" -C "$destdir"`)
@@ -175,51 +175,8 @@ function install_curl()
 end
 
 
-function install_atom()
-    dlreg = if Sys.iswindows()
-         r"/atom/atom/.*x64.*zip"
-    else #linux
-         r"/atom/atom/.*amd64.*tar.gz"
-    end
-
-    #https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
-    atom_zip = download_from_homepage("https://github.com/atom/atom/releases",
-                        dlreg;
-                        notmatch=r"-beta",
-                        prefix="https://github.com/")
-
-    extract_file(atom_zip, joinpath(juliawinpackages, "atom"))
-    activate_binary("atom")
-    activate_binary("apm")
-end
-
-
-function install_juno()
-    activate_binary("atom")
-    activate_binary("apm")
-    activate_binary("juno")
-
-    apmbin = if Sys.iswindows() "$juliawinbin/apm.bat" else apmbin = "apm" end
-
-    # https://github.com/atom/atom/releases/download/v1.45.0/atom-x64-windows.zip
-    # make apm available as .bat as well
-    run(`$apmbin install language-julia`)
-    run(`$apmbin install julia-client`)
-    run(`$apmbin install ink`)
-    run(`$apmbin install uber-juno`)
-    run(`$apmbin install latex-completions`)
-    run(`$apmbin install indent-detective`)
-    run(`$apmbin install hyperclick`)
-    run(`$apmbin install tool-bar`)
-    run(`$apmbin install file-watcher`)
-
-    Pkg.add("Atom")
-    Pkg.add("Juno")
-
-end
-
-
 function install_pluto()
+    println("Adding Pluto to Julia")
     Pkg.add("Pluto")
     Pkg.add("HTTP")
     activate_binary("pluto")
@@ -234,16 +191,19 @@ function install_jupyter()
 
     # Everything is in an eval to get around global scope and 
     # the world age problem
-    @eval begin 
-        using Conda
-        Conda.add("jupyter")
-        Conda.add("jupyterlab")
+    @eval begin
+        # TODO: Conda is failing with ResolvePackageNotFound: conda==4.14.0
+        #using Conda
+        #Conda.add("jupyter")
+        #Conda.add("jupyterlab")
+
+        run(`cmd /c ""$(juliawinpackages)/conda/scripts/activate.bat" && pip install --upgrade jupyter"`)
+        run(`cmd /c ""$(juliawinpackages)/conda/scripts/activate.bat" && pip install --upgrade jupyterlab"`)
     end
 
     activate_binary("python")
     activate_binary("IJulia-notebook")
     activate_binary("IJulia-lab")
-
 end
 
 
@@ -267,11 +227,7 @@ end
 
 
 function install_git()
-
-    # https://github.com/git-for-windows/git/releases/download/v2.29.2.windows.2/PortableGit-2.29.2.2-64-bit.7z.exe
-    git_zip = download_from_homepage("https://github.com/git-for-windows/git/releases/",
-                        r"/download/.*PortableGit.*64-bit.7z.exe";
-                        prefix="https://github.com/")
+    git_zip = download_from_homepage("https://api.github.com/repos/git-for-windows/git/releases/latest", 
+        r"https://github.com/.*/PortableGit.*64-bit.7z.exe")
     extract_file(git_zip, joinpath(juliawinpackages, "git"))
-
 end

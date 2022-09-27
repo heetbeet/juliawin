@@ -1,5 +1,0 @@
-@echo off
-setlocal
-
-"%~dp0\atom.bat" %*
-exit /b %errorlevel%

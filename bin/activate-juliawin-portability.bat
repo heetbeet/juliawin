@@ -38,14 +38,14 @@ if "%juliawin_home%" neq "%last-seen-juliawin_home%" (
     if exist "%juliawin_userdata%\.julia\packages\IJulia" (
         REM IJulia builds both Conda and IJulia
 
-        start "" "%juliawin_splash%"
+        start "" mshta.exe "%juliawin_splash%"
         call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"PyCall\"); Pkg.build(\"IJulia\")"
         set "build-errlevel=!errorlevel!"
 
     ) else if exist "%juliawin_userdata%\.julia\packages\Conda" (
         REM Building Conda only
 
-        start "" "%juliawin_splash%"
+        start "" mshta.exe "%juliawin_splash%"
         call "%juliawin_packages%\julia\bin\julia.exe" -e "using Pkg; Pkg.build(\"PyCall\"); Pkg.build(\"Conda\");"
         set "build-errlevel=!errorlevel!"
     )
