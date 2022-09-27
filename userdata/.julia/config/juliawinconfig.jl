@@ -14,7 +14,6 @@ for _ in true
 
     lazy_add(:Revise)
     lazy_add(:OhMyREPL)
-    lazy_add(:HTTP) # Used by Pluto.exe
 end
 
 

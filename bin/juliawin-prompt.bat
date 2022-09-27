@@ -8,12 +8,8 @@ if exist "%juliawin_packages%\conda\Scripts\activate.bat" (
 )
 
 :: If not parameters provided, open prompts, otherwise `run` the arguments directly
-if "%~1%~2%~3%~4%~5%~6%~7%~8%~9" equ "" ( 
-    if "%juliawin_sh%" neq "" (
-        goto #_undefined_# 2>NUL || title %~n0 & call "%juliawin_sh%"
-    ) else (
-        goto #_undefined_# 2>NUL || title %~n0 & call cmd
-    )
+if "%~1%~2%~3%~4%~5%~6%~7%~8%~9" equ "" (
+    goto #_undefined_# 2>NUL || title %~n0 & call cmd
 ) else (
-    goto #_undefined_# 2>NUL || title %~n0 & call "%~dp0\execute-with-juliawin-sh.bat" %*
+    goto #_undefined_# 2>NUL || title %~n0 & call %*
 )
